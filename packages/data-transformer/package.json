@@ -1,0 +1,8 @@
+{
+  "name": "@anno/data-transformer",
+  "private": true,
+  "scripts": {
+    "build": "python3 assets.py ../../data/extracted ../../data/anno.sqlite && python3 transform.py ../../data/anno.sqlite ../../data/site.sqlite ../../data/icons --langs english,german",
+    "test": "python3 test_assets.py && python3 check_site.py"
+  }
+}

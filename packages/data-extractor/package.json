@@ -1,0 +1,8 @@
+{
+  "name": "@anno/data-extractor",
+  "private": true,
+  "scripts": {
+    "extract": "python3 rda.py extract \"${ANNO_MAINDATA:-/Users/alizahid/Library/Application Support/CrossOver/Bottles/Steam/drive_c/Program Files (x86)/Steam/steamapps/common/Anno 117 - Pax Romana/maindata}\" ../../data/extracted && python3 icons.py ../../data/extracted ../../data/icons",
+    "test": "python3 test_rda.py"
+  }
+}

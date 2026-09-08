@@ -1,0 +1,18 @@
+{
+  "name": "anno",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "extract": "turbo run extract"
+  },
+  "devDependencies": {
+    "turbo": "^2"
+  },
+  "packageManager": "bun@1.4.0"
+}

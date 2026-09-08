@@ -1,0 +1,12 @@
+node_modules
+.turbo
+dist
+.next
+__pycache__
+*.pyc
+.venv
+# game data + extracted output never go in git
+data/*
+
+# the one generated artifact the site deploys with
+!data/site.sqlite
