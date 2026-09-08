@@ -1,6 +1,6 @@
-"""Transform the generic asset DB (anno.sqlite) into the normalized site DB (docs/schema.md).
+"""Transform the generic asset DB (source.sqlite) into the normalized site DB (docs/schema.md).
 
-Usage: python3 transform.py <anno.sqlite> <site.sqlite> [icons_dir] [--langs english,german]
+Usage: python3 transform.py <source.sqlite> <anno.sqlite> [icons_dir] [--langs english,german]
 """
 import json
 import os

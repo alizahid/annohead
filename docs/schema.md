@@ -1,13 +1,13 @@
 # Anno 117 data schema (proposal)
 
-Status: proposal, not final. Everything below is derived from the resolved game data in `data/anno.sqlite`
+Status: proposal, not final. Everything below is derived from the resolved game data in `data/source.sqlite`
 (built by `packages/data-transformer/assets.py`). The generic transformer that fills the site database is written once
 this document is agreed.
 
 ## Layers
 
 1. **Extracted files** (`data/extracted`): raw XML + DDS icons pulled from the RDAs in load order.
-2. **Generic model** (`data/anno.sqlite`): every asset fully resolved (property defaults → template defaults →
+2. **Generic model** (`data/source.sqlite`): every asset fully resolved (property defaults → template defaults →
    base-asset inheritance), plus `refs` (every GUID reference with its JSON path) and `texts` (11 languages).
    This layer is complete and lossless. Anything the site needs can be derived from it, so the transformer
    never has to touch XML again.
@@ -29,20 +29,23 @@ this document is agreed.
 ## Site tables
 
 ### Lookups
-| table | source | notes |
-|---|---|---|
-| `region` | datasets `Region` | Roman, Celtic, Egyptian + display names |
-| `dlc` | template `UplayProduct` where ProductType=DLC | 3 DLCs + cosmetic DLCs |
-| `population_level` | template `PopulationLevel` (9) | tier, region, workforce product, icon |
-| `product_category` | text ids on `Product.ProductCategory` | Raw Material, Need, Construction … |
-| `building_category` | text ids on `Building.BuildingCategoryName` | Clothier, Smelter, Kitchen … (Toolkit "building categories") |
-| `text` | `texts` | line_id, lang, text |
+
+| table               | source                                        | notes                                                        |
+| ------------------- | --------------------------------------------- | ------------------------------------------------------------ |
+| `region`            | datasets `Region`                             | Roman, Celtic, Egyptian + display names                      |
+| `dlc`               | template `UplayProduct` where ProductType=DLC | 3 DLCs + cosmetic DLCs                                       |
+| `population_level`  | template `PopulationLevel` (9)                | tier, region, workforce product, icon                        |
+| `product_category`  | text ids on `Product.ProductCategory`         | Raw Material, Need, Construction …                           |
+| `building_category` | text ids on `Building.BuildingCategoryName`   | Clothier, Smelter, Kitchen … (Toolkit "building categories") |
+| `text`              | `texts`                                       | line_id, lang, text                                          |
 
 ### product
+
 From template `Product` (155). `guid, name, icon, category, base_price, regions[], storage_level,
 transport_type`. Derived: `produced_by[]`, `consumed_by[]` from FactoryBase inputs/outputs.
 
 ### building
+
 Any asset with `Building` + `Constructable` properties (~250 incl. variants and DLC).
 Core: `guid, name, description, icon, template, kind, building_type, category, regions[], dlc,
 radius, street_radius, health, cost[] (product, amount), maintenance[] (money, workforce product, amount),
@@ -51,6 +54,7 @@ skins[], variant_group` (buildings sharing a display name).
 (`CityInstitutionBuilding`), Harbour, Military, Monument, Marvel, Aqueduct, Marsh, Ornament, Road.
 
 Sub-tables:
+
 - `building_production` (FactoryBase): `inputs[] (product, amount, storage)`, `outputs[]`, `cycle_time`,
   `base_productivity`, `transporter_range`, fertility/field requirements for farms.
 - `building_residence` (Residence7): `population_level`, `needs[] (need, consumption_rate, buff_only)`,
@@ -59,16 +63,20 @@ Sub-tables:
 - `building_unlock`: how it becomes buildable, see Unlocks.
 
 ### production_chain
+
 Template `ProductionChain` (77): `guid, name, icon, output_building, tiers` (tree of buildings). Rates for
 the calculator come from `building_production` (output per minute = 60 / cycle_time × amount).
 
 ### need
+
 Template `Need` (88): `guid, name, product, category, attributes provided (Population, Money, …)`.
 
 ### effect / buff (the "spinner gives knowledge" case)
+
 Everything that modifies a building is an **Effect** (1,110) that applies **Buffs** to a target pool.
+
 - `effect`: `guid, name, scope (Radius, ObjectsInMeta, Local …), source_category (Adjacency, Item, Tech,
-  Religion, Wonder, Festival, Volcano …), targets[]` (flattened building GUIDs).
+Religion, Wonder, Festival, Volcano …), targets[]` (flattened building GUIDs).
 - `buff`: `guid, name, modifiers[]` where each modifier is `(path, value, percental)` for every leaf under
   the `*Upgrade` properties, e.g. `BuildingUpgrade.AdditionalAttributes.Knowledge = +1`,
   `FactoryUpgrade.ProductivityUpgrade = +25%`, `ResidenceUpgrade.NeedProvidedNeedAttributes …`.
@@ -81,6 +89,7 @@ Per building the site can then list: base adjacency effects, plus every conditio
 (tech "Sewing Circles", 8,000 knowledge → Knowledge +1 near Spinners).
 
 ### item (specialists, captains, quest items)
+
 Templates `Item`, `ItemWithBoost`, `ItemWithUI`, `ItemQuest` (~660).
 `guid, name, description, icon (portrait), rarity, niche (category), item_type (Specialist, Captains,
 NonSocketable …), allocation (Villa, Ship), trade_price, dlc, origin, effect (targets + buffs),
@@ -88,15 +97,18 @@ boost (condition summary, boosted buffs), sources[]` (reward pools, hall of fame
 Portraits: `items_specialist/<group>/icon_3d_*.dds`, 4K, already extracted.
 
 ### tech
+
 Template `Tech` (207): `guid, name, description, icon, category, knowledge_needed, is_gate, grid_x, grid_y,
 rewards { unlocks[] (flattened), effects[], resources[] }, requirements` (visibility / researchable triggers).
 
 ### unlock
+
 Every `ActionUnlockAsset` / `ActionLockAsset` in triggers (`TriggerIntermediateLevel`, `FeatureUnlock`,
 `Tech` rewards, quest sequences): `(asset, condition)` with condition kept as a small typed summary
 (population level X reaches N, tech researched, DLC active, romanization …) plus the raw JSON.
 
 ### quests
+
 Quest content is a graph of **components** connected by output ports. Nodes and edges are extracted
 generically: every `…Component` reference in a quest-template asset is an edge, its JSON path is the kind.
 
@@ -106,7 +118,7 @@ generically: every `…Component` reference in a quest-template asset is an edge
   StateChecker, Starter, Loop, Exit …), `name, headline, text, objective_text, time_limit, payload` (raw JSON).
 - `quest_edge`: `from, to, kind, index, label` where kind is the port:
   `StoryLine.StartConnector`, `QuestComponentConnector.Output`, `Objective.SuccessOutput/FailureOutput/
-  TimedOutOutput`, `DecisionRoot.DecisionRootOutput[i]` (option i, label = `Decision.DecisionOptions[i].OptionText`),
+TimedOutOutput`, `DecisionRoot.DecisionRootOutput[i]` (option i, label = `Decision.DecisionOptions[i].OptionText`),
   `DecisionRoot.DecisionTimeOutOutput`, `Function.FunctionSuccessOutput`, `StateChecker.States[i].*`,
   `Starter.AcceptOutput` …
 - `quest_option`: `(decision, index, text, category, requirement)`.
@@ -134,6 +146,5 @@ This is enough for the flowchart view: nodes, typed edges, option labels, reward
 
 Third normal form throughout: every list becomes its own table with foreign keys (`building_cost`,
 `building_maintenance`, `factory_input`, `factory_output`, `effect_target`, `buff_modifier`, `item_source`,
-`quest_edge` …). No JSON columns except an optional `raw_guid` back to `anno.sqlite`. Enums (region, rarity,
+`quest_edge` …). No JSON columns except an optional `raw_guid` back to `source.sqlite`. Enums (region, rarity,
 niche, building kind, edge kind, attribute) become lookup tables. Texts live once in `text(line_id, lang, value)`.
-

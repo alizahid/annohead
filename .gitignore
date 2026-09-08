@@ -9,4 +9,4 @@ __pycache__
 data/*
 
 # the one generated artifact the site deploys with
-!data/site.sqlite
+!data/anno.sqlite

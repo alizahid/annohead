@@ -2,7 +2,7 @@
 import sqlite3
 import sys
 
-db = sqlite3.connect(sys.argv[1] if len(sys.argv) > 1 else "../../data/site.sqlite")
+db = sqlite3.connect(sys.argv[1] if len(sys.argv) > 1 else "../../data/anno.sqlite")
 q = lambda sql, *a: db.execute(sql, a).fetchall()  # noqa: E731
 # Spinner: adjacency Money +1; tech Sewing Circles adds Knowledge +1 through a functional effect
 assert q("select value from building_effect be join effect_buff eb using(effect_guid) join buff_modifier bm using(buff_guid) where be.building_guid=3187 and bm.path like '%.Money'") == [(1.0,)]
