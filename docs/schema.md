@@ -21,9 +21,9 @@ this document is agreed.
 - Names live in `texts_<lang>.xml` keyed by a 64-bit **line id** (`Values/Text/OasisId`).
 - Icons are referenced as `data/ui/fhd/.../name.png` and exist on disk as `data/ui/4k/.../name_0.dds`
   (1,895 of 2,071 referenced icons resolve this way; the rest are UI backgrounds, not entity icons).
-  `data-extractor/publish.py` resizes each to a 256px WebP named `sha1(source path)[:12].webp` and syncs the
+  `data-extractor/publish.py` resizes each to a 256px WebP named `sha1(source path)[:12].png` and syncs the
   set to Cloudflare R2. The `icon` column in every site table holds that key, so the URL is
-  `https://<cdn-host>/<icon>.webp`.
+  `https://<cdn-host>/<icon>.png`.
 - Groups of things are **AssetPools** (705), nested. Effects, unlocks and quest rewards target pools, so
   "which buildings does this affect" always means "flatten the pool".
 - Regions: `Roman` = Latium, `Celtic` = Albion, `Egyptian` = Delta (DLC 3). Region variants of a building are

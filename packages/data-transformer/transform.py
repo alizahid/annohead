@@ -2,7 +2,6 @@
 
 Usage: python3 transform.py <source.sqlite> <anno.sqlite> [cdn_dir] [--langs english,german]
 """
-import hashlib
 import json
 import os
 import re
@@ -73,11 +72,11 @@ class T:
             return default
 
     def icon(self, path):
-        """CDN key for an asset icon: sha1(source path)[:12], the file name used by data-extractor/publish.py."""
+        """CDN path of an asset icon: the game's own icon path, as written by data-extractor/publish.py."""
         if not path:
             return None
-        k = hashlib.sha1(path.replace("\\", "/").encode()).hexdigest()[:12]
-        if self.icons_dir and not os.path.exists(os.path.join(self.icons_dir, k + ".webp")):
+        k = path.replace("\\", "/").rsplit(".", 1)[0] + ".png"
+        if self.icons_dir and not os.path.exists(os.path.join(self.icons_dir, k)):
             return None
         return k
 
