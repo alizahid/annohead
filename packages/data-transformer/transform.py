@@ -1,7 +1,8 @@
 """Transform the generic asset DB (source.sqlite) into the normalized site DB (docs/schema.md).
 
-Usage: python3 transform.py <source.sqlite> <anno.sqlite> [icons_dir] [--langs english,german]
+Usage: python3 transform.py <source.sqlite> <anno.sqlite> [cdn_dir] [--langs english,german]
 """
+import hashlib
 import json
 import os
 import re
@@ -72,13 +73,13 @@ class T:
             return default
 
     def icon(self, path):
+        """CDN key for an asset icon: sha1(source path)[:12], the file name used by data-extractor/publish.py."""
         if not path:
             return None
-        p = path.replace("\\", "/")
-        cand = re.sub(r"^data/ui/fhd/", "data/ui/4k/", p).rsplit(".", 1)[0] + "_0.png"
-        if self.icons_dir and os.path.exists(os.path.join(self.icons_dir, cand)):
-            return cand
-        return None
+        k = hashlib.sha1(path.replace("\\", "/").encode()).hexdigest()[:12]
+        if self.icons_dir and not os.path.exists(os.path.join(self.icons_dir, k + ".webp")):
+            return None
+        return k
 
     def region(self, v):
         """single region id from an AssociatedRegions string; None when multi/none."""
