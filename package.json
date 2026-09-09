@@ -8,11 +8,16 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
-    "lint": "turbo run lint",
-    "extract": "turbo run extract"
+    "extract": "turbo run extract",
+    "lint": "ultracite fix",
+    "prepare": "husky"
   },
   "devDependencies": {
-    "turbo": "^2"
+    "@biomejs/biome": "2.5.12",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.5.0",
+    "turbo": "^2",
+    "ultracite": "7.11.1"
   },
   "packageManager": "bun@1.4.0"
 }
