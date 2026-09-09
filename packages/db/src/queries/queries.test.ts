@@ -1,6 +1,14 @@
 import { expect, test } from 'bun:test'
 
-import { getBuildings, getProducts, getSpecialists, getTechs } from './queries'
+import {
+  getBuildings,
+  getProducts,
+  getQuests,
+  getSpecialists,
+  getStoryline,
+  getStorylines,
+  getTechs,
+} from './index'
 
 test('specialists paginate and join effects', async () => {
   const { rows, total } = await getSpecialists({
@@ -49,4 +57,25 @@ test('products and techs', async () => {
   expect(p.rows[0]?.producedBy.length).toBeGreaterThan(0)
   const t = await getTechs({ lang: 'english', search: 'Armoursmithing' })
   expect(t.rows.some((r) => r.unlocksBuildings.length > 0)).toBe(true)
+})
+
+test('storylines and quests', async () => {
+  const s = await getStorylines({
+    lang: 'english',
+    perPage: 5,
+    system: 'Quests',
+  })
+  expect(s.rows.some((r) => r.quests.length > 0)).toBe(true)
+  const q = await getQuests({
+    category: 'Campaign',
+    lang: 'english',
+    perPage: 3,
+  })
+  expect(q.rows[0]?.storyline?.guid).toBeTruthy()
+  expect(q.rows.some((r) => r.steps.length > 0)).toBe(true)
+  const full = await getStoryline(q.rows[0]?.storyline?.guid ?? 0, 'english')
+  expect(full?.nodes.length).toBeGreaterThan(0)
+  expect(full?.edges.length).toBeGreaterThan(0)
+  expect(full?.nodes.some((n) => n.options.length > 0)).toBe(true)
+  expect(full?.nodes.some((n) => n.rewards.length > 0)).toBe(true)
 })

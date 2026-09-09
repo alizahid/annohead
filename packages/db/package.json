@@ -3,9 +3,8 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/queries.ts",
-    "./client": "./src/db.ts",
-    "./schema": "./src/schema.ts"
+    ".": "./src/index.ts",
+    "./queries": "./src/queries/index.ts"
   },
   "scripts": {
     "pull": "drizzle-kit pull && rm -rf src/meta src/*.sql src/relations.ts && bun x ultracite fix src/schema.ts",

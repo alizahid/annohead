@@ -37,6 +37,12 @@
     },
     "globals": ["__DEV__"]
   },
+  "overrides": [
+    {
+      "includes": ["packages/*/src/index.ts", "packages/*/src/*/index.ts"],
+      "linter": { "rules": { "performance": { "noBarrelFile": "off" } } }
+    }
+  ],
   "linter": {
     "rules": {
       "style": {
