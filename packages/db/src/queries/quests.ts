@@ -25,7 +25,7 @@ import {
 // ---------------------------------------------------------------- rewards
 
 /** Rewards for a set of quest nodes, with the rewarded asset's name resolved (product, item or building). */
-const rewardRows = (nodeGuids: Array<number>, lang: Lang) => {
+function rewardRows(nodeGuids: Array<number>, lang: Lang) {
   const pName = localized('p_name')
   const iName = localized('i_name')
   const bName = localized('b_name')
@@ -53,7 +53,7 @@ const rewardRows = (nodeGuids: Array<number>, lang: Lang) => {
     .where(inArray(questReward.nodeGuid, nodeGuids))
 }
 
-const optionRows = (decisionGuids: Array<number>, lang: Lang) => {
+function optionRows(decisionGuids: Array<number>, lang: Lang) {
   const oText = localized('o_text')
   return db
     .select({
@@ -68,7 +68,7 @@ const optionRows = (decisionGuids: Array<number>, lang: Lang) => {
     .orderBy(asc(questOption.idx))
 }
 
-const nodeRows = (where: SQL, lang: Lang) => {
+function nodeRows(where: SQL, lang: Lang) {
   const hText = localized('h_text')
   const tText = localized('t_text')
   const sText = localized('s_text')
@@ -277,5 +277,6 @@ export async function getQuests(f: QuestFilter & Page) {
   return { rows: rows.map((q) => ({ ...q, steps: steps(q.guid) })), total }
 }
 
-export const getQuest = async (guid: number, lang: Lang) =>
-  (await getQuests({ guid, lang })).rows[0] ?? null
+export async function getQuest(guid: number, lang: Lang) {
+  return (await getQuests({ guid, lang })).rows[0] ?? null
+}

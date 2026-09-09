@@ -65,8 +65,8 @@ export async function getProducts(f: ProductFilter & Page) {
       .offset(offset),
   ])
   const guids = rows.map((r) => r.guid)
-  const usage = (table: typeof factoryInput | typeof factoryOutput) =>
-    db
+  function usage(table: typeof factoryInput | typeof factoryOutput) {
+    return db
       .select({
         amount: table.amount,
         guid: building.guid,
@@ -78,6 +78,7 @@ export async function getProducts(f: ProductFilter & Page) {
       .innerJoin(building, eq(building.guid, table.buildingGuid))
       .leftJoin(bName, on(bName, building.nameText, f.lang))
       .where(inArray(table.productGuid, guids))
+  }
   const [producedBy, consumedBy] = await Promise.all([
     usage(factoryOutput),
     usage(factoryInput),

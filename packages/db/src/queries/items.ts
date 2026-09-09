@@ -45,11 +45,11 @@ export type ItemFilter = {
   attribute?: string
 }
 
-const itemWhere = (
+function itemWhere(
   f: ItemFilter,
   nameT: ReturnType<typeof localized>,
-): SQL | undefined =>
-  and(
+): SQL | undefined {
+  return and(
     f.search ? like(nameT.value, `%${f.search}%`) : undefined,
     f.rarity?.length ? inArray(item.rarity, f.rarity) : undefined,
     f.niche?.length ? inArray(item.niche, f.niche) : undefined,
@@ -91,6 +91,7 @@ const itemWhere = (
         )
       : undefined,
   )
+}
 
 const modifierColumns = {
   attribute: attribute.key,
@@ -100,7 +101,7 @@ const modifierColumns = {
   value: buffModifier.value,
 }
 
-const itemDetails = async (guids: Array<number>, lang: Lang) => {
+async function itemDetails(guids: Array<number>, lang: Lang) {
   const bName = localized('b_name')
   const [targets, modifiers, boosts, sources] = await Promise.all([
     db
@@ -206,8 +207,10 @@ export async function getItems(f: ItemFilter & Page) {
   }
 }
 
-export const getSpecialists = (f: Omit<ItemFilter, 'itemType'> & Page) =>
-  getItems({ ...f, itemType: 'Specialist' })
+export function getSpecialists(f: Omit<ItemFilter, 'itemType'> & Page) {
+  return getItems({ ...f, itemType: 'Specialist' })
+}
 
-export const getCaptains = (f: Omit<ItemFilter, 'itemType'> & Page) =>
-  getItems({ ...f, itemType: 'Captains' })
+export function getCaptains(f: Omit<ItemFilter, 'itemType'> & Page) {
+  return getItems({ ...f, itemType: 'Captains' })
+}

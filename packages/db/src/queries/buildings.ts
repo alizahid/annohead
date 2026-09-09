@@ -36,11 +36,11 @@ export type BuildingFilter = {
   costProduct?: number
 }
 
-const hasProduct = (
+function hasProduct(
   table: typeof factoryInput | typeof factoryOutput | typeof buildingCost,
   productGuid: number,
-) =>
-  exists(
+) {
+  return exists(
     db
       .select({ one: sql`1` })
       .from(table)
@@ -51,12 +51,10 @@ const hasProduct = (
         ),
       ),
   )
+}
 
-const buildingWhere = (
-  f: BuildingFilter,
-  nameT: ReturnType<typeof localized>,
-) =>
-  and(
+function buildingWhere(f: BuildingFilter, nameT: ReturnType<typeof localized>) {
+  return and(
     f.search ? like(nameT.value, `%${f.search}%`) : undefined,
     f.kind?.length ? inArray(building.kind, f.kind) : undefined,
     f.buildingType ? eq(building.buildingType, f.buildingType) : undefined,
@@ -68,8 +66,9 @@ const buildingWhere = (
     f.outputProduct ? hasProduct(factoryOutput, f.outputProduct) : undefined,
     f.costProduct ? hasProduct(buildingCost, f.costProduct) : undefined,
   )
+}
 
-const productRows = (
+function productRows(
   table:
     | typeof factoryInput
     | typeof factoryOutput
@@ -77,7 +76,7 @@ const productRows = (
     | typeof buildingMaintenance,
   guids: Array<number>,
   lang: Lang,
-) => {
+) {
   const pName = localized('p_name')
   return db
     .select({
@@ -93,7 +92,7 @@ const productRows = (
     .where(inArray(table.buildingGuid, guids))
 }
 
-const buildingDetails = async (guids: Array<number>, lang: Lang) => {
+async function buildingDetails(guids: Array<number>, lang: Lang) {
   const tName = localized('t_name')
   const [costs, maintenance, inputs, outputs, techs] = await Promise.all([
     productRows(buildingCost, guids, lang),
