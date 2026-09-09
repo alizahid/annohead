@@ -12,6 +12,7 @@ Usage:
 Layout (matches RDAExplorer): 784-byte header, uint64 first block offset.
 Block = [memres data][directory][memres hdr 16B][block hdr 32B] -> next block.
 """
+
 import json
 import re
 import struct
@@ -22,9 +23,13 @@ from pathlib import Path
 
 MAGIC = b"Resource File V2.2"
 HEADER_SIZE = 784
-BLOCK_HDR = struct.Struct("<IIQQQ")     # flags, fileCount, dirSize, dirDecompressedSize, nextBlock
-FILE_HDR = struct.Struct("<520sQQQQQ")  # utf16 path, offset, compressed, size, timestamp, unknown
-MEMRES_HDR = struct.Struct("<QQ")       # compressed, uncompressed
+BLOCK_HDR = struct.Struct(
+    "<IIQQQ"
+)  # flags, fileCount, dirSize, dirDecompressedSize, nextBlock
+FILE_HDR = struct.Struct(
+    "<520sQQQQQ"
+)  # utf16 path, offset, compressed, size, timestamp, unknown
+MEMRES_HDR = struct.Struct("<QQ")  # compressed, uncompressed
 F_COMPRESSED, F_ENCRYPTED, F_MEMRESIDENT, F_DELETED = 1, 2, 4, 8
 SEED = 0x71C71C71
 
@@ -65,7 +70,9 @@ class Entry:
     def read(self) -> bytes:
         if self.blob is not None:
             return self.blob[self.offset : self.offset + self.size]
-        return decode(self.rda._read_at(self.offset, self.compressed), self.flags, self.size)
+        return decode(
+            self.rda._read_at(self.offset, self.compressed), self.flags, self.size
+        )
 
 
 class Rda:
@@ -84,17 +91,25 @@ class Rda:
     def _walk(self, off):
         size = self.path.stat().st_size
         while 0 < off < size:
-            flags, count, dir_size, dir_dec, nxt = BLOCK_HDR.unpack(self._read_at(off, BLOCK_HDR.size))
+            flags, count, dir_size, dir_dec, nxt = BLOCK_HDR.unpack(
+                self._read_at(off, BLOCK_HDR.size)
+            )
             if count and not flags & F_DELETED:
                 memres = bool(flags & F_MEMRESIDENT)
                 dir_off = off - dir_size - (MEMRES_HDR.size if memres else 0)
-                directory = decode(self._read_at(dir_off, dir_size), flags, count * FILE_HDR.size)
+                directory = decode(
+                    self._read_at(dir_off, dir_size), flags, count * FILE_HDR.size
+                )
                 blob = None
                 if memres:
-                    comp, uncomp = MEMRES_HDR.unpack(self._read_at(off - MEMRES_HDR.size, MEMRES_HDR.size))
+                    comp, uncomp = MEMRES_HDR.unpack(
+                        self._read_at(off - MEMRES_HDR.size, MEMRES_HDR.size)
+                    )
                     blob = decode(self._read_at(dir_off - comp, comp), flags, uncomp)
                 for i in range(count):
-                    raw, o, c, s, _ts, _u = FILE_HDR.unpack_from(directory, i * FILE_HDR.size)
+                    raw, o, c, s, _ts, _u = FILE_HDR.unpack_from(
+                        directory, i * FILE_HDR.size
+                    )
                     name = raw.decode("utf-16-le").split("\0", 1)[0].replace("\\", "/")
                     yield Entry(name, o, c, s, flags, blob, self)
             if nxt == off:
@@ -107,7 +122,11 @@ class Layered:
 
     def __init__(self, folder):
         folder = Path(folder)
-        paths = [folder] if folder.is_file() else sorted(folder.glob("*.rda"), key=lambda p: p.name.lower())
+        paths = (
+            [folder]
+            if folder.is_file()
+            else sorted(folder.glob("*.rda"), key=lambda p: p.name.lower())
+        )
         self.files: dict[str, Entry] = {}
         for p in paths:
             for e in Rda(p).entries:
@@ -135,7 +154,9 @@ def main(argv):
             dst = out / name
             dst.parent.mkdir(parents=True, exist_ok=True)
             dst.write_bytes(e.read())
-        (out / "manifest.json").write_text(json.dumps({n: e.rda.path.name for n, e in picked}, indent=1))
+        (out / "manifest.json").write_text(
+            json.dumps({n: e.rda.path.name for n, e in picked}, indent=1)
+        )
         print(f"{len(picked)} files -> {out}")
     else:
         sys.exit(__doc__)
