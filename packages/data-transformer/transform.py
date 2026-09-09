@@ -949,7 +949,7 @@ class T:
             self.db.execute("insert into attribute values(?,?)", (v, k))
         for name, vals in self.enums.items():
             for v in sorted(vals):
-                self.db.execute("insert into enum values(?,?)", (name, v))
+                self.db.execute("insert into enum_value values(?,?)", (name, v))
         self.db.executemany(
             "insert into condition values(?,?,?,?,?,null)", self.conditions
         )
@@ -965,7 +965,7 @@ class T:
                 langs[lang] = len(langs) + 1
                 self.db.execute("insert into lang values(?,?)", (langs[lang], lang))
             self.db.execute(
-                "insert into text values(?,?,?)", (int(lid), langs[lang], val)
+                "insert into translation values(?,?,?)", (int(lid), langs[lang], val)
             )
         # pools referenced by effects, flattened once
         for (pool,) in self.db.execute(
@@ -1004,70 +1004,97 @@ def dict_get(o, path):
 SCHEMA = """
 create table region(id integer primary key, key text, name text);
 create table dlc(guid integer primary key, key text, name_text integer, icon text);
-create table population_level(guid integer primary key, name_text integer, icon text, tier int, region_id int references region, workforce_product_guid int);
+create table population_level(guid integer primary key, name_text integer, icon text, tier int, region_id int references region(id), workforce_product_guid int);
 create table attribute(id integer primary key, key text unique);
-create table enum(name text, value text, primary key(name,value));
+create table enum_value(name text, value text, primary key(name,value));
 create table lang(id integer primary key, code text);
-create table text(line_id integer, lang_id integer references lang, value text, primary key(line_id,lang_id)) without rowid;
+create table translation(line_id integer, lang_id integer references lang(id), value text, primary key(line_id,lang_id)) without rowid;
 
 create table product(guid integer primary key, name text, name_text integer, icon text, category_text integer, base_price real, storage_level text, transport_type text);
-create table product_region(product_guid int references product, region_id int references region, primary key(product_guid,region_id));
-create table need(guid integer primary key, name text, name_text integer, product_guid int references product, category text, description_text integer);
-create table need_attribute(need_guid int references need, attribute_id int references attribute, value real);
+create table product_region(product_guid int references product(guid), region_id int references region(id), primary key(product_guid,region_id));
+create table need(guid integer primary key, name text, name_text integer, product_guid int references product(guid), category text, description_text integer);
+create table need_attribute(need_guid int references need(guid), attribute_id int references attribute(id), value real);
 
 create table building(guid integer primary key, name text, name_text integer, description_text integer, icon text, template text, kind text, building_type text,
-  category_text integer, region_id int references region, radius int, street_radius int, health int, population_level_guid int references population_level);
-create table building_region(building_guid int references building, region_id int references region, primary key(building_guid,region_id));
-create table building_cost(building_guid int references building, product_guid int references product, amount real);
-create table building_maintenance(building_guid int references building, product_guid int references product, amount real);
-create table building_effect(building_guid int references building, effect_guid int, kind text);
-create table factory(building_guid integer primary key references building, cycle_time real, base_productivity real, transporter_range int);
-create table factory_input(building_guid int references building, product_guid int references product, amount real, storage int);
-create table factory_output(building_guid int references building, product_guid int references product, amount real, storage int);
-create table residence(building_guid integer primary key references building, population_level_guid int references population_level, upgrade_to_guid int);
-create table residence_need(building_guid int references building, need_guid int references need, consumption_rate real, buff_only int);
-create table residence_upgrade_cost(building_guid int references building, product_guid int references product, amount real);
-create table production_chain(guid integer primary key, name text, name_text integer, icon text, building_guid int references building);
-create table production_chain_node(id integer primary key, chain_guid int references production_chain, parent_id int, building_guid int, tier int);
+  category_text integer, region_id int references region(id), radius int, street_radius int, health int, population_level_guid int references population_level(guid));
+create table building_region(building_guid int references building(guid), region_id int references region(id), primary key(building_guid,region_id));
+create table building_cost(building_guid int references building(guid), product_guid int references product(guid), amount real);
+create table building_maintenance(building_guid int references building(guid), product_guid int references product(guid), amount real);
+create table building_effect(building_guid int references building(guid), effect_guid int, kind text);
+create table factory(building_guid integer primary key references building(guid), cycle_time real, base_productivity real, transporter_range int);
+create table factory_input(building_guid int references building(guid), product_guid int references product(guid), amount real, storage int);
+create table factory_output(building_guid int references building(guid), product_guid int references product(guid), amount real, storage int);
+create table residence(building_guid integer primary key references building(guid), population_level_guid int references population_level(guid), upgrade_to_guid int);
+create table residence_need(building_guid int references building(guid), need_guid int references need(guid), consumption_rate real, buff_only int);
+create table residence_upgrade_cost(building_guid int references building(guid), product_guid int references product(guid), amount real);
+create table production_chain(guid integer primary key, name text, name_text integer, icon text, building_guid int references building(guid));
+create table production_chain_node(id integer primary key, chain_guid int references production_chain(guid), parent_id int, building_guid int, tier int);
 
 create table effect(guid integer primary key, name text, name_text integer, description_text integer, scope text, source_category text, exclude_source int);
-create table effect_buff(effect_guid int references effect, buff_guid int, primary key(effect_guid,buff_guid));
-create table effect_target_pool(effect_guid int references effect, pool_guid int, primary key(effect_guid,pool_guid));
+create table effect_buff(effect_guid int references effect(guid), buff_guid int, primary key(effect_guid,buff_guid));
+create table effect_target_pool(effect_guid int references effect(guid), pool_guid int, primary key(effect_guid,pool_guid));
 create table pool_member(pool_guid int, asset_guid int, primary key(pool_guid,asset_guid)) without rowid;
 create view effect_target as select etp.effect_guid, pm.asset_guid building_guid from effect_target_pool etp join pool_member pm using(pool_guid);
-create table effect_source(effect_guid int references effect, source_kind text, source_guid int, primary key(effect_guid,source_guid)) without rowid;
+create table effect_source(effect_guid int references effect(guid), source_kind text, source_guid int, primary key(effect_guid,source_guid)) without rowid;
 create table buff(guid integer primary key, name text, name_text integer, icon text, source_category text);
-create table buff_modifier(buff_guid int references buff, path text, attribute_id int references attribute, value real, is_percent int);
-create table buff_functional_effect(buff_guid int references buff, effect_guid int);
+create table buff_modifier(buff_guid int references buff(guid), path text, attribute_id int references attribute(id), value real, is_percent int);
+create table buff_functional_effect(buff_guid int references buff(guid), effect_guid int);
 
 create table item(guid integer primary key, name text, name_text integer, description_text integer, icon text, template text, rarity text, niche text, item_type text,
-  allocation text, trade_price real, effect_guid int references effect, boost_hint_text integer);
-create table item_boost_buff(item_guid int references item, buff_guid int references buff);
-create table item_boost_condition(item_guid int references item, condition_id int);
-create table item_source(item_guid int references item, source_kind text, source_guid int, primary key(item_guid,source_guid)) without rowid;
+  allocation text, trade_price real, effect_guid int references effect(guid), boost_hint_text integer);
+create table item_boost_buff(item_guid int references item(guid), buff_guid int references buff(guid));
+create table item_boost_condition(item_guid int references item(guid), condition_id int);
+create table item_source(item_guid int references item(guid), source_kind text, source_guid int, primary key(item_guid,source_guid)) without rowid;
 
 create table tech(guid integer primary key, name text, name_text integer, description_text integer, icon text, knowledge_needed real, is_gate int, grid_x int, grid_y int);
-create table tech_unlock(tech_guid int references tech, asset_guid int, primary key(tech_guid,asset_guid));
-create table tech_effect(tech_guid int references tech, effect_guid int);
-create table tech_resource(tech_guid int references tech, product_guid int, amount real);
-create table tech_requirement(tech_guid int references tech, condition_id int);
+create table tech_unlock(tech_guid int references tech(guid), asset_guid int, primary key(tech_guid,asset_guid));
+create table tech_effect(tech_guid int references tech(guid), effect_guid int);
+create table tech_resource(tech_guid int references tech(guid), product_guid int, amount real);
+create table tech_requirement(tech_guid int references tech(guid), condition_id int);
 create table unlock(asset_guid int, source_kind text, source_guid int, condition_id int, primary key(asset_guid,source_guid));
 create table condition(id integer primary key, owner_kind text, owner_id int, template text, negate int, parent_id int);
-create table condition_param(condition_id int references condition, key text, value text);
+create table condition_param(condition_id int references condition(id), key text, value text);
 
 create table storyline(guid integer primary key, name text, system text);
-create table storyline_variable(storyline_guid int references storyline, name text, type text, start_value text);
-create table storyline_condition(storyline_guid int references storyline, condition_id int);
+create table storyline_variable(storyline_guid int references storyline(guid), name text, type text, start_value text);
+create table storyline_condition(storyline_guid int references storyline(guid), condition_id int);
 create table quest_pool(guid integer primary key, name text);
-create table quest_pool_storyline(pool_guid int references quest_pool, storyline_guid int, weight real);
+create table quest_pool_storyline(pool_guid int references quest_pool(guid), storyline_guid int, weight real);
 create table quest(guid integer primary key, name text, name_text integer, summary_text integer, category text, icon text, storyline_guid int);
-create table quest_node(guid integer primary key, storyline_guid int references storyline, type text, name text, quest_guid int, headline_text integer, text_text integer, step_text integer, time_limit_ms int);
+create table quest_node(guid integer primary key, storyline_guid int references storyline(guid), type text, name text, quest_guid int, headline_text integer, text_text integer, step_text integer, time_limit_ms int);
 create table quest_edge(from_guid int, to_guid int, kind text, idx int, option_index int, primary key(from_guid,to_guid,kind,idx)) without rowid;
-create table quest_option(decision_guid int references quest_node, idx int, text_text integer, category text);
-create table quest_reward(node_guid int references quest_node, kind text, asset_guid int, amount real, amount_variable text);
-create index idx_unlock_asset on unlock(asset_guid);
-create index idx_edge_to on quest_edge(to_guid);
-create index idx_node_story on quest_node(storyline_guid); create index idx_node_quest on quest_node(quest_guid);
+create table quest_option(decision_guid int references quest_node(guid), idx int, text_text integer, category text);
+create table quest_reward(node_guid int references quest_node(guid), kind text, asset_guid int, amount real, amount_variable text);
+-- child tables looked up by parent (composite primary keys already cover the rest)
+create index idx_need_attribute_need on need_attribute(need_guid);
+create index idx_building_cost_building on building_cost(building_guid);
+create index idx_building_maintenance_building on building_maintenance(building_guid);
+create index idx_building_effect_building on building_effect(building_guid);
+create index idx_factory_input_building on factory_input(building_guid);
+create index idx_factory_input_product on factory_input(product_guid);
+create index idx_factory_output_building on factory_output(building_guid);
+create index idx_factory_output_product on factory_output(product_guid);
+create index idx_residence_need_building on residence_need(building_guid);
+create index idx_residence_upgrade_cost_building on residence_upgrade_cost(building_guid);
+create index idx_production_chain_node_chain on production_chain_node(chain_guid);
+create index idx_buff_modifier_buff on buff_modifier(buff_guid);
+create index idx_buff_functional_effect_buff on buff_functional_effect(buff_guid);
+create index idx_item_boost_buff_item on item_boost_buff(item_guid);
+create index idx_item_boost_condition_item on item_boost_condition(item_guid);
+create index idx_tech_unlock_asset on tech_unlock(asset_guid);
+create index idx_tech_effect_tech on tech_effect(tech_guid);
+create index idx_tech_resource_tech on tech_resource(tech_guid);
+create index idx_tech_requirement_tech on tech_requirement(tech_guid);
+create index idx_condition_param_condition on condition_param(condition_id);
+create index idx_storyline_variable_storyline on storyline_variable(storyline_guid);
+create index idx_storyline_condition_storyline on storyline_condition(storyline_guid);
+create index idx_quest_pool_storyline_pool on quest_pool_storyline(pool_guid);
+create index idx_quest_storyline on quest(storyline_guid);
+create index idx_quest_node_storyline on quest_node(storyline_guid);
+create index idx_quest_node_quest on quest_node(quest_guid);
+create index idx_quest_edge_to on quest_edge(to_guid);
+create index idx_quest_option_decision on quest_option(decision_guid);
+create index idx_quest_reward_node on quest_reward(node_guid);
 """
 
 if __name__ == "__main__":

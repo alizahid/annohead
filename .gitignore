@@ -7,6 +7,5 @@ __pycache__
 .venv
 # game data + extracted output never go in git
 data/*
+# the site DB lives in packages/db/anno.sqlite (tracked)
 
-# the one generated artifact the site deploys with
-!data/anno.sqlite

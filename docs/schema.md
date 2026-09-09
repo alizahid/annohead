@@ -40,7 +40,7 @@ this document is agreed.
 | `population_level`  | template `PopulationLevel` (9)                | tier, region, workforce product, icon                        |
 | `product_category`  | text ids on `Product.ProductCategory`         | Raw Material, Need, Construction …                           |
 | `building_category` | text ids on `Building.BuildingCategoryName`   | Clothier, Smelter, Kitchen … (Toolkit "building categories") |
-| `text`              | `texts`                                       | line_id, lang, text                                          |
+| `translation`       | `texts`                                       | line_id, lang, text                                          |
 
 ### product
 
@@ -150,4 +150,4 @@ This is enough for the flowchart view: nodes, typed edges, option labels, reward
 Third normal form throughout: every list becomes its own table with foreign keys (`building_cost`,
 `building_maintenance`, `factory_input`, `factory_output`, `effect_target`, `buff_modifier`, `item_source`,
 `quest_edge` …). No JSON columns except an optional `raw_guid` back to `source.sqlite`. Enums (region, rarity,
-niche, building kind, edge kind, attribute) become lookup tables. Texts live once in `text(line_id, lang, value)`.
+niche, building kind, edge kind, attribute) become lookup tables. Texts live once in `translation(line_id, lang, value)`.
