@@ -1,6 +1,7 @@
 import { and, asc, count, eq, inArray, like, type SQL, sql } from 'drizzle-orm'
 
 import { db } from '../db'
+import { type Lang, type QuestCategory, type StorylineSystem } from '../enums'
 import {
   building,
   item,
@@ -13,14 +14,7 @@ import {
   storyline,
   storylineVariable,
 } from '../schema'
-import {
-  groupBy,
-  type Lang,
-  localized,
-  on,
-  type Page,
-  paginate,
-} from './shared'
+import { type Get, groupBy, localized, on, type Page, paginate } from './shared'
 
 // ---------------------------------------------------------------- rewards
 
@@ -96,7 +90,7 @@ function nodeRows(where: SQL, lang: Lang) {
 export type StorylineFilter = {
   lang: Lang
   search?: string
-  system?: string
+  system?: StorylineSystem
 }
 
 const storylineQuestCount = db.$count(
@@ -109,7 +103,7 @@ const storylineNodeCount = db.$count(
 )
 
 /** Storylines (quest chains) with their journal quests. */
-export async function getStorylines(f: StorylineFilter & Page) {
+async function listStorylines(f: StorylineFilter & Page) {
   const qName = localized('q_name')
   const where = and(
     f.search ? like(storyline.name, `%${f.search}%`) : undefined,
@@ -149,11 +143,14 @@ export async function getStorylines(f: StorylineFilter & Page) {
       ),
     )
   const q = groupBy(quests, 'storylineGuid')
-  return { rows: rows.map((r) => ({ ...r, quests: q(r.guid) })), total }
+  return {
+    rows: rows.map((r) => ({ ...r, quests: q(r.guid) })),
+    total,
+  }
 }
 
 /** One storyline with its full node/edge graph for the flowchart view. */
-export async function getStoryline(guid: number, lang: Lang) {
+async function getStoryline({ id: guid, lang }: Get) {
   const [[head], nodes, edges, variables] = await Promise.all([
     db.select().from(storyline).where(eq(storyline.guid, guid)),
     nodeRows(eq(questNode.storylineGuid, guid), lang),
@@ -203,13 +200,13 @@ export async function getStoryline(guid: number, lang: Lang) {
 export type QuestFilter = {
   lang: Lang
   search?: string
-  category?: string
+  category?: QuestCategory
   storylineGuid?: number
   guid?: number
 }
 
 /** Journal quests with their storyline, objective steps, decision options and rewards. */
-export async function getQuests(f: QuestFilter & Page) {
+async function listQuests(f: QuestFilter & Page) {
   const nameT = localized('name')
   const sumT = localized('summary')
   const where = and(
@@ -274,9 +271,15 @@ export async function getQuests(f: QuestFilter & Page) {
     })),
     'questGuid',
   )
-  return { rows: rows.map((q) => ({ ...q, steps: steps(q.guid) })), total }
+  return {
+    rows: rows.map((q) => ({ ...q, steps: steps(q.guid) })),
+    total,
+  }
 }
 
-export async function getQuest(guid: number, lang: Lang) {
-  return (await getQuests({ guid, lang })).rows[0] ?? null
+async function getQuest({ id, lang }: Get) {
+  return (await listQuests({ guid: id, lang })).rows[0] ?? null
 }
+
+export const quests = { get: getQuest, list: listQuests }
+export const storylines = { get: getStoryline, list: listStorylines }

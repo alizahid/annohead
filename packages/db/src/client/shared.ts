@@ -1,14 +1,15 @@
 import { and, eq, sql } from 'drizzle-orm'
 import { alias, type SQLiteColumn } from 'drizzle-orm/sqlite-core'
 
+import { type Lang, langNames } from '../enums'
 import { translation } from '../schema'
 
-export type Lang = 'english' | 'german'
 export type Page = { page?: number; perPage?: number }
+export type Get = { id: number; lang: Lang }
 const PER_PAGE = 50
 
 export function langId(lang: Lang) {
-  return sql`(select id from lang where code = ${lang})`
+  return sql`(select id from lang where code = ${langNames[lang]})`
 }
 /** Aliased `text` table; join with `on(t, table.nameText, lang)`. */
 export function localized(name: string) {
@@ -23,10 +24,7 @@ export function on(
 }
 
 export function paginate({ page = 1, perPage = PER_PAGE }: Page) {
-  return {
-    limit: perPage,
-    offset: (page - 1) * perPage,
-  }
+  return { limit: perPage, offset: (page - 1) * perPage }
 }
 
 export function groupBy<T, K extends keyof T>(rows: Array<T>, key: K) {

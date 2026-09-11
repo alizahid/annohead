@@ -1,6 +1,7 @@
 import { and, asc, count, eq, exists, inArray, like, sql } from 'drizzle-orm'
 
 import { db } from '../db'
+import { type Lang } from '../enums'
 import {
   building,
   factoryInput,
@@ -8,22 +9,21 @@ import {
   product,
   productRegion,
 } from '../schema'
-import {
-  groupBy,
-  type Lang,
-  localized,
-  on,
-  type Page,
-  paginate,
-} from './shared'
-export type ProductFilter = { lang: Lang; search?: string; regionId?: number }
+import { type Get, groupBy, localized, on, type Page, paginate } from './shared'
+export type ProductFilter = {
+  lang: Lang
+  guid?: number
+  search?: string
+  regionId?: number
+}
 
 /** Products with the buildings that produce and consume them. */
-export async function getProducts(f: ProductFilter & Page) {
+async function list(f: ProductFilter & Page) {
   const nameT = localized('name')
   const catT = localized('cat')
   const bName = localized('b_name')
   const where = and(
+    f.guid ? eq(product.guid, f.guid) : undefined,
     f.search ? like(nameT.value, `%${f.search}%`) : undefined,
     f.regionId
       ? exists(
@@ -94,3 +94,9 @@ export async function getProducts(f: ProductFilter & Page) {
     total,
   }
 }
+
+async function get({ id, lang }: Get) {
+  return (await list({ guid: id, lang })).rows[0] ?? null
+}
+
+export const products = { get, list }

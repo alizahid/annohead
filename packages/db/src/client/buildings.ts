@@ -1,6 +1,7 @@
 import { and, asc, count, eq, exists, inArray, like, sql } from 'drizzle-orm'
 
 import { db } from '../db'
+import { type BuildingKind, type BuildingType, type Lang } from '../enums'
 import {
   building,
   buildingCost,
@@ -14,19 +15,13 @@ import {
   tech,
   techUnlock,
 } from '../schema'
-import {
-  groupBy,
-  type Lang,
-  localized,
-  on,
-  type Page,
-  paginate,
-} from './shared'
+import { type Get, groupBy, localized, on, type Page, paginate } from './shared'
 export type BuildingFilter = {
   lang: Lang
+  guid?: number
   search?: string
-  kind?: Array<string>
-  buildingType?: string
+  kind?: Array<BuildingKind>
+  buildingType?: BuildingType
   regionId?: number
   /** workforce tier (population_level guid) */
   populationLevel?: number
@@ -55,6 +50,7 @@ function hasProduct(
 
 function buildingWhere(f: BuildingFilter, nameT: ReturnType<typeof localized>) {
   return and(
+    f.guid ? eq(building.guid, f.guid) : undefined,
     f.search ? like(nameT.value, `%${f.search}%`) : undefined,
     f.kind?.length ? inArray(building.kind, f.kind) : undefined,
     f.buildingType ? eq(building.buildingType, f.buildingType) : undefined,
@@ -122,7 +118,7 @@ async function buildingDetails(guids: Array<number>, lang: Lang) {
 }
 
 /** Buildings with costs, maintenance, factory inputs/outputs and unlocking techs. */
-export async function getBuildings(f: BuildingFilter & Page) {
+async function list(f: BuildingFilter & Page) {
   const nameT = localized('name')
   const descT = localized('desc')
   const catT = localized('cat')
@@ -191,3 +187,9 @@ export async function getBuildings(f: BuildingFilter & Page) {
     total,
   }
 }
+
+async function get({ id, lang }: Get) {
+  return (await list({ guid: id, lang })).rows[0] ?? null
+}
+
+export const buildings = { get, list }

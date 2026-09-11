@@ -12,6 +12,14 @@ import {
 
 import { db } from '../db'
 import {
+  type Allocation,
+  type Attribute,
+  type ItemType,
+  type Lang,
+  type Niche,
+  type Rarity,
+} from '../enums'
+import {
   attribute,
   buff,
   buffModifier,
@@ -24,25 +32,19 @@ import {
   itemSource,
   poolMember,
 } from '../schema'
-import {
-  groupBy,
-  type Lang,
-  localized,
-  on,
-  type Page,
-  paginate,
-} from './shared'
+import { type Get, groupBy, localized, on, type Page, paginate } from './shared'
 export type ItemFilter = {
   lang: Lang
+  guid?: number
   search?: string
-  rarity?: Array<string>
-  niche?: Array<string>
-  itemType?: string
-  allocation?: string
+  rarity?: Array<Rarity>
+  niche?: Array<Niche>
+  itemType?: ItemType
+  allocation?: Allocation
   /** building guid the item's effect targets */
   targetBuilding?: number
   /** attribute key (Money, Knowledge …) the item's effect modifies */
-  attribute?: string
+  attribute?: Attribute
 }
 
 function itemWhere(
@@ -50,6 +52,7 @@ function itemWhere(
   nameT: ReturnType<typeof localized>,
 ): SQL | undefined {
   return and(
+    f.guid ? eq(item.guid, f.guid) : undefined,
     f.search ? like(nameT.value, `%${f.search}%`) : undefined,
     f.rarity?.length ? inArray(item.rarity, f.rarity) : undefined,
     f.niche?.length ? inArray(item.niche, f.niche) : undefined,
@@ -154,7 +157,7 @@ async function itemDetails(guids: Array<number>, lang: Lang) {
 }
 
 /** Specialists, captains and quest items with effect targets, modifiers, boosts and sources. */
-export async function getItems(f: ItemFilter & Page) {
+async function list(f: ItemFilter & Page) {
   const nameT = localized('name')
   const descT = localized('desc')
   const hintT = localized('hint')
@@ -207,10 +210,18 @@ export async function getItems(f: ItemFilter & Page) {
   }
 }
 
-export function getSpecialists(f: Omit<ItemFilter, 'itemType'> & Page) {
-  return getItems({ ...f, itemType: 'Specialist' })
+async function get({ id, lang }: Get) {
+  return (await list({ guid: id, lang })).rows[0] ?? null
 }
 
-export function getCaptains(f: Omit<ItemFilter, 'itemType'> & Page) {
-  return getItems({ ...f, itemType: 'Captains' })
+function listSpecialists(f: Omit<ItemFilter, 'itemType'> & Page) {
+  return list({ ...f, itemType: 'Specialist' })
 }
+
+function listCaptains(f: Omit<ItemFilter, 'itemType'> & Page) {
+  return list({ ...f, itemType: 'Captains' })
+}
+
+export const items = { get, list }
+export const specialists = { get, list: listSpecialists }
+export const captains = { get, list: listCaptains }

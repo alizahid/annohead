@@ -1,36 +1,31 @@
 import { expect, test } from 'bun:test'
 
-import {
-  getBuildings,
-  getProducts,
-  getQuests,
-  getSpecialists,
-  getStoryline,
-  getStorylines,
-  getTechs,
-} from './index'
+import { anno } from './index'
 
 test('specialists paginate and join effects', async () => {
-  const { rows, total } = await getSpecialists({
-    lang: 'english',
+  const { rows, total } = await anno.specialists.list({
+    lang: 'en',
     perPage: 5,
     rarity: ['Legendary'],
   })
   expect(total).toBeGreaterThan(50)
   expect(rows).toHaveLength(5)
-  expect(rows[0]?.name).toBeTruthy()
-  expect(rows.some((r) => r.targets.length > 0 && r.modifiers.length > 0)).toBe(
-    true,
-  )
+  const second = await anno.specialists.list({
+    lang: 'en',
+    page: 2,
+    perPage: 5,
+    rarity: ['Legendary'],
+  })
+  expect(second.rows.map((r) => r.guid)).not.toContain(rows[0]?.guid)
 })
 
 test('specialist filter by target building and attribute', async () => {
   const [bakery] = (
-    await getBuildings({ lang: 'english', perPage: 1, search: 'Bakery' })
+    await anno.buildings.list({ lang: 'en', perPage: 1, search: 'Bakery' })
   ).rows
-  const { rows } = await getSpecialists({
+  const { rows } = await anno.specialists.list({
     attribute: 'Health',
-    lang: 'english',
+    lang: 'en',
     targetBuilding: bakery?.guid,
   })
   expect(rows.length).toBeGreaterThan(0)
@@ -41,39 +36,54 @@ test('specialist filter by target building and attribute', async () => {
 })
 
 test('buildings join costs, workforce and outputs', async () => {
-  const { rows } = await getBuildings({
+  const { rows } = await anno.buildings.list({
     kind: ['Production'],
-    lang: 'german',
+    lang: 'de',
     perPage: 10,
   })
   const bakery = rows.find((r) => r.outputs.length > 0)
   expect(bakery?.costs.length).toBeGreaterThan(0)
   expect(bakery?.populationLevel?.name).toBeTruthy()
   expect(bakery?.cycleTime).toBeGreaterThan(0)
+  const guid = bakery?.guid ?? 0
+  expect((await anno.buildings.get({ id: guid, lang: 'en' }))?.guid).toBe(guid)
+  expect(await anno.buildings.get({ id: 1, lang: 'en' })).toBeNull()
 })
 
 test('products and techs', async () => {
-  const p = await getProducts({ lang: 'english', search: 'Bread' })
+  const p = await anno.products.list({ lang: 'en', search: 'Bread' })
   expect(p.rows[0]?.producedBy.length).toBeGreaterThan(0)
-  const t = await getTechs({ lang: 'english', search: 'Armoursmithing' })
+  expect(
+    (await anno.products.get({ id: p.rows[0]?.guid ?? 0, lang: 'en' }))?.name,
+  ).toBe(p.rows[0]?.name)
+  const t = await anno.techs.list({ lang: 'en', search: 'Armoursmithing' })
   expect(t.rows.some((r) => r.unlocksBuildings.length > 0)).toBe(true)
+  expect(
+    (await anno.techs.get({ id: t.rows[0]?.guid ?? 0, lang: 'en' }))?.guid,
+  ).toBe(t.rows[0]?.guid)
 })
 
 test('storylines and quests', async () => {
-  const s = await getStorylines({
-    lang: 'english',
+  const s = await anno.storylines.list({
+    lang: 'en',
     perPage: 5,
     system: 'Quests',
   })
   expect(s.rows.some((r) => r.quests.length > 0)).toBe(true)
-  const q = await getQuests({
+  const q = await anno.quests.list({
     category: 'Campaign',
-    lang: 'english',
+    lang: 'en',
     perPage: 3,
   })
   expect(q.rows[0]?.storyline?.guid).toBeTruthy()
   expect(q.rows.some((r) => r.steps.length > 0)).toBe(true)
-  const full = await getStoryline(q.rows[0]?.storyline?.guid ?? 0, 'english')
+  expect(
+    (await anno.quests.get({ id: q.rows[0]?.guid ?? 0, lang: 'en' }))?.guid,
+  ).toBe(q.rows[0]?.guid)
+  const full = await anno.storylines.get({
+    id: q.rows[0]?.storyline?.guid ?? 0,
+    lang: 'en',
+  })
   expect(full?.nodes.length).toBeGreaterThan(0)
   expect(full?.edges.length).toBeGreaterThan(0)
   expect(full?.nodes.some((n) => n.options.length > 0)).toBe(true)

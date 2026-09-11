@@ -1,24 +1,21 @@
-import { asc, count, eq, inArray, like } from 'drizzle-orm'
+import { and, asc, count, eq, inArray, like } from 'drizzle-orm'
 
 import { db } from '../db'
+import { type Lang } from '../enums'
 import { building, product, tech, techResource, techUnlock } from '../schema'
-import {
-  groupBy,
-  type Lang,
-  localized,
-  on,
-  type Page,
-  paginate,
-} from './shared'
-export type TechFilter = { lang: Lang; search?: string }
+import { type Get, groupBy, localized, on, type Page, paginate } from './shared'
+export type TechFilter = { lang: Lang; guid?: number; search?: string }
 
 /** Techs with the buildings they unlock and the resources they cost. */
-export async function getTechs(f: TechFilter & Page) {
+async function list(f: TechFilter & Page) {
   const nameT = localized('name')
   const descT = localized('desc')
   const bName = localized('b_name')
   const pName = localized('p_name')
-  const where = f.search ? like(nameT.value, `%${f.search}%`) : undefined
+  const where = and(
+    f.guid ? eq(tech.guid, f.guid) : undefined,
+    f.search ? like(nameT.value, `%${f.search}%`) : undefined,
+  )
   const { limit, offset } = paginate(f)
   const [[{ total }], rows] = await Promise.all([
     db
@@ -82,3 +79,9 @@ export async function getTechs(f: TechFilter & Page) {
     total,
   }
 }
+
+async function get({ id, lang }: Get) {
+  return (await list({ guid: id, lang })).rows[0] ?? null
+}
+
+export const techs = { get, list }
