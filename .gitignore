@@ -9,3 +9,5 @@ __pycache__
 data/*
 # the site DB lives in packages/db/anno.sqlite (tracked)
 
+*.tsbuildinfo
+next-env.d.ts
