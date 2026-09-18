@@ -50,7 +50,7 @@ transport_type`. Derived: `produced_by[]`, `consumed_by[]` from FactoryBase inpu
 ### building
 
 Any asset with `Building` + `Constructable` properties (~250 incl. variants and DLC).
-Core: `guid, name, description, icon, template, kind, building_type, category, regions[], dlc,
+Core: `guid, name, description, icon, template, kind, type, category, regions[], dlc,
 radius, street_radius, health, cost[] (product, amount), maintenance[] (money, workforce product, amount),
 skins[], variant_group` (buildings sharing a display name).
 `kind` is our UI grouping derived from template: Production, Residence, Public Service, City Watch
@@ -74,7 +74,8 @@ Sub-tables:
 
 ### production_chain
 
-Template `ProductionChain` (77): `guid, name, icon, output_building, tiers` (tree of buildings). Rates for
+Template `ProductionChain` (77): `guid, name, icon, output_building, region, tiers` (tree of buildings).
+`region` is the output building's region, which is what tells the two Bread chains apart. Rates for
 the calculator come from `building_production` (output per minute = 60 / cycle_time × amount).
 
 ### need
@@ -91,6 +92,8 @@ Religion, Wonder, Festival, Volcano …), targets[]` (flattened building GUIDs).
   the `*Upgrade` properties, e.g. `BuildingUpgrade.AdditionalAttributes.Knowledge = +1`,
   `FactoryUpgrade.ProductivityUpgrade = +25%`, `ResidenceUpgrade.NeedProvidedNeedAttributes …`.
   A buff may point at another effect via `AdditionalFunctionalEffect` (the spinner tech does), so recurse.
+- `buff_provided_need`: `(buff, need)` from `ResidenceUpgrade.ProvidedNeedUpgrade`. A public building's
+  service effect buff carries this; the need's `need_attribute` rows are its "need fulfilment" values.
 - `effect_source`: who grants the effect and when: `(effect, source_kind, source_guid, unlock)` where
   source_kind ∈ building adjacency (`Building.FunctionalEffects`), item, tech reward, patron/religion,
   festival, monument event, city status, incident.
@@ -101,7 +104,7 @@ Per building the site can then list: base adjacency effects, plus every conditio
 ### item (specialists, captains, quest items)
 
 Templates `Item`, `ItemWithBoost`, `ItemWithUI`, `ItemQuest` (~660).
-`guid, name, description, icon (portrait), rarity, niche (category), item_type (Specialist, Captains,
+`guid, name, description, icon (portrait), rarity, niche (category), type (Specialist, Captains,
 NonSocketable …), allocation (Villa, Ship), trade_price, dlc, origin, effect (targets + buffs),
 boost (condition summary, boosted buffs), sources[]` (reward pools, hall of fame, traders, quests).
 Portraits: `items_specialist/<group>/icon_3d_*.dds`, 4K, already extracted.

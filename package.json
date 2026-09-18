@@ -13,7 +13,8 @@
     "extract": "turbo run extract",
     "lint": "ultracite fix",
     "nuke": "bun clean '**/node_modules' bun.lock",
-    "prepare": "husky"
+    "prepare": "husky",
+    "typecheck": "turbo run typecheck"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.14",

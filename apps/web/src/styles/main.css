@@ -1,0 +1,50 @@
+@import "@radix-ui/colors/ruby.css";
+@import "@radix-ui/colors/ruby-dark.css";
+@import "@radix-ui/colors/mauve.css";
+@import "@radix-ui/colors/mauve-dark.css";
+
+@import "tailwindcss";
+
+@theme {
+  --font-text: var(--font-text);
+  --font-heading: var(--font-heading);
+
+  --color-gray-1: var(--mauve-1);
+  --color-gray-2: var(--mauve-2);
+  --color-gray-3: var(--mauve-3);
+  --color-gray-4: var(--mauve-4);
+  --color-gray-5: var(--mauve-5);
+  --color-gray-6: var(--mauve-6);
+  --color-gray-7: var(--mauve-7);
+  --color-gray-8: var(--mauve-8);
+  --color-gray-9: var(--mauve-9);
+  --color-gray-10: var(--mauve-10);
+  --color-gray-11: var(--mauve-11);
+  --color-gray-12: var(--mauve-12);
+
+  --color-accent-1: var(--ruby-1);
+  --color-accent-2: var(--ruby-2);
+  --color-accent-3: var(--ruby-3);
+  --color-accent-4: var(--ruby-4);
+  --color-accent-5: var(--ruby-5);
+  --color-accent-6: var(--ruby-6);
+  --color-accent-7: var(--ruby-7);
+  --color-accent-8: var(--ruby-8);
+  --color-accent-9: var(--ruby-9);
+  --color-accent-10: var(--ruby-10);
+  --color-accent-11: var(--ruby-11);
+  --color-accent-12: var(--ruby-12);
+}
+
+body {
+  @apply bg-gray-2 isolate text-gray-12 antialiased font-text relative;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  @apply font-heading font-black;
+}

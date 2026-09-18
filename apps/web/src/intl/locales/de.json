@@ -1,0 +1,21 @@
+{
+  "annohead": "Annohead",
+  "component": {
+    "search": {
+      "box": {
+        "placeholder": "Search"
+      }
+    },
+    "layouts": {
+      "main": {
+        "title": "Annohead",
+        "nav": {
+          "buildings": "Buildings",
+          "quests": "Quests",
+          "chains": "Chains",
+          "items": "Items"
+        }
+      }
+    }
+  }
+}

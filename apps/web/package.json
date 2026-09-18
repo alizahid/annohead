@@ -9,13 +9,27 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@anno/convex": "workspace:*",
     "@anno/db": "workspace:*",
+    "@convex-dev/auth": "^2.0.0-alpha.2",
+    "@phosphor-icons/react": "^2.1.10",
+    "@radix-ui/colors": "^3.0.0",
+    "cn": "^0.3.0",
+    "convex": "^1.46.0",
+    "date-fns": "^4.4.0",
+    "lodash": "^4.18.1",
     "next": "16.3.5",
+    "next-intl": "^4.14.5",
+    "next-themes": "^0.4.6",
+    "nuqs": "^2.10.1",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "react-hotkeys-hook": "^5.3.3",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",
+    "@types/lodash": "^4.17.25",
     "@types/node": "^26.6.1",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",

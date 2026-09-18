@@ -1,0 +1,27 @@
+{
+  "annohead": "Annohead",
+  "component": {
+    "search": {
+      "box": {
+        "placeholder": "Search"
+      }
+    },
+    "layouts": {
+      "main": {
+        "footer": {
+          "copyright": "© {year} Annohead. All rights reserved."
+        },
+        "title": "Annohead",
+        "nav": {
+          "title": "Database",
+          "buildings": "Buildings",
+          "quests": "Quests",
+          "chains": "Production chains",
+          "items": "Items",
+          "products": "Goods",
+          "techs": "Technologies"
+        }
+      }
+    }
+  }
+}
