@@ -181,6 +181,39 @@ export const buildingEffect = sqliteTable(
   (table) => [index('idx_building_effect_building').on(table.buildingGuid)],
 )
 
+export const buildingPhase = sqliteTable(
+  'building_phase',
+  {
+    buildingGuid: integer('building_guid').references(() => building.guid),
+    guid: integer().primaryKey(),
+    nameText: integer('name_text'),
+    phase: integer(),
+  },
+  (table) => [index('idx_building_phase_building').on(table.buildingGuid)],
+)
+
+export const buildingPhaseCost = sqliteTable(
+  'building_phase_cost',
+  {
+    amount: real(),
+    phaseGuid: integer('phase_guid').references(() => buildingPhase.guid),
+    productGuid: integer('product_guid').references(() => product.guid),
+  },
+  (table) => [index('idx_building_phase_cost_phase').on(table.phaseGuid)],
+)
+
+export const buildingPhaseMaintenance = sqliteTable(
+  'building_phase_maintenance',
+  {
+    amount: real(),
+    phaseGuid: integer('phase_guid').references(() => buildingPhase.guid),
+    productGuid: integer('product_guid').references(() => product.guid),
+  },
+  (table) => [
+    index('idx_building_phase_maintenance_phase').on(table.phaseGuid),
+  ],
+)
+
 export const factory = sqliteTable('factory', {
   baseProductivity: real('base_productivity'),
   buildingGuid: integer('building_guid')

@@ -63,6 +63,13 @@ Sub-tables:
 - `building_residence` (Residence7): `population_level`, `needs[] (need, consumption_rate, buff_only)`,
   `upgrade_thresholds`, `upgrades_to (building, cost[])`.
 - `building_public_service` (PublicService): service effect.
+- `building_phase` (template `Monument`): construction phases of a monument, in order (Amphitheatre: Foundation,
+  Outer Walls, Arena, then the finished Amphitheatre as phase 4). The game models each phase as its own asset
+  chained by `Monument.UpgradeTarget` up to the finished building; here they are rows of the finished building,
+  not buildings. Each phase has its own `building_phase_cost[]` and `building_phase_maintenance[]` (workforce
+  during that phase); the monument's own `building_cost[]` is the sum over all phases. Each phase keeps its own `unlock`
+  rows (Outer Walls unlocks at Patricians); the monument also gets phase 1's, and `tech_unlock` rows pointing at
+  a phase move to the monument. The campaign's scripted copy of the Amphitheatre chain is skipped.
 - `building_unlock`: how it becomes buildable, see Unlocks.
 
 ### production_chain

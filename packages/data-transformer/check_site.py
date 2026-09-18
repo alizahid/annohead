@@ -37,4 +37,13 @@ assert ("ReputationGainSuccess",) in q(
 assert ("CounterAmount", "50") in q(
     "select key, value from unlock u join condition_param cp on cp.condition_id=u.condition_id where u.asset_guid=3187"
 )
+# amphitheatre: one building with four construction phases, the last being the finished building; phase assets
+# are not buildings; phase 4 needs 300 mosaics and the building's cost is the sum of all phases (timber
+# 100+250+250+250); phase unlocks stay per phase, the monument also gets phase 1's
+assert q("select phase, guid from building_phase where building_guid=3621 order by 1") == [(1, 36908), (2, 36911), (3, 36912), (4, 3621)]
+assert q("select count(*) from building where guid in (36908, 97847)") == [(0,)]
+assert q("select amount from building_phase_cost where phase_guid=3621 and product_guid=2152") == [(300.0,)]
+assert q("select amount from building_cost where building_guid=3621 and product_guid=2174") == [(850.0,)]
+assert q("select asset_guid from unlock where source_guid=43128 order by 1") == [(3621,), (36908,), (36911,)]
+assert q("select asset_guid from unlock where source_guid=43129") == [(36912,)]
 print("ok")

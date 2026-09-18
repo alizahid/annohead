@@ -148,6 +148,19 @@ class T:
     def items(self, x):
         return [i for i in x if isinstance(i, dict)] if isinstance(x, list) else []
 
+    def cost_rows(self, v, guid, prefix):
+        """Cost.Costs -> <prefix>_cost, Maintenance.Maintenances -> <prefix>_maintenance."""
+        for tbl, prop, lst, key in (
+            ("cost", "Cost", "Costs", "Ingredient"),
+            ("maintenance", "Maintenance", "Maintenances", "Product"),
+        ):
+            for c in self.items(D(v.get(prop)).get(lst)):
+                if self.num(c.get("Amount"), 0):
+                    self.db.execute(
+                        f"insert into {prefix}_{tbl} values(?,?,?)",
+                        (guid, self.num(c[key]), self.num(c["Amount"])),
+                    )
+
     def condition(self, owner_kind, owner_id, node):
         """Store a PreCondition/TriggerCondition tree as condition rows; returns root condition id."""
         if not isinstance(node, dict):
@@ -310,6 +323,8 @@ class T:
                 continue
             if v.get("Building", {}).get("BuildingType") == "BuildingModule":
                 continue
+            if "Monument" in v:  # construction phase, see phases()
+                continue
             kind = next(
                 (k for rx, k in BUILDING_KIND if re.search(rx, a["template"] or "")),
                 "Other",
@@ -345,18 +360,7 @@ class T:
                         "insert into building_region values(?,?)",
                         (a["guid"], REGIONS[r][0]),
                     )
-            for c in self.items(D(v.get("Cost")).get("Costs")):
-                if self.num(c.get("Amount"), 0):
-                    self.db.execute(
-                        "insert into building_cost values(?,?,?)",
-                        (a["guid"], self.num(c["Ingredient"]), self.num(c["Amount"])),
-                    )
-            for m in self.items(D(v.get("Maintenance")).get("Maintenances")):
-                if self.num(m.get("Amount"), 0):
-                    self.db.execute(
-                        "insert into building_maintenance values(?,?,?)",
-                        (a["guid"], self.num(m["Product"]), self.num(m["Amount"])),
-                    )
+            self.cost_rows(v, a["guid"], "building")
             for fe in self.items(b.get("FunctionalEffects")):
                 if self.num(fe.get("FunctionalEffect")):
                     self.db.execute(
@@ -702,6 +706,44 @@ class T:
                             (g, a["template"], a["guid"], cid),
                         )
 
+    # ---- monument construction phases ----------------------------------------------------------------------
+    def phases(self):
+        """Phase assets (Amphitheatre: Foundation, ...) chain via Monument.UpgradeTarget up to the finished
+        building, which is the last phase. They become building_phase rows of that building instead of
+        buildings of their own; each carries its own cost, the building's cost becomes the sum of all phases."""
+        for a in self.assets.values():
+            m = D(a["v"].get("Monument"))
+            if self.num(m.get("BaseAsset")) != a["guid"] or (a["name"] or "").startswith(
+                "Campaign"
+            ):
+                continue  # chain roots only; the campaign chain is a scripted copy of the Amphitheatre's
+            chain, g = [], a["guid"]
+            while "Monument" in D(D(self.assets.get(g)).get("v")):
+                chain.append(self.assets[g])
+                g = self.num(D(self.assets[g]["v"]["Monument"]).get("UpgradeTarget"))
+            chain.append(self.assets[g])
+            for i, p in enumerate(chain, 1):
+                self.db.execute(
+                    "insert into building_phase values(?,?,?,?)",
+                    (p["guid"], g, i, self.text(p["text_id"])),
+                )
+                self.cost_rows(p["v"], p["guid"], "building_phase")
+                self.db.execute(  # tech_unlock joins building; a tech unlocking a phase unlocks the monument
+                    "update or replace tech_unlock set asset_guid=? where asset_guid=?",
+                    (g, p["guid"]),
+                )
+            # each phase keeps its own unlock (Outer Walls at Patricians, ...); the monument starts with phase 1's
+            self.db.execute(
+                "insert or ignore into unlock select ?, source_kind, source_guid, condition_id from unlock where asset_guid=?",
+                (g, chain[0]["guid"]),
+            )
+            self.db.execute("delete from building_cost where building_guid=?", (g,))
+            self.db.execute(
+                """insert into building_cost select ?, product_guid, sum(amount) from building_phase_cost
+                   where phase_guid in (select guid from building_phase where building_guid=?) group by product_guid""",
+                (g, g),
+            )
+
     # ---- quests --------------------------------------------------------------------------------------------
     def quests(self):
         for a in self.by_template("QuestPool"):
@@ -1021,6 +1063,9 @@ create table building_region(building_guid int references building(guid), region
 create table building_cost(building_guid int references building(guid), product_guid int references product(guid), amount real);
 create table building_maintenance(building_guid int references building(guid), product_guid int references product(guid), amount real);
 create table building_effect(building_guid int references building(guid), effect_guid int, kind text);
+create table building_phase(guid integer primary key, building_guid int references building(guid), phase int, name_text integer);
+create table building_phase_cost(phase_guid int references building_phase(guid), product_guid int references product(guid), amount real);
+create table building_phase_maintenance(phase_guid int references building_phase(guid), product_guid int references product(guid), amount real);
 create table factory(building_guid integer primary key references building(guid), cycle_time real, base_productivity real, transporter_range int);
 create table factory_input(building_guid int references building(guid), product_guid int references product(guid), amount real, storage int);
 create table factory_output(building_guid int references building(guid), product_guid int references product(guid), amount real, storage int);
@@ -1070,6 +1115,9 @@ create index idx_need_attribute_need on need_attribute(need_guid);
 create index idx_building_cost_building on building_cost(building_guid);
 create index idx_building_maintenance_building on building_maintenance(building_guid);
 create index idx_building_effect_building on building_effect(building_guid);
+create index idx_building_phase_building on building_phase(building_guid);
+create index idx_building_phase_cost_phase on building_phase_cost(phase_guid);
+create index idx_building_phase_maintenance_phase on building_phase_maintenance(phase_guid);
 create index idx_factory_input_building on factory_input(building_guid);
 create index idx_factory_input_product on factory_input(product_guid);
 create index idx_factory_output_building on factory_output(building_guid);
@@ -1111,6 +1159,7 @@ if __name__ == "__main__":
         t.effects,
         t.items_,
         t.techs,
+        t.phases,
         t.quests,
         t.finish,
     ):

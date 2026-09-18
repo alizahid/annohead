@@ -6,6 +6,9 @@ import {
   building,
   buildingCost,
   buildingMaintenance,
+  buildingPhase,
+  buildingPhaseCost,
+  buildingPhaseMaintenance,
   factory,
   factoryInput,
   factoryOutput,
@@ -64,55 +67,85 @@ function buildingWhere(f: BuildingFilter, nameT: ReturnType<typeof localized>) {
   )
 }
 
+/** `(product, amount)` rows of `table` owned by `guids`, keyed by the owner column. */
 function productRows(
   table:
     | typeof factoryInput
     | typeof factoryOutput
     | typeof buildingCost
-    | typeof buildingMaintenance,
+    | typeof buildingMaintenance
+    | typeof buildingPhaseCost
+    | typeof buildingPhaseMaintenance,
   guids: Array<number>,
   lang: Lang,
 ) {
+  const owner = 'phaseGuid' in table ? table.phaseGuid : table.buildingGuid
   const pName = localized('p_name')
   return db
     .select({
       amount: table.amount,
-      buildingGuid: table.buildingGuid,
       guid: product.guid,
       icon: product.icon,
       name: pName.value,
+      owner,
     })
     .from(table)
     .innerJoin(product, eq(product.guid, table.productGuid))
     .leftJoin(pName, on(pName, product.nameText, lang))
-    .where(inArray(table.buildingGuid, guids))
+    .where(inArray(owner, guids))
+}
+
+async function phaseRows(guids: Array<number>, lang: Lang) {
+  const nameT = localized('ph_name')
+  const rows = await db
+    .select({
+      buildingGuid: buildingPhase.buildingGuid,
+      guid: buildingPhase.guid,
+      name: nameT.value,
+      phase: buildingPhase.phase,
+    })
+    .from(buildingPhase)
+    .leftJoin(nameT, on(nameT, buildingPhase.nameText, lang))
+    .where(inArray(buildingPhase.buildingGuid, guids))
+    .orderBy(asc(buildingPhase.phase))
+  const phaseGuids = rows.map((r) => r.guid)
+  const [costs, maintenance] = await Promise.all([
+    productRows(buildingPhaseCost, phaseGuids, lang),
+    productRows(buildingPhaseMaintenance, phaseGuids, lang),
+  ])
+  const c = groupBy(costs, 'owner')
+  const m = groupBy(maintenance, 'owner')
+  return rows.map((r) => ({ ...r, costs: c(r.guid), maintenance: m(r.guid) }))
 }
 
 async function buildingDetails(guids: Array<number>, lang: Lang) {
   const tName = localized('t_name')
-  const [costs, maintenance, inputs, outputs, techs] = await Promise.all([
-    productRows(buildingCost, guids, lang),
-    productRows(buildingMaintenance, guids, lang),
-    productRows(factoryInput, guids, lang),
-    productRows(factoryOutput, guids, lang),
-    db
-      .select({
-        buildingGuid: techUnlock.assetGuid,
-        guid: tech.guid,
-        icon: tech.icon,
-        knowledgeNeeded: tech.knowledgeNeeded,
-        name: tName.value,
-      })
-      .from(techUnlock)
-      .innerJoin(tech, eq(tech.guid, techUnlock.techGuid))
-      .leftJoin(tName, on(tName, tech.nameText, lang))
-      .where(inArray(techUnlock.assetGuid, guids)),
-  ])
+  const [costs, maintenance, inputs, outputs, phases, techs] =
+    await Promise.all([
+      productRows(buildingCost, guids, lang),
+      productRows(buildingMaintenance, guids, lang),
+      productRows(factoryInput, guids, lang),
+      productRows(factoryOutput, guids, lang),
+      phaseRows(guids, lang),
+      db
+        .select({
+          buildingGuid: techUnlock.assetGuid,
+          guid: tech.guid,
+          icon: tech.icon,
+          knowledgeNeeded: tech.knowledgeNeeded,
+          name: tName.value,
+        })
+        .from(techUnlock)
+        .innerJoin(tech, eq(tech.guid, techUnlock.techGuid))
+        .leftJoin(tName, on(tName, tech.nameText, lang))
+        .where(inArray(techUnlock.assetGuid, guids)),
+    ])
   return {
-    costs: groupBy(costs, 'buildingGuid'),
-    inputs: groupBy(inputs, 'buildingGuid'),
-    maintenance: groupBy(maintenance, 'buildingGuid'),
-    outputs: groupBy(outputs, 'buildingGuid'),
+    costs: groupBy(costs, 'owner'),
+    inputs: groupBy(inputs, 'owner'),
+    maintenance: groupBy(maintenance, 'owner'),
+    outputs: groupBy(outputs, 'owner'),
+    phases: groupBy(phases, 'buildingGuid'),
     techs: groupBy(techs, 'buildingGuid'),
   }
 }
@@ -182,6 +215,8 @@ async function list(f: BuildingFilter & Page) {
       inputs: d.inputs(r.guid),
       maintenance: d.maintenance(r.guid),
       outputs: d.outputs(r.guid),
+      /** construction phases of a monument, in order; empty for ordinary buildings */
+      phases: d.phases(r.guid),
       unlockedBy: d.techs(r.guid),
     })),
     total,

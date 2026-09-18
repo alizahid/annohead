@@ -50,6 +50,23 @@ test('buildings join costs, workforce and outputs', async () => {
   expect(await anno.buildings.get({ id: 1, lang: 'en' })).toBeNull()
 })
 
+test('monuments carry construction phases, phase assets are not buildings', async () => {
+  const amphitheatre = await anno.buildings.get({ id: 3621, lang: 'en' })
+  expect(amphitheatre?.phases.map((p) => p.name)).toEqual([
+    'Amphitheatre: Foundation',
+    'Amphitheatre: Outer Walls',
+    'Amphitheatre: Arena',
+    'Amphitheatre',
+  ])
+  const mosaics = amphitheatre?.phases[3]?.costs.find(
+    (c) => c.name === 'Mosaics',
+  )
+  expect(mosaics?.amount).toBe(300)
+  expect(amphitheatre?.phases[0]?.costs.length).toBeGreaterThan(0)
+  expect(amphitheatre?.phases[0]?.maintenance.length).toBe(1)
+  expect(await anno.buildings.get({ id: 36_908, lang: 'en' })).toBeNull()
+})
+
 test('products and techs', async () => {
   const p = await anno.products.list({ lang: 'en', search: 'Bread' })
   expect(p.rows[0]?.producedBy.length).toBeGreaterThan(0)
