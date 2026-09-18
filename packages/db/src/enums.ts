@@ -169,7 +169,7 @@ export type Attribute = (typeof attributeValues)[number]
 export const langValues = ['en', 'de'] as const
 export type Lang = (typeof langValues)[number]
 
-export const regionValues = ['Latium', 'Albion', 'Delta'] as const
+export const regionValues = ['Roman', 'Celtic', 'Egyptian'] as const
 export type Region = (typeof regionValues)[number]
 
 /** ISO code -> name of the game's texts file / lang table row */

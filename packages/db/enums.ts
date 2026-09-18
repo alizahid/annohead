@@ -1,7 +1,8 @@
-// Generates src/enums.ts from the enum_value, attribute and lang tables. Run via `bun run pull`.
+// Generates src/enums.ts from the enum_value, attribute and lang tables and types the matching
+// text columns in the pulled src/schema.ts as `text({ enum })`. Run via `bun run pull`.
 
 import { Database } from 'bun:sqlite'
-import { writeFileSync } from 'node:fs'
+import { readFileSync, writeFileSync } from 'node:fs'
 
 const db = new Database('anno.sqlite', { readonly: true })
 
@@ -56,8 +57,9 @@ const langs = db
     }
     return { code, name: l.code }
   })
+// region keys (Roman, Celtic, Egyptian); names are display text and may be localized
 const regions = db
-  .query<{ name: string }, []>('select name from region order by id')
+  .query<{ key: string }, []>('select key from region order by id')
   .all()
 const langNames = langs.map((l) => `  '${l.code}': '${l.name}',`).join('\n')
 
@@ -75,8 +77,59 @@ const out = [
   ),
   block(
     'region',
-    regions.map((r) => r.name),
+    regions.map((r) => r.key),
   ),
   `/** ISO code -> name of the game's texts file / lang table row */\nexport const langNames = {\n${langNames}\n} as const satisfies Record<Lang, string>\n`,
 ]
 writeFileSync('src/enums.ts', out.join('\n'))
+
+// schema table -> column -> enum_value name (the transformer's `self.enum(name, …)` call sites)
+// plus the attribute table, whose keys are enumerated above
+const columnEnums: Record<string, Record<string, string>> = {
+  attribute: { key: 'attribute' },
+  buff: { sourceCategory: 'source_category' },
+  building: { kind: 'building_kind', type: 'building_type' },
+  effect: { scope: 'effect_scope', sourceCategory: 'source_category' },
+  item: {
+    allocation: 'allocation',
+    niche: 'niche',
+    rarity: 'rarity',
+    type: 'item_type',
+  },
+  need: { category: 'need_category' },
+  product: { storageLevel: 'storage_level', transportType: 'transport_type' },
+  quest: { category: 'quest_category' },
+  questNode: { type: 'node_type' },
+  questOption: { category: 'option_category' },
+  region: { key: 'region' },
+  storyline: { system: 'storyline_system' },
+}
+let schema = readFileSync('src/schema.ts', 'utf8')
+if (schema.includes("from './enums'")) {
+  throw new Error('src/schema.ts is already typed; run `bun run pull` instead')
+}
+const imports = new Set<string>()
+for (const [table, cols] of Object.entries(columnEnums)) {
+  const start = schema.indexOf(`export const ${table} = sqliteTable(`)
+  const end = schema.indexOf('\nexport const ', start + 1)
+  if (start < 0) {
+    throw new Error(`no table ${table} in schema`)
+  }
+  let body = schema.slice(start, end)
+  for (const [col, name] of Object.entries(cols)) {
+    const ident = `${camel(name)}Values`
+    const re = new RegExp(`(\\b${col}: text\\()([^)]*)\\)`)
+    if (!re.test(body)) {
+      throw new Error(`no text column ${table}.${col} in schema`)
+    }
+    body = body.replace(
+      re,
+      (_, head: string, args: string) =>
+        `${head}${args ? `${args}, ` : ''}{ enum: ${ident} })`,
+    )
+    imports.add(ident)
+  }
+  schema = schema.slice(0, start) + body + schema.slice(end)
+}
+schema = `import { ${[...imports].sort().join(', ')} } from './enums'\n${schema}`
+writeFileSync('src/schema.ts', schema)

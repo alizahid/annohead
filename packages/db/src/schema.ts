@@ -9,9 +9,29 @@ import {
   text,
 } from 'drizzle-orm/sqlite-core'
 
+import {
+  allocationValues,
+  attributeValues,
+  buildingKindValues,
+  buildingTypeValues,
+  effectScopeValues,
+  itemTypeValues,
+  needCategoryValues,
+  nicheValues,
+  nodeTypeValues,
+  optionCategoryValues,
+  questCategoryValues,
+  rarityValues,
+  regionValues,
+  sourceCategoryValues,
+  storageLevelValues,
+  storylineSystemValues,
+  transportTypeValues,
+} from './enums'
+
 export const region = sqliteTable('region', {
   id: integer().primaryKey(),
-  key: text(),
+  key: text({ enum: regionValues }),
   name: text(),
 })
 
@@ -33,7 +53,7 @@ export const populationLevel = sqliteTable('population_level', {
 
 export const attribute = sqliteTable('attribute', {
   id: integer().primaryKey(),
-  key: text(),
+  key: text({ enum: attributeValues }),
 })
 
 export const enumValue = sqliteTable(
@@ -79,8 +99,8 @@ export const product = sqliteTable('product', {
   icon: text(),
   name: text(),
   nameText: integer('name_text'),
-  storageLevel: text('storage_level'),
-  transportType: text('transport_type'),
+  storageLevel: text('storage_level', { enum: storageLevelValues }),
+  transportType: text('transport_type', { enum: transportTypeValues }),
 })
 
 export const productRegion = sqliteTable(
@@ -98,7 +118,7 @@ export const productRegion = sqliteTable(
 )
 
 export const need = sqliteTable('need', {
-  category: text(),
+  category: text({ enum: needCategoryValues }),
   descriptionText: integer('description_text'),
   guid: integer().primaryKey(),
   name: text(),
@@ -117,13 +137,12 @@ export const needAttribute = sqliteTable(
 )
 
 export const building = sqliteTable('building', {
-  buildingType: text('building_type'),
   categoryText: integer('category_text'),
   descriptionText: integer('description_text'),
   guid: integer().primaryKey(),
   health: integer(),
   icon: text(),
-  kind: text(),
+  kind: text({ enum: buildingKindValues }),
   name: text(),
   nameText: integer('name_text'),
   populationLevelGuid: integer('population_level_guid').references(
@@ -133,6 +152,7 @@ export const building = sqliteTable('building', {
   regionId: integer('region_id').references(() => region.id),
   streetRadius: integer('street_radius'),
   template: text(),
+  type: text({ enum: buildingTypeValues }),
 })
 
 export const buildingRegion = sqliteTable(
@@ -290,6 +310,7 @@ export const productionChain = sqliteTable('production_chain', {
   icon: text(),
   name: text(),
   nameText: integer('name_text'),
+  regionId: integer('region_id').references(() => region.id),
 })
 
 export const productionChainNode = sqliteTable(
@@ -310,8 +331,8 @@ export const effect = sqliteTable('effect', {
   guid: integer().primaryKey(),
   name: text(),
   nameText: integer('name_text'),
-  scope: text(),
-  sourceCategory: text('source_category'),
+  scope: text({ enum: effectScopeValues }),
+  sourceCategory: text('source_category', { enum: sourceCategoryValues }),
 })
 
 export const effectBuff = sqliteTable(
@@ -378,7 +399,7 @@ export const buff = sqliteTable('buff', {
   icon: text(),
   name: text(),
   nameText: integer('name_text'),
-  sourceCategory: text('source_category'),
+  sourceCategory: text('source_category', { enum: sourceCategoryValues }),
 })
 
 export const buffModifier = sqliteTable(
@@ -402,20 +423,34 @@ export const buffFunctionalEffect = sqliteTable(
   (table) => [index('idx_buff_functional_effect_buff').on(table.buffGuid)],
 )
 
+export const buffProvidedNeed = sqliteTable(
+  'buff_provided_need',
+  {
+    buffGuid: integer('buff_guid').references(() => buff.guid),
+    needGuid: integer('need_guid').references(() => need.guid),
+  },
+  (table) => [
+    primaryKey({
+      columns: [table.buffGuid, table.needGuid],
+      name: 'buff_provided_need_buff_guid_need_guid_pk',
+    }),
+  ],
+)
+
 export const item = sqliteTable('item', {
-  allocation: text(),
+  allocation: text({ enum: allocationValues }),
   boostHintText: integer('boost_hint_text'),
   descriptionText: integer('description_text'),
   effectGuid: integer('effect_guid').references(() => effect.guid),
   guid: integer().primaryKey(),
   icon: text(),
-  itemType: text('item_type'),
   name: text(),
   nameText: integer('name_text'),
-  niche: text(),
-  rarity: text(),
+  niche: text({ enum: nicheValues }),
+  rarity: text({ enum: rarityValues }),
   template: text(),
   tradePrice: real('trade_price'),
+  type: text({ enum: itemTypeValues }),
 })
 
 export const itemBoostBuff = sqliteTable(
@@ -546,7 +581,7 @@ export const conditionParam = sqliteTable(
 export const storyline = sqliteTable('storyline', {
   guid: integer().primaryKey(),
   name: text(),
-  system: text(),
+  system: text({ enum: storylineSystemValues }),
 })
 
 export const storylineVariable = sqliteTable(
@@ -591,7 +626,7 @@ export const questPoolStoryline = sqliteTable(
 export const quest = sqliteTable(
   'quest',
   {
-    category: text(),
+    category: text({ enum: questCategoryValues }),
     guid: integer().primaryKey(),
     icon: text(),
     name: text(),
@@ -613,7 +648,7 @@ export const questNode = sqliteTable(
     storylineGuid: integer('storyline_guid').references(() => storyline.guid),
     textText: integer('text_text'),
     timeLimitMs: integer('time_limit_ms'),
-    type: text(),
+    type: text({ enum: nodeTypeValues }),
   },
   (table) => [
     index('idx_quest_node_quest').on(table.questGuid),
@@ -642,7 +677,7 @@ export const questEdge = sqliteTable(
 export const questOption = sqliteTable(
   'quest_option',
   {
-    category: text(),
+    category: text({ enum: optionCategoryValues }),
     decisionGuid: integer('decision_guid').references(() => questNode.guid),
     idx: integer(),
     textText: integer('text_text'),

@@ -32,14 +32,22 @@ import {
   itemSource,
   poolMember,
 } from '../schema'
-import { type Get, groupBy, localized, on, type Page, paginate } from './shared'
+import {
+  type Get,
+  groupBy,
+  localized,
+  modifierColumns,
+  on,
+  type Page,
+  paginate,
+} from './shared'
 export type ItemFilter = {
   lang: Lang
   guid?: number
   search?: string
   rarity?: Array<Rarity>
   niche?: Array<Niche>
-  itemType?: ItemType
+  type?: ItemType
   allocation?: Allocation
   /** building guid the item's effect targets */
   targetBuilding?: number
@@ -56,7 +64,7 @@ function itemWhere(
     f.search ? like(nameT.value, `%${f.search}%`) : undefined,
     f.rarity?.length ? inArray(item.rarity, f.rarity) : undefined,
     f.niche?.length ? inArray(item.niche, f.niche) : undefined,
-    f.itemType ? eq(item.itemType, f.itemType) : undefined,
+    f.type ? eq(item.type, f.type) : undefined,
     f.allocation ? eq(item.allocation, f.allocation) : undefined,
     f.targetBuilding
       ? exists(
@@ -94,14 +102,6 @@ function itemWhere(
         )
       : undefined,
   )
-}
-
-const modifierColumns = {
-  attribute: attribute.key,
-  buffGuid: buff.guid,
-  isPercent: buffModifier.isPercent,
-  path: buffModifier.path,
-  value: buffModifier.value,
 }
 
 async function itemDetails(guids: Array<number>, lang: Lang) {
@@ -178,11 +178,11 @@ async function list(f: ItemFilter & Page) {
         effectScope: effect.scope,
         guid: item.guid,
         icon: item.icon,
-        itemType: item.itemType,
         name: nameT.value,
         niche: item.niche,
         rarity: item.rarity,
         tradePrice: item.tradePrice,
+        type: item.type,
       })
       .from(item)
       .leftJoin(nameT, on(nameT, item.nameText, f.lang))
@@ -214,12 +214,12 @@ async function get({ id, lang }: Get) {
   return (await list({ guid: id, lang })).rows[0] ?? null
 }
 
-function listSpecialists(f: Omit<ItemFilter, 'itemType'> & Page) {
-  return list({ ...f, itemType: 'Specialist' })
+function listSpecialists(f: Omit<ItemFilter, 'type'> & Page) {
+  return list({ ...f, type: 'Specialist' })
 }
 
-function listCaptains(f: Omit<ItemFilter, 'itemType'> & Page) {
-  return list({ ...f, itemType: 'Captains' })
+function listCaptains(f: Omit<ItemFilter, 'type'> & Page) {
+  return list({ ...f, type: 'Captains' })
 }
 
 export const items = { get, list }

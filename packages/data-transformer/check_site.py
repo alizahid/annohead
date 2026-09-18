@@ -23,6 +23,12 @@ assert sorted(
         "select region_id from building b join translation t on t.line_id=b.name_text and t.lang_id=(select id from lang where code='english') where t.value='Bakery'"
     )
 ) == [(1,), (2,)]
+# two bread chains, one per region, taken from the output building
+assert sorted(
+    q(
+        "select region_id from production_chain pc join translation t on t.line_id=pc.name_text and t.lang_id=(select id from lang where code='english') where t.value='Bread'"
+    )
+) == [(1,), (2,)]
 # famine request: decision options aligned with outputs, rewards are storyline variables
 assert q(
     "select option_index, to_guid from quest_edge where from_guid=72091 and kind='DecisionRoot.DecisionRootOutput.Output' order by 1"

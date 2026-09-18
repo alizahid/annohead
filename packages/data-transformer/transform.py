@@ -439,16 +439,21 @@ class T:
             pc = D(a["v"].get("ProductionChain"))
             root = self.num(pc.get("Building"))
             self.db.execute(
-                "insert into production_chain values(?,?,?,?,?)",
+                "insert into production_chain values(?,?,?,?,?,?)",
                 (
                     a["guid"],
                     a["name"],
                     self.text(a["text_id"]),
                     self.icon(a["icon"]),
                     root,
+                    None,
                 ),
             )
             self._chain_nodes(a["guid"], pc, None, 0)
+        # a chain lives where its output building does (Roman Bread vs Roman Celtic Bread)
+        self.db.execute(
+            "update production_chain set region_id=(select region_id from building b where b.guid=production_chain.building_guid)"
+        )
 
     def _chain_nodes(self, chain, node, parent, tier):
         nid = self.db.execute(
@@ -555,6 +560,11 @@ class T:
                     elif path.endswith("AdditionalFunctionalEffect") and self.num(val):
                         self.db.execute(
                             "insert into buff_functional_effect values(?,?)",
+                            (a["guid"], self.num(val)),
+                        )
+                    elif path.endswith(".ProvidedNeed") and self.num(val):
+                        self.db.execute(
+                            "insert or ignore into buff_provided_need values(?,?)",
                             (a["guid"], self.num(val)),
                         )
 
@@ -1057,7 +1067,7 @@ create table product_region(product_guid int references product(guid), region_id
 create table need(guid integer primary key, name text, name_text integer, product_guid int references product(guid), category text, description_text integer);
 create table need_attribute(need_guid int references need(guid), attribute_id int references attribute(id), value real);
 
-create table building(guid integer primary key, name text, name_text integer, description_text integer, icon text, template text, kind text, building_type text,
+create table building(guid integer primary key, name text, name_text integer, description_text integer, icon text, template text, kind text, type text,
   category_text integer, region_id int references region(id), radius int, street_radius int, health int, population_level_guid int references population_level(guid));
 create table building_region(building_guid int references building(guid), region_id int references region(id), primary key(building_guid,region_id));
 create table building_cost(building_guid int references building(guid), product_guid int references product(guid), amount real);
@@ -1072,7 +1082,7 @@ create table factory_output(building_guid int references building(guid), product
 create table residence(building_guid integer primary key references building(guid), population_level_guid int references population_level(guid), upgrade_to_guid int);
 create table residence_need(building_guid int references building(guid), need_guid int references need(guid), consumption_rate real, buff_only int);
 create table residence_upgrade_cost(building_guid int references building(guid), product_guid int references product(guid), amount real);
-create table production_chain(guid integer primary key, name text, name_text integer, icon text, building_guid int references building(guid));
+create table production_chain(guid integer primary key, name text, name_text integer, icon text, building_guid int references building(guid), region_id int references region(id));
 create table production_chain_node(id integer primary key, chain_guid int references production_chain(guid), parent_id int, building_guid int, tier int);
 
 create table effect(guid integer primary key, name text, name_text integer, description_text integer, scope text, source_category text, exclude_source int);
@@ -1084,8 +1094,9 @@ create table effect_source(effect_guid int references effect(guid), source_kind 
 create table buff(guid integer primary key, name text, name_text integer, icon text, source_category text);
 create table buff_modifier(buff_guid int references buff(guid), path text, attribute_id int references attribute(id), value real, is_percent int);
 create table buff_functional_effect(buff_guid int references buff(guid), effect_guid int);
+create table buff_provided_need(buff_guid int references buff(guid), need_guid int references need(guid), primary key(buff_guid,need_guid));
 
-create table item(guid integer primary key, name text, name_text integer, description_text integer, icon text, template text, rarity text, niche text, item_type text,
+create table item(guid integer primary key, name text, name_text integer, description_text integer, icon text, template text, rarity text, niche text, type text,
   allocation text, trade_price real, effect_guid int references effect(guid), boost_hint_text integer);
 create table item_boost_buff(item_guid int references item(guid), buff_guid int references buff(guid));
 create table item_boost_condition(item_guid int references item(guid), condition_id int);
