@@ -56,6 +56,9 @@ const langs = db
     }
     return { code, name: l.code }
   })
+const regions = db
+  .query<{ name: string }, []>('select name from region order by id')
+  .all()
 const langNames = langs.map((l) => `  '${l.code}': '${l.name}',`).join('\n')
 
 const out = [
@@ -69,6 +72,10 @@ const out = [
   block(
     'lang',
     langs.map((l) => l.code),
+  ),
+  block(
+    'region',
+    regions.map((r) => r.name),
   ),
   `/** ISO code -> name of the game's texts file / lang table row */\nexport const langNames = {\n${langNames}\n} as const satisfies Record<Lang, string>\n`,
 ]
