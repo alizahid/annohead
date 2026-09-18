@@ -16,17 +16,6 @@ export const searchTypes = [
 ] as const
 export type SearchType = (typeof searchTypes)[number]
 
-/** Generic game UI icon per type; fallback when a record's `icon` is null. Same path format as `icon`. */
-export const searchTypeIcons: Record<SearchType, string> = {
-  building:
-    'data/ui/2kimages/main/icons/construction/icon_construction_main.png',
-  chain: 'data/ui/2kimages/main/icons/icon_construction_chain.png',
-  item: 'data/ui/2kimages/main/icons/icon_goods_storage.png',
-  product: 'data/ui/2kimages/main/icons/icon_itemsockets_01.png',
-  quest: 'data/ui/2kimages/main/icons/icon_questmain.png',
-  tech: 'data/ui/2kimages/main/icons/icon_research.png',
-}
-
 type Entry<T extends SearchType, Extra = unknown> = {
   objectID: `${T}_${number}`
   type: T
