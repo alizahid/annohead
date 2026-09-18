@@ -1,6 +1,6 @@
 import { anno } from '@anno/db/client'
 
-import { validateLocale } from '@/lib/validators'
+import { getId, validateLocale } from '@/lib/validators'
 
 export default async function Page({
   params,
@@ -8,7 +8,7 @@ export default async function Page({
   const { locale, id } = await params
 
   const quest = await anno.quests.get({
-    id,
+    id: getId(id),
     lang: validateLocale(locale),
   })
 
