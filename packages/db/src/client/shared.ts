@@ -6,7 +6,7 @@ import { attribute, buff, buffModifier, region, translation } from '../schema'
 
 export type Page = { page?: number; perPage?: number }
 export type Get = { id: number; lang: Lang }
-const PER_PAGE = 50
+const PER_PAGE = 48
 
 export function langId(lang: Lang) {
   return sql`(select id from lang where code = ${langNames[lang]})`
