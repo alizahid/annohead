@@ -5,7 +5,9 @@ import { type Lang } from '../enums'
 import { dlc as dlcTable } from '../schema'
 import { localized, on } from './shared'
 
-export type DlcFilter = { lang: Lang }
+export type DlcFilter = {
+  lang: Lang
+}
 
 async function list({ lang }: DlcFilter) {
   const nameT = localized('name')
@@ -22,4 +24,6 @@ async function list({ lang }: DlcFilter) {
   return rows
 }
 
-export const dlc = { list }
+export const dlc = {
+  list,
+}

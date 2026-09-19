@@ -5,7 +5,9 @@ import { type Lang } from '../enums'
 import { populationLevel, region } from '../schema'
 import { localized, on } from './shared'
 
-export type PopulationTierFilter = { lang: Lang }
+export type PopulationTierFilter = {
+  lang: Lang
+}
 
 async function list({ lang }: PopulationTierFilter) {
   const nameT = localized('name')
@@ -34,8 +36,14 @@ async function list({ lang }: PopulationTierFilter) {
     if (regionKey === null) {
       throw new Error(`Missing region for population tier ${row.guid}`)
     }
-    return { ...row, region: regionKey, tier } as const
+    return {
+      ...row,
+      region: regionKey,
+      tier,
+    } as const
   })
 }
 
-export const populationTiers = { list }
+export const populationTiers = {
+  list,
+}

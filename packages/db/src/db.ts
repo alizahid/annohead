@@ -8,6 +8,10 @@ import { drizzle } from 'drizzle-orm/libsql'
 const defaultUrl = `file:${resolve(fileURLToPath(import.meta.url), '../../anno.sqlite')}`
 
 export const db = drizzle(
-  createClient({ url: process.env.ANNO_DB_URL ?? defaultUrl }),
-  { logger: Boolean(process.env.ANNO_DB_LOG) },
+  createClient({
+    url: process.env.ANNO_DB_URL ?? defaultUrl,
+  }),
+  {
+    logger: Boolean(process.env.ANNO_DB_LOG),
+  },
 )

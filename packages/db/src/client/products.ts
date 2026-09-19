@@ -28,7 +28,9 @@ async function list(f: ProductFilter & Page) {
     f.regionId
       ? exists(
           db
-            .select({ one: sql`1` })
+            .select({
+              one: sql`1`,
+            })
             .from(productRegion)
             .where(
               and(
@@ -42,7 +44,9 @@ async function list(f: ProductFilter & Page) {
   const { limit, offset } = paginate(f)
   const [[{ total }], rows] = await Promise.all([
     db
-      .select({ total: count() })
+      .select({
+        total: count(),
+      })
       .from(product)
       .leftJoin(nameT, on(nameT, product.nameText, f.lang))
       .where(where),
@@ -97,7 +101,17 @@ async function list(f: ProductFilter & Page) {
 }
 
 async function get({ id, lang }: Get) {
-  return (await list({ guid: id, lang })).rows[0] ?? null
+  return (
+    (
+      await list({
+        guid: id,
+        lang,
+      })
+    ).rows[0] ?? null
+  )
 }
 
-export const products = { get, list }
+export const products = {
+  get,
+  list,
+}

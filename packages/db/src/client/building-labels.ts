@@ -53,9 +53,15 @@ const typeNames: Record<Lang, Record<BuildingType, string>> = {
 }
 
 export function kinds({ lang }: { lang: Lang }) {
-  return buildingKindValues.map((key) => ({ key, name: kindNames[lang][key] }))
+  return buildingKindValues.map((key) => ({
+    key,
+    name: kindNames[lang][key],
+  }))
 }
 
 export function types({ lang }: { lang: Lang }) {
-  return buildingTypeValues.map((key) => ({ key, name: typeNames[lang][key] }))
+  return buildingTypeValues.map((key) => ({
+    key,
+    name: typeNames[lang][key],
+  }))
 }

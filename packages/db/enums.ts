@@ -4,7 +4,9 @@
 import { Database } from 'bun:sqlite'
 import { readFileSync, writeFileSync } from 'node:fs'
 
-const db = new Database('anno.sqlite', { readonly: true })
+const db = new Database('anno.sqlite', {
+  readonly: true,
+})
 
 function pascal(name: string) {
   return name.replace(/(^|_)(\w)/g, (_, __, c: string) => c.toUpperCase())
@@ -23,14 +25,25 @@ function block(name: string, values: Array<string>) {
 }
 
 const enums = db
-  .query<{ name: string; list: string }, []>(
+  .query<
+    {
+      name: string
+      list: string
+    },
+    []
+  >(
     "select name, group_concat(value, '|') as list from enum_value group by name order by name",
   )
   .all()
   .map((row) => block(row.name, row.list.split('|')))
 
 const attributes = db
-  .query<{ key: string }, []>('select key from attribute order by id')
+  .query<
+    {
+      key: string
+    },
+    []
+  >('select key from attribute order by id')
   .all()
 // the game only names languages (texts_<name>.xml); ISO codes are ours
 const langCodes: Record<string, string> = {
@@ -48,18 +61,31 @@ const langCodes: Record<string, string> = {
   traditional_chinese: 'zh-Hant',
 }
 const langs = db
-  .query<{ code: string }, []>('select code from lang order by id')
+  .query<
+    {
+      code: string
+    },
+    []
+  >('select code from lang order by id')
   .all()
   .map((l) => {
     const code = langCodes[l.code]
     if (!code) {
       throw new Error(`no ISO code for game language ${l.code}`)
     }
-    return { code, name: l.code }
+    return {
+      code,
+      name: l.code,
+    }
   })
 // region keys (Roman, Celtic, Egyptian); names are display text and may be localized
 const regions = db
-  .query<{ key: string }, []>('select key from region order by id')
+  .query<
+    {
+      key: string
+    },
+    []
+  >('select key from region order by id')
   .all()
 const langNames = langs.map((l) => `  '${l.code}': '${l.name}',`).join('\n')
 
@@ -86,23 +112,48 @@ writeFileSync('src/enums.ts', out.join('\n'))
 // schema table -> column -> enum_value name (the transformer's `self.enum(name, …)` call sites)
 // plus the attribute table, whose keys are enumerated above
 const columnEnums: Record<string, Record<string, string>> = {
-  attribute: { key: 'attribute' },
-  buff: { sourceCategory: 'source_category' },
-  building: { kind: 'building_kind', type: 'building_type' },
-  effect: { scope: 'effect_scope', sourceCategory: 'source_category' },
+  attribute: {
+    key: 'attribute',
+  },
+  buff: {
+    sourceCategory: 'source_category',
+  },
+  building: {
+    kind: 'building_kind',
+    type: 'building_type',
+  },
+  effect: {
+    scope: 'effect_scope',
+    sourceCategory: 'source_category',
+  },
   item: {
     allocation: 'allocation',
     niche: 'niche',
     rarity: 'rarity',
     type: 'item_type',
   },
-  need: { category: 'need_category' },
-  product: { storageLevel: 'storage_level', transportType: 'transport_type' },
-  quest: { category: 'quest_category' },
-  questNode: { type: 'node_type' },
-  questOption: { category: 'option_category' },
-  region: { key: 'region' },
-  storyline: { system: 'storyline_system' },
+  need: {
+    category: 'need_category',
+  },
+  product: {
+    storageLevel: 'storage_level',
+    transportType: 'transport_type',
+  },
+  quest: {
+    category: 'quest_category',
+  },
+  questNode: {
+    type: 'node_type',
+  },
+  questOption: {
+    category: 'option_category',
+  },
+  region: {
+    key: 'region',
+  },
+  storyline: {
+    system: 'storyline_system',
+  },
 }
 let schema = readFileSync('src/schema.ts', 'utf8')
 if (schema.includes("from './enums'")) {
@@ -131,5 +182,7 @@ for (const [table, cols] of Object.entries(columnEnums)) {
   }
   schema = schema.slice(0, start) + body + schema.slice(end)
 }
-schema = `import { ${[...imports].sort().join(', ')} } from './enums'\n${schema}`
+schema = `import { ${[...imports]
+  .sort()
+  .join(', ')} } from './enums'\n${schema}`
 writeFileSync('src/schema.ts', schema)

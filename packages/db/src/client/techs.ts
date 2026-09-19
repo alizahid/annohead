@@ -4,7 +4,11 @@ import { db } from '../db'
 import { type Lang } from '../enums'
 import { building, product, tech, techResource, techUnlock } from '../schema'
 import { type Get, groupBy, localized, on, type Page, paginate } from './shared'
-export type TechFilter = { lang: Lang; guid?: number; search?: string }
+export type TechFilter = {
+  lang: Lang
+  guid?: number
+  search?: string
+}
 
 /** Techs with the buildings they unlock and the resources they cost. */
 async function list(f: TechFilter & Page) {
@@ -19,7 +23,9 @@ async function list(f: TechFilter & Page) {
   const { limit, offset } = paginate(f)
   const [[{ total }], rows] = await Promise.all([
     db
-      .select({ total: count() })
+      .select({
+        total: count(),
+      })
       .from(tech)
       .leftJoin(nameT, on(nameT, tech.nameText, f.lang))
       .where(where),
@@ -82,7 +88,17 @@ async function list(f: TechFilter & Page) {
 }
 
 async function get({ id, lang }: Get) {
-  return (await list({ guid: id, lang })).rows[0] ?? null
+  return (
+    (
+      await list({
+        guid: id,
+        lang,
+      })
+    ).rows[0] ?? null
+  )
 }
 
-export const techs = { get, list }
+export const techs = {
+  get,
+  list,
+}

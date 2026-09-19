@@ -111,7 +111,12 @@ async function listStorylines(f: StorylineFilter & Page) {
   )
   const { limit, offset } = paginate(f)
   const [[{ total }], rows] = await Promise.all([
-    db.select({ total: count() }).from(storyline).where(where),
+    db
+      .select({
+        total: count(),
+      })
+      .from(storyline)
+      .where(where),
     db
       .select({
         guid: storyline.guid,
@@ -145,7 +150,10 @@ async function listStorylines(f: StorylineFilter & Page) {
   const q = groupBy(quests, 'storylineGuid')
   return {
     pages: Math.ceil(total / limit),
-    rows: rows.map((r) => ({ ...r, quests: q(r.guid) })),
+    rows: rows.map((r) => ({
+      ...r,
+      quests: q(r.guid),
+    })),
     total,
   }
 }
@@ -191,7 +199,11 @@ async function getStoryline({ id: guid, lang }: Get) {
   return {
     ...head,
     edges,
-    nodes: nodes.map((n) => ({ ...n, options: o(n.guid), rewards: r(n.guid) })),
+    nodes: nodes.map((n) => ({
+      ...n,
+      options: o(n.guid),
+      rewards: r(n.guid),
+    })),
     variables,
   }
 }
@@ -219,7 +231,9 @@ async function listQuests(f: QuestFilter & Page) {
   const { limit, offset } = paginate(f)
   const [[{ total }], rows] = await Promise.all([
     db
-      .select({ total: count() })
+      .select({
+        total: count(),
+      })
       .from(quest)
       .leftJoin(nameT, on(nameT, quest.nameText, f.lang))
       .where(where),
@@ -274,14 +288,30 @@ async function listQuests(f: QuestFilter & Page) {
   )
   return {
     pages: Math.ceil(total / limit),
-    rows: rows.map((q) => ({ ...q, steps: steps(q.guid) })),
+    rows: rows.map((q) => ({
+      ...q,
+      steps: steps(q.guid),
+    })),
     total,
   }
 }
 
 async function getQuest({ id, lang }: Get) {
-  return (await listQuests({ guid: id, lang })).rows[0] ?? null
+  return (
+    (
+      await listQuests({
+        guid: id,
+        lang,
+      })
+    ).rows[0] ?? null
+  )
 }
 
-export const quests = { get: getQuest, list: listQuests }
-export const storylines = { get: getStoryline, list: listStorylines }
+export const quests = {
+  get: getQuest,
+  list: listQuests,
+}
+export const storylines = {
+  get: getStoryline,
+  list: listStorylines,
+}

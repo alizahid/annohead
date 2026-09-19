@@ -3,7 +3,9 @@ import { type Lang } from '../enums'
 import { region } from '../schema'
 import { regionColumns } from './shared'
 
-export type RegionFilter = { lang: Lang }
+export type RegionFilter = {
+  lang: Lang
+}
 
 async function list({ lang }: RegionFilter) {
   const rows = await db.select(regionColumns).from(region)
@@ -15,4 +17,6 @@ async function list({ lang }: RegionFilter) {
   return rows
 }
 
-export const regions = { list }
+export const regions = {
+  list,
+}

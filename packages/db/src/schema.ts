@@ -31,7 +31,9 @@ import {
 
 export const region = sqliteTable('region', {
   id: integer().primaryKey(),
-  key: text({ enum: regionValues }),
+  key: text({
+    enum: regionValues,
+  }),
   name: text(),
 })
 
@@ -53,7 +55,9 @@ export const populationLevel = sqliteTable('population_level', {
 
 export const attribute = sqliteTable('attribute', {
   id: integer().primaryKey(),
-  key: text({ enum: attributeValues }),
+  key: text({
+    enum: attributeValues,
+  }),
 })
 
 export const enumValue = sqliteTable(
@@ -99,8 +103,12 @@ export const product = sqliteTable('product', {
   icon: text(),
   name: text(),
   nameText: integer('name_text'),
-  storageLevel: text('storage_level', { enum: storageLevelValues }),
-  transportType: text('transport_type', { enum: transportTypeValues }),
+  storageLevel: text('storage_level', {
+    enum: storageLevelValues,
+  }),
+  transportType: text('transport_type', {
+    enum: transportTypeValues,
+  }),
 })
 
 export const productRegion = sqliteTable(
@@ -118,7 +126,9 @@ export const productRegion = sqliteTable(
 )
 
 export const need = sqliteTable('need', {
-  category: text({ enum: needCategoryValues }),
+  category: text({
+    enum: needCategoryValues,
+  }),
   descriptionText: integer('description_text'),
   guid: integer().primaryKey(),
   name: text(),
@@ -143,7 +153,9 @@ export const building = sqliteTable('building', {
   guid: integer().primaryKey(),
   health: integer(),
   icon: text(),
-  kind: text({ enum: buildingKindValues }),
+  kind: text({
+    enum: buildingKindValues,
+  }),
   name: text(),
   nameText: integer('name_text'),
   populationLevelGuid: integer('population_level_guid').references(
@@ -153,7 +165,9 @@ export const building = sqliteTable('building', {
   regionId: integer('region_id').references(() => region.id),
   streetRadius: integer('street_radius'),
   template: text(),
-  type: text({ enum: buildingTypeValues }),
+  type: text({
+    enum: buildingTypeValues,
+  }),
 })
 
 export const buildingRegion = sqliteTable(
@@ -332,8 +346,12 @@ export const effect = sqliteTable('effect', {
   guid: integer().primaryKey(),
   name: text(),
   nameText: integer('name_text'),
-  scope: text({ enum: effectScopeValues }),
-  sourceCategory: text('source_category', { enum: sourceCategoryValues }),
+  scope: text({
+    enum: effectScopeValues,
+  }),
+  sourceCategory: text('source_category', {
+    enum: sourceCategoryValues,
+  }),
 })
 
 export const effectBuff = sqliteTable(
@@ -400,7 +418,9 @@ export const buff = sqliteTable('buff', {
   icon: text(),
   name: text(),
   nameText: integer('name_text'),
-  sourceCategory: text('source_category', { enum: sourceCategoryValues }),
+  sourceCategory: text('source_category', {
+    enum: sourceCategoryValues,
+  }),
 })
 
 export const buffModifier = sqliteTable(
@@ -439,7 +459,9 @@ export const buffProvidedNeed = sqliteTable(
 )
 
 export const item = sqliteTable('item', {
-  allocation: text({ enum: allocationValues }),
+  allocation: text({
+    enum: allocationValues,
+  }),
   boostHintText: integer('boost_hint_text'),
   descriptionText: integer('description_text'),
   effectGuid: integer('effect_guid').references(() => effect.guid),
@@ -447,11 +469,17 @@ export const item = sqliteTable('item', {
   icon: text(),
   name: text(),
   nameText: integer('name_text'),
-  niche: text({ enum: nicheValues }),
-  rarity: text({ enum: rarityValues }),
+  niche: text({
+    enum: nicheValues,
+  }),
+  rarity: text({
+    enum: rarityValues,
+  }),
   template: text(),
   tradePrice: real('trade_price'),
-  type: text({ enum: itemTypeValues }),
+  type: text({
+    enum: itemTypeValues,
+  }),
 })
 
 export const itemBoostBuff = sqliteTable(
@@ -582,7 +610,9 @@ export const conditionParam = sqliteTable(
 export const storyline = sqliteTable('storyline', {
   guid: integer().primaryKey(),
   name: text(),
-  system: text({ enum: storylineSystemValues }),
+  system: text({
+    enum: storylineSystemValues,
+  }),
 })
 
 export const storylineVariable = sqliteTable(
@@ -627,7 +657,9 @@ export const questPoolStoryline = sqliteTable(
 export const quest = sqliteTable(
   'quest',
   {
-    category: text({ enum: questCategoryValues }),
+    category: text({
+      enum: questCategoryValues,
+    }),
     guid: integer().primaryKey(),
     icon: text(),
     name: text(),
@@ -649,7 +681,9 @@ export const questNode = sqliteTable(
     storylineGuid: integer('storyline_guid').references(() => storyline.guid),
     textText: integer('text_text'),
     timeLimitMs: integer('time_limit_ms'),
-    type: text({ enum: nodeTypeValues }),
+    type: text({
+      enum: nodeTypeValues,
+    }),
   },
   (table) => [
     index('idx_quest_node_quest').on(table.questGuid),
@@ -678,7 +712,9 @@ export const questEdge = sqliteTable(
 export const questOption = sqliteTable(
   'quest_option',
   {
-    category: text({ enum: optionCategoryValues }),
+    category: text({
+      enum: optionCategoryValues,
+    }),
     decisionGuid: integer('decision_guid').references(() => questNode.guid),
     idx: integer(),
     textText: integer('text_text'),

@@ -109,13 +109,20 @@ async function phaseRows(guids: Array<number>, lang: Lang) {
   ])
   const c = groupBy(costs, 'owner')
   const m = groupBy(maintenance, 'owner')
-  return rows.map((r) => ({ ...r, costs: c(r.guid), maintenance: m(r.guid) }))
+  return rows.map((r) => ({
+    ...r,
+    costs: c(r.guid),
+    maintenance: m(r.guid),
+  }))
 }
 
 /** Modifiers of the adjacency / service effects a building emits. */
 function effectRows(guids: Array<number>) {
   return db
-    .select({ buildingGuid: buildingEffect.buildingGuid, ...modifierColumns })
+    .select({
+      buildingGuid: buildingEffect.buildingGuid,
+      ...modifierColumns,
+    })
     .from(buildingEffect)
     .innerJoin(effectBuff, eq(effectBuff.effectGuid, buildingEffect.effectGuid))
     .innerJoin(buff, eq(buff.guid, effectBuff.buffGuid))
@@ -196,7 +203,9 @@ async function queryBuildings(f: BuildingFilter & Page, id?: number) {
 
   const [[{ total }], rows] = await Promise.all([
     db
-      .select({ total: count() })
+      .select({
+        total: count(),
+      })
       .from(building)
       .leftJoin(nameT, on(nameT, building.nameText, f.lang))
       .where(where),
@@ -265,11 +274,26 @@ async function queryBuildings(f: BuildingFilter & Page, id?: number) {
 }
 
 async function get({ id, lang }: Get) {
-  return (await queryBuildings({ lang, perPage: 1 }, id)).rows[0] ?? null
+  return (
+    (
+      await queryBuildings(
+        {
+          lang,
+          perPage: 1,
+        },
+        id,
+      )
+    ).rows[0] ?? null
+  )
 }
 
 async function list(f: BuildingFilter & Page) {
   return await queryBuildings(f)
 }
 
-export const buildings = { get, kinds, list, types }
+export const buildings = {
+  get,
+  kinds,
+  list,
+  types,
+}

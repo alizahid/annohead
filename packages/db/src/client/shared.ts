@@ -4,8 +4,14 @@ import { alias, type SQLiteColumn } from 'drizzle-orm/sqlite-core'
 import { type Lang, langNames } from '../enums'
 import { attribute, buff, buffModifier, region, translation } from '../schema'
 
-export type Page = { page?: number; perPage?: number }
-export type Get = { id: number; lang: Lang }
+export type Page = {
+  page?: number
+  perPage?: number
+}
+export type Get = {
+  id: number
+  lang: Lang
+}
 const PER_PAGE = 48
 
 export function langId(lang: Lang) {
@@ -31,7 +37,10 @@ export const regionColumns = {
 }
 
 export function paginate({ page = 1, perPage = PER_PAGE }: Page) {
-  return { limit: perPage, offset: (page - 1) * perPage }
+  return {
+    limit: perPage,
+    offset: (page - 1) * perPage,
+  }
 }
 
 export function groupBy<T, K extends keyof T>(rows: Array<T>, key: K) {

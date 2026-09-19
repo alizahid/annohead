@@ -69,7 +69,9 @@ function itemWhere(
     f.targetBuilding
       ? exists(
           db
-            .select({ one: sql`1` })
+            .select({
+              one: sql`1`,
+            })
             .from(effectTargetPool)
             .innerJoin(
               poolMember,
@@ -86,7 +88,9 @@ function itemWhere(
     f.attribute
       ? exists(
           db
-            .select({ one: sql`1` })
+            .select({
+              one: sql`1`,
+            })
             .from(effectBuff)
             .innerJoin(
               buffModifier,
@@ -125,7 +129,10 @@ async function itemDetails(guids: Array<number>, lang: Lang) {
       .leftJoin(bName, on(bName, building.nameText, lang))
       .where(inArray(item.guid, guids)),
     db
-      .select({ itemGuid: item.guid, ...modifierColumns })
+      .select({
+        itemGuid: item.guid,
+        ...modifierColumns,
+      })
       .from(item)
       .innerJoin(effectBuff, eq(effectBuff.effectGuid, item.effectGuid))
       .innerJoin(buff, eq(buff.guid, effectBuff.buffGuid))
@@ -133,7 +140,10 @@ async function itemDetails(guids: Array<number>, lang: Lang) {
       .leftJoin(attribute, eq(attribute.id, buffModifier.attributeId))
       .where(inArray(item.guid, guids)),
     db
-      .select({ itemGuid: itemBoostBuff.itemGuid, ...modifierColumns })
+      .select({
+        itemGuid: itemBoostBuff.itemGuid,
+        ...modifierColumns,
+      })
       .from(itemBoostBuff)
       .innerJoin(buff, eq(buff.guid, itemBoostBuff.buffGuid))
       .innerJoin(buffModifier, eq(buffModifier.buffGuid, buff.guid))
@@ -166,7 +176,9 @@ async function list(f: ItemFilter & Page) {
 
   const [[{ total }], rows] = await Promise.all([
     db
-      .select({ total: count() })
+      .select({
+        total: count(),
+      })
       .from(item)
       .leftJoin(nameT, on(nameT, item.nameText, f.lang))
       .where(where),
@@ -212,17 +224,39 @@ async function list(f: ItemFilter & Page) {
 }
 
 async function get({ id, lang }: Get) {
-  return (await list({ guid: id, lang })).rows[0] ?? null
+  return (
+    (
+      await list({
+        guid: id,
+        lang,
+      })
+    ).rows[0] ?? null
+  )
 }
 
 function listSpecialists(f: Omit<ItemFilter, 'type'> & Page) {
-  return list({ ...f, type: 'Specialist' })
+  return list({
+    ...f,
+    type: 'Specialist',
+  })
 }
 
 function listCaptains(f: Omit<ItemFilter, 'type'> & Page) {
-  return list({ ...f, type: 'Captains' })
+  return list({
+    ...f,
+    type: 'Captains',
+  })
 }
 
-export const items = { get, list }
-export const specialists = { get, list: listSpecialists }
-export const captains = { get, list: listCaptains }
+export const items = {
+  get,
+  list,
+}
+export const specialists = {
+  get,
+  list: listSpecialists,
+}
+export const captains = {
+  get,
+  list: listCaptains,
+}

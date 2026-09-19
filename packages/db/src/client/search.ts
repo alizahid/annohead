@@ -113,7 +113,9 @@ function select(s: Source, lang: Lang) {
     left join translation d on d.line_id = ${s.description ?? none} and d.lang_id = ${langId(lang)}`
 }
 
-type Row = Omit<SearchHit, 'regions'> & { regions: string | null }
+type Row = Omit<SearchHit, 'regions'> & {
+  regions: string | null
+}
 
 /** Every searchable row in one language; variants that read the same (Infantry Camp ×2) collapse to the lowest guid. */
 function load(lang: Lang, types?: Array<SearchType>) {
@@ -162,7 +164,12 @@ function typosAllowed(length: number) {
 /** Optimal string alignment distance: insertions, deletions, substitutions and adjacent swaps. */
 function distance(a: string, b: string) {
   let beforePrevious: Array<number> = []
-  let previous = Array.from({ length: b.length + 1 }, (_, j) => j)
+  let previous = Array.from(
+    {
+      length: b.length + 1,
+    },
+    (_, j) => j,
+  )
   for (let i = 1; i <= a.length; i += 1) {
     const current = [i]
     for (let j = 1; j <= b.length; j += 1) {
@@ -251,11 +258,19 @@ async function search(f: SearchFilter & Page) {
   const query = fold(f.query.trim())
   const tokens = words(query)
   const rows = await load(f.lang, f.type)
-  const hits: Array<{ row: Row; tier: number; typos: number }> = []
+  const hits: Array<{
+    row: Row
+    tier: number
+    typos: number
+  }> = []
   for (const row of rows) {
     const scored = tokens.length ? score(row, query, tokens) : ([0, 0] as const)
     if (scored) {
-      hits.push({ row, tier: scored[0], typos: scored[1] })
+      hits.push({
+        row,
+        tier: scored[0],
+        typos: scored[1],
+      })
     }
   }
   hits.sort(
@@ -272,7 +287,10 @@ async function search(f: SearchFilter & Page) {
       .slice(offset, offset + limit)
       .map(({ row: { regions, ...row } }): SearchHit => {
         const keys = regions?.split(',') ?? []
-        return { ...row, regions: regionValues.filter((r) => keys.includes(r)) }
+        return {
+          ...row,
+          regions: regionValues.filter((r) => keys.includes(r)),
+        }
       }),
     total: hits.length,
   }

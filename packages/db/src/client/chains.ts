@@ -37,7 +37,9 @@ async function list(f: ChainFilter & Page) {
   const { limit, offset } = paginate(f)
   const [[{ total }], rows] = await Promise.all([
     db
-      .select({ total: count() })
+      .select({
+        total: count(),
+      })
       .from(productionChain)
       .leftJoin(nameT, on(nameT, productionChain.nameText, f.lang))
       .where(where),
@@ -82,13 +84,26 @@ async function list(f: ChainFilter & Page) {
   const n = groupBy(nodes, 'chainGuid')
   return {
     pages: Math.ceil(total / limit),
-    rows: rows.map((c) => ({ ...c, nodes: n(c.guid) })),
+    rows: rows.map((c) => ({
+      ...c,
+      nodes: n(c.guid),
+    })),
     total,
   }
 }
 
 async function get({ id, lang }: Get) {
-  return (await list({ guid: id, lang })).rows[0] ?? null
+  return (
+    (
+      await list({
+        guid: id,
+        lang,
+      })
+    ).rows[0] ?? null
+  )
 }
 
-export const chains = { get, list }
+export const chains = {
+  get,
+  list,
+}
