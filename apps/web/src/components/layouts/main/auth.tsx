@@ -15,7 +15,9 @@ export function AuthCard() {
   return (
     <>
       <AuthLoading>
-        <CircleNotchIcon className="size-8 animate-spin" />
+        <div className="flex size-10 items-center justify-center">
+          <CircleNotchIcon className="size-8 animate-spin" />
+        </div>
       </AuthLoading>
 
       <Authenticated>
