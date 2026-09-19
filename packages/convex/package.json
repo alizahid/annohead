@@ -16,9 +16,11 @@
   },
   "dependencies": {
     "@convex-dev/auth": "^2.0.0-alpha.2",
-    "convex": "^1.46.0"
+    "convex": "^1.46.0",
+    "lodash": "^4.18.1"
   },
   "devDependencies": {
+    "@types/lodash": "^4.17.25",
     "@types/node": "^26.6.1",
     "typescript": "^7.0.2"
   }

@@ -1,6 +1,23 @@
 {
   "annohead": "Annohead",
   "component": {
+    "comments": {
+      "list": {
+        "title": "Comments",
+        "more": "Load more",
+        "signIn": "<link>Sign in</link> to join the conversation."
+      },
+      "form": {
+        "action": {
+          "submit": "Send"
+        },
+        "field": {
+          "body": {
+            "placeholder": "Say something nice"
+          }
+        }
+      }
+    },
     "auth": {
       "signIn": {
         "action": {

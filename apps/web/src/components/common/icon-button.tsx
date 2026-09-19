@@ -1,4 +1,4 @@
-import { type ButtonProps, Button as Component } from '@base-ui/react/button'
+import { Button, type ButtonProps } from '@base-ui/react/button'
 import { cn } from 'cn'
 
 import { Spinner } from './spinner'
@@ -7,7 +7,7 @@ type Props = ButtonProps & {
   loading?: boolean
 }
 
-export function Button({
+export function IconButton({
   children,
   className,
   disabled,
@@ -15,10 +15,10 @@ export function Button({
   ...props
 }: Props) {
   return (
-    <Component
+    <Button
       {...props}
       className={cn(
-        'relative flex h-10 items-center justify-center gap-3 overflow-hidden rounded-lg bg-accent-9 px-3 font-bold text-accent-contrast outline-accent-8 outline-offset-4 enabled:active:bg-accent-9 enabled:hover:bg-accent-10',
+        'relative flex size-10 items-center justify-center overflow-hidden rounded-lg bg-accent-9 text-accent-contrast outline-accent-8 outline-offset-4 enabled:active:bg-accent-9 enabled:hover:bg-accent-10',
         loading && 'cursor-progress',
         className,
       )}
@@ -31,6 +31,6 @@ export function Button({
           <Spinner className="size-4" />
         </span>
       ) : null}
-    </Component>
+    </Button>
   )
 }

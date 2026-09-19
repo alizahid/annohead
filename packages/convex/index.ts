@@ -7,4 +7,4 @@ export type {
   Id,
   TableNames,
 } from './convex/_generated/dataModel.js'
-export type {} from './convex/types.js'
+export type { Comment } from './convex/decorators/comments.js'

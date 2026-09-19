@@ -9,6 +9,9 @@
  */
 
 import type * as auth from "../auth.js";
+import type * as comments_mutations from "../comments/mutations.js";
+import type * as comments_queries from "../comments/queries.js";
+import type * as decorators_comments from "../decorators/comments.js";
 import type * as users_internal from "../users/internal.js";
 import type * as users_queries from "../users/queries.js";
 
@@ -20,6 +23,9 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
+  "comments/mutations": typeof comments_mutations;
+  "comments/queries": typeof comments_queries;
+  "decorators/comments": typeof decorators_comments;
   "users/internal": typeof users_internal;
   "users/queries": typeof users_queries;
 }>;

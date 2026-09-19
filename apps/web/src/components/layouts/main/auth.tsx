@@ -4,11 +4,11 @@ import {
   Unauthenticated,
 } from '@convex-dev/auth/react'
 import {
-  CircleNotchIcon,
   UserCircleDashedIcon,
   UserCircleIcon,
 } from '@phosphor-icons/react/dist/ssr'
 
+import { Spinner } from '@/components/common/spinner'
 import { Link } from '@/intl/nav'
 
 export function AuthCard() {
@@ -16,7 +16,7 @@ export function AuthCard() {
     <>
       <AuthLoading>
         <div className="flex size-10 items-center justify-center">
-          <CircleNotchIcon className="size-8 animate-spin" />
+          <Spinner className="size-8" />
         </div>
       </AuthLoading>
 

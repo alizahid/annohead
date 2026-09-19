@@ -14,7 +14,7 @@ export function MainLayout({ children }: Props) {
   const t = useTranslations('component.layouts.main')
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-7xl flex-col gap-6 bg-gray-1 p-4 md:p-8">
+    <div className="mx-auto flex min-h-screen max-w-7xl flex-col gap-12 bg-gray-1 p-4 md:p-8">
       <header className="grid grid-cols-[2.5rem_1fr_2.5rem] items-center gap-4">
         <Navigation />
 
