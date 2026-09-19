@@ -1,12 +1,41 @@
 {
   "annohead": "Annohead",
   "component": {
-    "comments": {
-      "list": {
-        "title": "Comments",
-        "more": "Load more",
-        "signIn": "<link>Sign in</link> to join the conversation."
+    "auth": {
+      "signIn": {
+        "action": {
+          "signUp": "New user?",
+          "submit": "Sign in"
+        },
+        "field": {
+          "password": {
+            "label": "Password",
+            "placeholder": "Sup3rS3cur3P@ssw0rd"
+          },
+          "username": {
+            "label": "Username",
+            "placeholder": "mildpanda"
+          }
+        }
       },
+      "signUp": {
+        "action": {
+          "signIn": "Already have an account?",
+          "submit": "Sign up"
+        },
+        "field": {
+          "password": {
+            "label": "Password",
+            "placeholder": "Sup3rS3cur3P@ssw0rd"
+          },
+          "username": {
+            "label": "Username",
+            "placeholder": "mildpanda"
+          }
+        }
+      }
+    },
+    "comments": {
       "form": {
         "action": {
           "submit": "Send"
@@ -16,40 +45,28 @@
             "placeholder": "Say something nice"
           }
         }
+      },
+      "list": {
+        "more": "Load more",
+        "signIn": "<link>Sign in</link> to join the conversation.",
+        "title": "Comments"
       }
     },
-    "auth": {
-      "signIn": {
-        "action": {
-          "submit": "Sign in",
-          "signUp": "New user?"
+    "layouts": {
+      "main": {
+        "footer": {
+          "copyright": "© {year} Annohead. All rights reserved."
         },
-        "field": {
-          "username": {
-            "label": "Username",
-            "placeholder": "mildpanda"
-          },
-          "password": {
-            "label": "Password",
-            "placeholder": "Sup3rS3cur3P@ssw0rd"
-          }
-        }
-      },
-      "signUp": {
-        "action": {
-          "submit": "Sign up",
-          "signIn": "Already have an account?"
+        "nav": {
+          "buildings": "Buildings",
+          "chains": "Production chains",
+          "items": "Items",
+          "products": "Goods",
+          "quests": "Quests",
+          "techs": "Technologies",
+          "title": "Database"
         },
-        "field": {
-          "username": {
-            "label": "Username",
-            "placeholder": "mildpanda"
-          },
-          "password": {
-            "label": "Password",
-            "placeholder": "Sup3rS3cur3P@ssw0rd"
-          }
-        }
+        "title": "Annohead"
       }
     },
     "search": {
@@ -58,47 +75,31 @@
         "type": {
           "all": "All",
           "building": "Buildings",
+          "chain": "Production chains",
           "item": "Items",
           "product": "Products",
-          "tech": "Technologies",
           "quest": "Quests",
-          "chain": "Production chains"
+          "tech": "Technologies"
         }
-      }
-    },
-    "layouts": {
-      "main": {
-        "footer": {
-          "copyright": "© {year} Annohead. All rights reserved."
-        },
-        "title": "Annohead",
-        "nav": {
-          "title": "Database",
-          "buildings": "Buildings",
-          "quests": "Quests",
-          "chains": "Production chains",
-          "items": "Items",
-          "products": "Goods",
-          "techs": "Technologies"
-        }
-      }
+      },
+      "page": {}
     }
   },
   "hook": {
     "auth": {
       "error": {
-        "PASSWORD_TOO_SHORT": "Password too short (min {min, plural, =0 {} =1 {1 characer} other {# characters}})",
-        "PASSWORD_TOO_LONG": "Password too long (max {max, plural, =0 {} =1 {1 character} other {# characters}})",
-        "PASSWORD_HAS_SURROUNDING_WHITESPACE": "Password has surrounding whitespace",
         "INVALID_CREDENTIALS": "Invalid credentials",
-        "RATE_LIMITED": "Rate limited. Try again after {seconds, plural, =0 {a while} =1 {1 second} other {# seconds}}",
-        "USER_NOT_FOUND": "User not found",
         "OTHER_ERROR": "Something went wrong",
-        "USERNAME_TOO_SHORT": "Username too short (min {min, plural, =0 {} =1 {1 characer} other {# characters}})",
-        "USERNAME_HAS_SURROUNDING_WHITESPACE": "",
+        "PASSWORD_HAS_SURROUNDING_WHITESPACE": "Password has surrounding whitespace",
+        "PASSWORD_TOO_COMMON": "Password is too common",
+        "PASSWORD_TOO_LONG": "Password too long (max {max, plural, =0 {} =1 {1 character} other {# characters}})",
+        "PASSWORD_TOO_SHORT": "Password too short (min {min, plural, =0 {} =1 {1 characer} other {# characters}})",
+        "RATE_LIMITED": "Rate limited. Try again after {seconds, plural, =0 {a while} =1 {1 second} other {# seconds}}",
         "USERNAME_HAS_INVALID_CHARACTERS": "",
+        "USERNAME_HAS_SURROUNDING_WHITESPACE": "",
         "USERNAME_TAKEN": "",
-        "PASSWORD_TOO_COMMON": "Password is too common"
+        "USERNAME_TOO_SHORT": "Username too short (min {min, plural, =0 {} =1 {1 characer} other {# characters}})",
+        "USER_NOT_FOUND": "User not found"
       }
     }
   }
