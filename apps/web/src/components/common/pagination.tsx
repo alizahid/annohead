@@ -39,6 +39,8 @@ export function Pagination({ page, pages }: Props) {
 
           if (index > 1) {
             params.set('page', String(index))
+          } else {
+            params.delete('page')
           }
 
           return (
@@ -48,7 +50,7 @@ export function Pagination({ page, pages }: Props) {
                 index === page && 'bg-accent-5',
                 index === 1 && !page && 'bg-accent-5',
               )}
-              href={`${path}?${params}`}
+              href={params.size ? `${path}?${params}` : path}
               key={index}
             >
               {index}
