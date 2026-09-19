@@ -12,8 +12,10 @@
     "@anno/convex": "workspace:*",
     "@anno/db": "workspace:*",
     "@convex-dev/auth": "^2.0.0-alpha.2",
+    "@hookform/resolvers": "^5.9.1",
     "@phosphor-icons/react": "^2.1.10",
     "@radix-ui/colors": "^3.0.0",
+    "@tanstack/react-query": "^5.103.1",
     "cn": "^0.3.0",
     "convex": "^1.46.0",
     "date-fns": "^4.4.0",
@@ -24,6 +26,7 @@
     "nuqs": "^2.10.1",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "react-hook-form": "^7.88.0",
     "react-hotkeys-hook": "^5.3.3",
     "zod": "^4.6.5"
   },

@@ -4,6 +4,7 @@ import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import { type ReactNode } from 'react'
 
 import { ConvexProvider } from './convex'
+import { QueryProvider } from './query'
 
 type Props = {
   children: ReactNode
@@ -14,7 +15,9 @@ export function Providers({ children }: Props) {
     <NuqsAdapter>
       <NextIntlClientProvider>
         <ConvexProvider>
-          <ThemeProvider attribute="class">{children}</ThemeProvider>
+          <QueryProvider>
+            <ThemeProvider attribute="class">{children}</ThemeProvider>
+          </QueryProvider>
         </ConvexProvider>
       </NextIntlClientProvider>
     </NuqsAdapter>

@@ -3,6 +3,7 @@ import { type ReactNode } from 'react'
 
 import { SearchBox } from '@/components/search/box'
 
+import { AuthCard } from './auth'
 import { Navigation } from './navigation'
 
 type Props = {
@@ -14,10 +15,12 @@ export function MainLayout({ children }: Props) {
 
   return (
     <div className="mx-auto flex min-h-screen max-w-7xl flex-col gap-6 bg-gray-1 p-4 md:p-8">
-      <header className="flex justify-between gap-4 md:flex-row md:items-center">
+      <header className="grid grid-cols-[2.5rem_1fr_2.5rem] items-center gap-4">
         <Navigation />
 
-        <SearchBox className="flex-1" />
+        <SearchBox />
+
+        <AuthCard />
       </header>
 
       <main className="flex flex-1 flex-col">{children}</main>

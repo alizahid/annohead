@@ -36,7 +36,7 @@ export function SearchBox({ className }: Props) {
     >
       <Input
         className={cn(
-          'h-10 w-full max-w-3xs rounded-full bg-gray-3 px-4 outline-none ring-accent-8 focus-visible:ring-2',
+          'h-10 w-full rounded-full bg-gray-3 px-4 outline-none ring-accent-8 focus-visible:ring-2',
           onPage && 'rounded-lg px-3',
         )}
         defaultValue={query ?? undefined}
