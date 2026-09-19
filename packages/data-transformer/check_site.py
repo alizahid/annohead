@@ -52,4 +52,9 @@ assert q("select amount from building_phase_cost where phase_guid=3621 and produ
 assert q("select amount from building_cost where building_guid=3621 and product_guid=2174") == [(850.0,)]
 assert q("select asset_guid from unlock where source_guid=43128 order by 1") == [(3621,), (36908,), (36911,)]
 assert q("select asset_guid from unlock where source_guid=43129") == [(36912,)]
+# DLC ownership follows model paths; base buildings with DLC variants stay unassigned.
+assert q("select dlc_guid from building where guid=152714") == [(67903,)]
+assert q("select dlc_guid from building where guid=145229") == [(67902,)]
+assert q("select dlc_guid from building where guid=3615") == [(None,)]
+assert q("select dlc_guid from building where guid=2916") == [(None,)]
 print("ok")

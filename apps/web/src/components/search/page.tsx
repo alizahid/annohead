@@ -1,51 +1,52 @@
-import { type SearchHit } from '@anno/db/client'
-import { type SearchType } from '@anno/db/search'
+import { type SearchResults } from '@anno/db/client'
 import { cn } from 'cn'
 import { range } from 'lodash'
 import { useTranslations } from 'next-intl'
 
 import { Link } from '@/intl/nav'
+import { type SearchFilters } from '@/lib/validators'
 
+import { SearchFiltersCard } from './filters'
 import { SearchItem } from './item'
 
 type Props = {
-  hits: Array<SearchHit>
-  page?: number
-  pages: number
-  query: string
-  total: number
-  type?: SearchType
+  data: SearchResults
+  filters: SearchFilters
 }
 
-export function SearchPage({ hits, page, pages, query, total, type }: Props) {
+export function SearchPage({ data, filters }: Props) {
   const t = useTranslations('component.search.page')
 
-  const pagination = getPagination(pages)
+  const pagination = getPagination(data.pages)
 
   return (
     <div className="flex flex-col gap-12">
-      <div className="flex items-center gap-4">
-        <h1 className="text-4xl">{t('title')}</h1>
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center gap-4">
+          <h1 className="text-4xl">{t('title')}</h1>
 
-        {total > 0 ? (
-          <span className="tabular-nums">
-            {t('results', {
-              total,
-            })}
-          </span>
-        ) : null}
+          {data.total > 0 ? (
+            <span className="tabular-nums">
+              {t('results', {
+                total: data.total,
+              })}
+            </span>
+          ) : null}
+        </div>
+
+        <SearchFiltersCard />
       </div>
 
-      {hits.length ? (
+      {data.rows.length ? (
         <div className="flex flex-col gap-2">
-          {hits.map((item) => (
+          {data.rows.map((item) => (
             <SearchItem item={item} key={item.guid} />
           ))}
         </div>
       ) : (
         <p>
           {t('empty', {
-            query,
+            query: filters.query,
           })}
         </p>
       )}
@@ -66,24 +67,28 @@ export function SearchPage({ hits, page, pages, query, total, type }: Props) {
 
             const params = new URLSearchParams()
 
-            if (query) {
-              params.set('q', query)
+            if (filters.query) {
+              params.set('query', filters.query)
             }
 
-            if (type) {
-              params.set('t', type)
+            if (filters.type) {
+              params.delete('type')
+
+              for (const item of filters.type) {
+                params.append('type', item)
+              }
             }
 
             if (index > 1) {
-              params.set('p', String(index))
+              params.set('page', String(index))
             }
 
             return (
               <Link
                 className={cn(
                   'flex size-8 items-center justify-center rounded-lg bg-accent-3 text-sm tabular-nums',
-                  index === page && 'bg-accent-5',
-                  index === 1 && !page && 'bg-accent-5',
+                  index === filters.page && 'bg-accent-5',
+                  index === 1 && !filters.page && 'bg-accent-5',
                 )}
                 href={`/search?${params}`}
                 key={index}

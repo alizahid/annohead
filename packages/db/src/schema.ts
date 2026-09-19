@@ -139,6 +139,7 @@ export const needAttribute = sqliteTable(
 export const building = sqliteTable('building', {
   categoryText: integer('category_text'),
   descriptionText: integer('description_text'),
+  dlcGuid: integer('dlc_guid').references(() => dlc.guid),
   guid: integer().primaryKey(),
   health: integer(),
   icon: text(),

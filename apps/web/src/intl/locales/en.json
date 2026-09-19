@@ -35,6 +35,13 @@
         }
       }
     },
+    "buildings": {
+      "filters": {
+        "dlcs": "DLCs",
+        "regions": "Regions",
+        "tiers": "Population tiers"
+      }
+    },
     "comments": {
       "form": {
         "action": {
@@ -71,24 +78,24 @@
     },
     "search": {
       "box": {
-        "placeholder": "Search",
-        "type": {
-          "all": "All",
-          "building": "Buildings",
-          "chain": "Production chains",
-          "item": "Items",
-          "product": "Products",
-          "quest": "Quests",
-          "tech": "Technologies"
-        }
+        "placeholder": "Search"
+      },
+      "filters": {
+        "all": "All",
+        "building": "Buildings",
+        "chain": "Production chains",
+        "item": "Items",
+        "product": "Products",
+        "quest": "Quests",
+        "tech": "Technologies"
       },
       "page": {
         "empty": "Nothing found for {query}",
         "meta": {
           "title": "Annohead × Search"
         },
-        "title": "Search",
-        "results": "{total, plural, =0 {No results} =1 {1 result} other {# results}}"
+        "results": "{total, plural, =0 {No results} =1 {1 result} other {# results}}",
+        "title": "Search"
       }
     }
   },

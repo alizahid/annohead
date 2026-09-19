@@ -50,6 +50,24 @@ test('buildings join costs, workforce and outputs', async () => {
   expect(await anno.buildings.get({ id: 1, lang: 'en' })).toBeNull()
 })
 
+test('buildings filter by DLC and ignore an empty DLC filter', async () => {
+  const hippodrome = await anno.buildings.list({ dlc: [67_903], lang: 'en' })
+  expect(hippodrome.rows.map((row) => row.guid)).toContain(152_714)
+  expect(hippodrome.rows.every((row) => row.dlcGuid === 67_903)).toBe(true)
+  const multiple = await anno.buildings.list({
+    dlc: [67_902, 67_903],
+    lang: 'en',
+    perPage: 100,
+  })
+  expect(multiple.rows.map((row) => row.guid)).toContain(145_229)
+  expect(multiple.rows.map((row) => row.guid)).toContain(152_714)
+  expect(multiple.rows.map((row) => row.guid)).not.toContain(3615)
+  const unfiltered = await anno.buildings.list({ lang: 'en', perPage: 1 })
+  const empty = await anno.buildings.list({ dlc: [], lang: 'en', perPage: 1 })
+  expect(empty.total).toBe(unfiltered.total)
+  expect(empty.rows).toEqual(unfiltered.rows)
+})
+
 test('buildings carry effects and buffs', async () => {
   const { rows } = await anno.buildings.list({ lang: 'en', search: 'Lavender' })
   const [mod] = rows.flatMap((r) => r.effects)

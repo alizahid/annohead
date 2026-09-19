@@ -1,4 +1,4 @@
-import { and, asc, count, eq, exists, inArray, like, sql } from 'drizzle-orm'
+import { and, asc, count, eq, inArray, like } from 'drizzle-orm'
 
 import { db } from '../db'
 import { type BuildingKind, type BuildingType, type Lang } from '../enums'
@@ -37,49 +37,26 @@ import {
 } from './shared'
 export type BuildingFilter = {
   lang: Lang
-  guid?: number
   search?: string
   kind?: Array<BuildingKind>
-  type?: BuildingType
-  regionId?: number
+  type?: Array<BuildingType>
+  regionId?: Array<number>
+  /** DLC guids */
+  dlc?: Array<number>
   /** workforce tier (population_level guid) */
-  populationLevel?: number
-  /** product guid consumed / produced / needed to build */
-  inputProduct?: number
-  outputProduct?: number
-  costProduct?: number
-}
-
-function hasProduct(
-  table: typeof factoryInput | typeof factoryOutput | typeof buildingCost,
-  productGuid: number,
-) {
-  return exists(
-    db
-      .select({ one: sql`1` })
-      .from(table)
-      .where(
-        and(
-          eq(table.buildingGuid, building.guid),
-          eq(table.productGuid, productGuid),
-        ),
-      ),
-  )
+  populationLevel?: Array<number>
 }
 
 function buildingWhere(f: BuildingFilter, nameT: ReturnType<typeof localized>) {
   return and(
-    f.guid ? eq(building.guid, f.guid) : undefined,
     f.search ? like(nameT.value, `%${f.search}%`) : undefined,
     f.kind?.length ? inArray(building.kind, f.kind) : undefined,
-    f.type ? eq(building.type, f.type) : undefined,
-    f.regionId ? eq(building.regionId, f.regionId) : undefined,
-    f.populationLevel
-      ? eq(building.populationLevelGuid, f.populationLevel)
+    f.type?.length ? inArray(building.type, f.type) : undefined,
+    f.regionId?.length ? inArray(building.regionId, f.regionId) : undefined,
+    f.dlc?.length ? inArray(building.dlcGuid, f.dlc) : undefined,
+    f.populationLevel?.length
+      ? inArray(building.populationLevelGuid, f.populationLevel)
       : undefined,
-    f.inputProduct ? hasProduct(factoryInput, f.inputProduct) : undefined,
-    f.outputProduct ? hasProduct(factoryOutput, f.outputProduct) : undefined,
-    f.costProduct ? hasProduct(buildingCost, f.costProduct) : undefined,
   )
 }
 
@@ -205,12 +182,15 @@ async function buildingDetails(guids: Array<number>, lang: Lang) {
 }
 
 /** Buildings with costs, maintenance, factory inputs/outputs, area effects, need fulfilment and unlocking techs. */
-async function list(f: BuildingFilter & Page) {
+async function queryBuildings(f: BuildingFilter & Page, id?: number) {
   const nameT = localized('name')
   const descT = localized('desc')
   const catT = localized('cat')
   const plT = localized('pl')
-  const where = buildingWhere(f, nameT)
+  const where = and(
+    buildingWhere(f, nameT),
+    id === undefined ? undefined : eq(building.guid, id),
+  )
   const { limit, offset } = paginate(f)
 
   const [[{ total }], rows] = await Promise.all([
@@ -225,6 +205,7 @@ async function list(f: BuildingFilter & Page) {
         category: catT.value,
         cycleTime: factory.cycleTime,
         description: descT.value,
+        dlcGuid: building.dlcGuid,
         guid: building.guid,
         icon: building.icon,
         kind: building.kind,
@@ -283,7 +264,11 @@ async function list(f: BuildingFilter & Page) {
 }
 
 async function get({ id, lang }: Get) {
-  return (await list({ guid: id, lang })).rows[0] ?? null
+  return (await queryBuildings({ lang, perPage: 1 }, id)).rows[0] ?? null
+}
+
+async function list(f: BuildingFilter & Page) {
+  return await queryBuildings(f)
 }
 
 export const buildings = { get, list }

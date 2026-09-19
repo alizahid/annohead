@@ -11,6 +11,7 @@ import sys
 from collections import defaultdict
 
 GUID = re.compile(r"^\d{4,}$")
+DLC_PATH = re.compile(r"/(c?dlc)(\d+)/", re.IGNORECASE)
 REGIONS = {"Roman": (1, "Latium"), "Celtic": (2, "Albion"), "Egyptian": (3, "Delta")}
 BUILDING_KIND = [  # (template regex, kind); first match wins
     (r"^Production|^SlotFactory|^Slot_?Marsh|^Slot$", "Production"),
@@ -312,6 +313,28 @@ class T:
                 )
 
     # ---- buildings -----------------------------------------------------------------------------------------
+    def building_dlc(self, values):
+        """Infer ownership from model paths, excluding base buildings with DLC-only variants."""
+        paths = [
+            row.get("Filename", "")
+            for row in self.items(D(values.get("Object")).get("Variations"))
+        ]
+        if not paths:
+            paths = [D(values.get("Standard")).get("IconFilename", "")]
+        names = set()
+        for path in paths:
+            match = DLC_PATH.search(path)
+            if not match:
+                return None
+            names.add(f"{match[1].upper()}{int(match[2])}")
+        if len(names) != 1:
+            return None
+        name = names.pop()
+        for guid, in self.db.execute("select guid from dlc"):
+            if self.assets[guid]["name"] == name:
+                return guid
+        return None
+
     def buildings(self):
         for a in self.assets.values():
             v = a["v"]
@@ -336,7 +359,7 @@ class T:
                 D(v.get("Health")),
             )
             self.db.execute(
-                "insert into building values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                "insert into building values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                 (
                     a["guid"],
                     a["name"],
@@ -352,6 +375,7 @@ class T:
                     self.num(es.get("StreetDistance")),
                     self.num(h.get("BaseHealth")),
                     self.num(D(v.get("AttributeProvider")).get("Population")),
+                    self.building_dlc(v),
                 ),
             )
             for r in str(b.get("AssociatedRegions") or "").split(";"):
@@ -1068,7 +1092,7 @@ create table need(guid integer primary key, name text, name_text integer, produc
 create table need_attribute(need_guid int references need(guid), attribute_id int references attribute(id), value real);
 
 create table building(guid integer primary key, name text, name_text integer, description_text integer, icon text, template text, kind text, type text,
-  category_text integer, region_id int references region(id), radius int, street_radius int, health int, population_level_guid int references population_level(guid));
+  category_text integer, region_id int references region(id), radius int, street_radius int, health int, population_level_guid int references population_level(guid), dlc_guid int references dlc(guid));
 create table building_region(building_guid int references building(guid), region_id int references region(id), primary key(building_guid,region_id));
 create table building_cost(building_guid int references building(guid), product_guid int references product(guid), amount real);
 create table building_maintenance(building_guid int references building(guid), product_guid int references product(guid), amount real);

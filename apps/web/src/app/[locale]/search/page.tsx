@@ -3,7 +3,7 @@ import { type Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
 
 import { SearchPage } from '@/components/search/page'
-import { validateLocale, validateSearchFilters } from '@/lib/validators'
+import { parseSearchFilters, validateLocale } from '@/lib/validators'
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('component.search.page')
@@ -19,23 +19,14 @@ export default async function Page({
 }: PageProps<'/[locale]/search'>) {
   const { locale } = await params
 
-  const { page, query, type } = validateSearchFilters(await searchParams)
+  const filters = await parseSearchFilters(searchParams)
 
-  const { rows, pages, total } = await anno.search({
+  const data = await anno.search({
     lang: validateLocale(locale),
-    page,
-    query,
-    type: type ? [type] : undefined,
+    page: filters.page ?? undefined,
+    query: filters.query,
+    type: filters.type ?? undefined,
   })
 
-  return (
-    <SearchPage
-      hits={rows.filter((item) => item.name)}
-      page={page}
-      pages={pages}
-      query={query}
-      total={total}
-      type={type}
-    />
-  )
+  return <SearchPage data={data} filters={filters} />
 }

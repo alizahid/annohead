@@ -55,6 +55,9 @@ radius, street_radius, health, cost[] (product, amount), maintenance[] (money, w
 skins[], variant_group` (buildings sharing a display name).
 `kind` is our UI grouping derived from template: Production, Residence, Public Service, City Watch
 (`CityInstitutionBuilding`), Harbour, Military, Monument, Marvel, Aqueduct, Marsh, Ornament, Road.
+`dlc_guid` references `dlc.guid`, inferred when all model paths belong to the same DLC
+(falling back to the icon path when no models exist). Base-game or mixed model paths
+remain null. `anno.buildings.list` accepts `dlc: number[]`; an empty array applies no filter.
 
 Sub-tables:
 
