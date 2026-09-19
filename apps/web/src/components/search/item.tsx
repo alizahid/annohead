@@ -32,7 +32,6 @@ export function SearchItem({ item }: Props) {
             className="size-16"
             height={64}
             src={getIcon(item.type)}
-            unoptimized
             width={64}
           />
         )}
@@ -44,7 +43,6 @@ export function SearchItem({ item }: Props) {
               className="size-4"
               height={32}
               src={getIcon(item.type)}
-              unoptimized
               width={32}
             />
           </div>
@@ -64,7 +62,6 @@ export function SearchItem({ item }: Props) {
                   key={region}
                   src={getIcon(region)}
                   title={region}
-                  unoptimized
                   width={24}
                 />
               ))}

@@ -1,3 +1,4 @@
+import { Tooltip } from '@base-ui/react'
 import { NextIntlClientProvider } from 'next-intl'
 import { ThemeProvider } from 'next-themes'
 import { NuqsAdapter } from 'nuqs/adapters/next/app'
@@ -16,7 +17,9 @@ export function Providers({ children }: Props) {
       <NextIntlClientProvider>
         <ConvexProvider>
           <QueryProvider>
-            <ThemeProvider attribute="class">{children}</ThemeProvider>
+            <ThemeProvider attribute="class">
+              <Tooltip.Provider>{children}</Tooltip.Provider>
+            </ThemeProvider>
           </QueryProvider>
         </ConvexProvider>
       </NextIntlClientProvider>

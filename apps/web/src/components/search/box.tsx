@@ -35,10 +35,7 @@ export function SearchBox({ className }: Props) {
       ref={form}
     >
       <Input
-        className={cn(
-          'h-10 w-full rounded-full bg-gray-3 px-4 outline-none ring-accent-8 focus-visible:ring-2',
-          onPage && 'rounded-lg px-3',
-        )}
+        className="h-10 w-full rounded-lg bg-gray-3 px-3 outline-none ring-accent-8 focus-visible:ring-2"
         defaultValue={query ?? undefined}
         name="q"
         onKeyDown={(event) => {
