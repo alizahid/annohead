@@ -25,6 +25,7 @@ import {
   tech,
   techUnlock,
 } from '../schema'
+import { kinds, types } from './building-labels'
 import {
   type Get,
   groupBy,
@@ -271,4 +272,4 @@ async function list(f: BuildingFilter & Page) {
   return await queryBuildings(f)
 }
 
-export const buildings = { get, list }
+export const buildings = { get, kinds, list, types }

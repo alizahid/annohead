@@ -23,6 +23,7 @@ export function SearchFiltersCard() {
       className="flex flex-col gap-2 lg:-mx-4 lg:flex-row lg:gap-0"
       onValueChange={async (next) => {
         await setFilters({
+          page: null,
           type: isEqual(sortBy(next), sortBy(SearchTypes))
             ? null
             : (next as Array<SearchType>),
@@ -41,7 +42,6 @@ export function SearchFiltersCard() {
           <Checkbox.Root
             className="flex size-4 shrink-0 items-center justify-center rounded-sm border border-gray-12 data-checked:bg-gray-12"
             id={`search-type-${item}`}
-            name="type"
             value={item}
           >
             <Checkbox.Indicator className="flex data-unchecked:hidden">

@@ -36,10 +36,42 @@
       }
     },
     "buildings": {
+      "card": {
+        "kind": {
+          "Aqueduct": "Aqueduct",
+          "City Watch": "City Watch",
+          "Harbour": "Harbour",
+          "Marsh": "Marsh",
+          "Military": "Military",
+          "Monument": "Monument",
+          "Production": "Production",
+          "Public Service": "Public Service",
+          "Residence": "Residence",
+          "Road": "Road"
+        }
+      },
       "filters": {
-        "dlcs": "DLCs",
-        "regions": "Regions",
-        "tiers": "Population tiers"
+        "dlcs": {
+          "title": "DLC"
+        },
+        "kinds": {
+          "title": "Type"
+        },
+        "regions": {
+          "Celtic": "Albion",
+          "Egyptian": "Aegyptus",
+          "Roman": "Latium",
+          "title": "Region"
+        },
+        "tiers": {
+          "title": "Population tier"
+        }
+      },
+      "page": {
+        "meta": {
+          "title": "Annohead × Buildings"
+        },
+        "title": "Buildings"
       }
     },
     "comments": {

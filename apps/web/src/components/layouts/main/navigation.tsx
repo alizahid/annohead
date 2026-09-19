@@ -63,7 +63,7 @@ export function Navigation({ className }: Props) {
   ] as const
 
   return (
-    <nav className={cn('grid grid-cols-6 gap-2', className)}>
+    <nav className={cn('flex gap-2', className)}>
       {sections.map((section) => (
         <Tooltip
           content={t(section.key)}

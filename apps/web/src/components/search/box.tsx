@@ -28,7 +28,7 @@ export function SearchBox({ className }: Props) {
     >
       <Input
         className="h-10 w-full rounded-lg bg-gray-3 px-3 outline-none ring-accent-8 focus-visible:ring-2"
-        defaultValue={filters.query}
+        defaultValue={filters.query ?? ''}
         name="query"
         onKeyDown={(event) => {
           if (event.key === 'Enter') {

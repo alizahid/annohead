@@ -37,18 +37,6 @@
     },
     "globals": ["__DEV__"]
   },
-  "overrides": [
-    {
-      "includes": ["packages/*/src/index.ts", "packages/*/src/*/index.ts"],
-      "linter": {
-        "rules": {
-          "performance": {
-            "noBarrelFile": "off"
-          }
-        }
-      }
-    }
-  ],
   "linter": {
     "rules": {
       "performance": {
@@ -75,7 +63,22 @@
             "style": "inlineType"
           }
         }
+      },
+      "suspicious": {
+        "noUnnecessaryConditions": "off"
       }
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["packages/*/src/index.ts", "packages/*/src/*/index.ts"],
+      "linter": {
+        "rules": {
+          "performance": {
+            "noBarrelFile": "off"
+          }
+        }
+      }
+    }
+  ]
 }

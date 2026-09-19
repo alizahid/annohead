@@ -1,3 +1,4 @@
+import { buildingKindValues, buildingTypeValues } from '@anno/db/enums'
 import { SearchTypes } from '@anno/db/search'
 import { hasLocale } from 'next-intl'
 import {
@@ -30,3 +31,17 @@ export const searchFilters = {
 export const parseSearchFilters = createLoader(searchFilters)
 
 export type SearchFilters = Awaited<ReturnType<typeof parseSearchFilters>>
+
+export const buildingFilters = {
+  dlcs: parseAsArrayOf(parseAsInteger),
+  kind: parseAsArrayOf(parseAsStringLiteral(buildingKindValues)),
+  page: parseAsInteger,
+  query: parseAsString,
+  regions: parseAsArrayOf(parseAsInteger),
+  tiers: parseAsArrayOf(parseAsInteger),
+  type: parseAsArrayOf(parseAsStringLiteral(buildingTypeValues)),
+}
+
+export const parseBuildingFilters = createLoader(buildingFilters)
+
+export type BuildingFilters = Awaited<ReturnType<typeof parseBuildingFilters>>
