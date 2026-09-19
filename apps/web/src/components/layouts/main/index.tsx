@@ -1,5 +1,5 @@
 import { useTranslations } from 'next-intl'
-import { type ReactNode } from 'react'
+import { type ReactNode, Suspense } from 'react'
 
 import { SearchBox } from '@/components/search/box'
 
@@ -18,7 +18,9 @@ export function MainLayout({ children }: Props) {
       <header className="grid grid-cols-[2.5rem_1fr_2.5rem] items-center gap-4">
         <Navigation />
 
-        <SearchBox />
+        <Suspense>
+          <SearchBox />
+        </Suspense>
 
         <AuthCard />
       </header>
