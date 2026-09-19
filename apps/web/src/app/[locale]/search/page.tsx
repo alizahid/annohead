@@ -18,13 +18,8 @@ export default async function Page({
   searchParams,
 }: PageProps<'/[locale]/search'>) {
   const { locale } = await params
-  const { q, t, p } = await searchParams
 
-  const { page, query, type } = validateSearchFilters({
-    p,
-    q,
-    t: t || undefined,
-  })
+  const { page, query, type } = validateSearchFilters(await searchParams)
 
   const { rows, pages, total } = await anno.search({
     lang: validateLocale(locale),

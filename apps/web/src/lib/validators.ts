@@ -15,13 +15,18 @@ export function getId(id: string) {
 }
 
 const SearchFiltersSchema = z.object({
-  p: z.coerce.number().optional(),
-  q: z.coerce.string(),
-  t: z.enum(SearchTypes).optional(),
+  p: z.coerce.number().optional().catch(undefined),
+  q: z.string().catch(''),
+  t: z.enum(SearchTypes).optional().catch(undefined),
 })
 
-export function validateSearchFilters(type: unknown) {
-  const { p, q, t } = SearchFiltersSchema.parse(type)
+export function validateSearchFilters(
+  type: Record<string, string | Array<string> | undefined>,
+) {
+  const { p, q, t } = SearchFiltersSchema.parse({
+    ...type,
+    t: type.t || undefined,
+  })
 
   return {
     page: p,
