@@ -10,6 +10,8 @@ import { useHotkeys } from 'react-hotkeys-hook'
 import { Link } from '@/intl/nav'
 import { getIcon } from '@/lib/icons'
 
+import { LanguageSelector } from './language-selector'
+
 export function Navigation() {
   const t = useTranslations('component.layouts.main.nav')
 
@@ -105,6 +107,8 @@ export function Navigation() {
             <span className="flex-1 font-bold">{t(section.key)}</span>
           </Link>
         ))}
+
+        <LanguageSelector />
       </nav>
     </>
   )

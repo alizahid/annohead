@@ -3,7 +3,6 @@ import { type ReactNode } from 'react'
 
 import { SearchBox } from '@/components/search/box'
 
-import { LanguageSelector } from './language-selector'
 import { Navigation } from './navigation'
 
 type Props = {
@@ -19,8 +18,6 @@ export function MainLayout({ children }: Props) {
         <Navigation />
 
         <SearchBox className="flex-1" />
-
-        <LanguageSelector />
       </header>
 
       <main className="flex flex-1 flex-col">{children}</main>

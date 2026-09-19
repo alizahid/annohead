@@ -21,6 +21,7 @@
   --color-gray-10: var(--mauve-10);
   --color-gray-11: var(--mauve-11);
   --color-gray-12: var(--mauve-12);
+  --color-gray-contrast: #fff;
 
   --color-accent-1: var(--ruby-1);
   --color-accent-2: var(--ruby-2);
@@ -34,6 +35,7 @@
   --color-accent-10: var(--ruby-10);
   --color-accent-11: var(--ruby-11);
   --color-accent-12: var(--ruby-12);
+  --color-accent-contrast: #fff;
 }
 
 body {

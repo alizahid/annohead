@@ -1,6 +1,6 @@
 'use client'
 
-import { Menu } from '@base-ui/react/menu'
+import { cn } from 'cn'
 import Image from 'next/image'
 import { type Locale, useLocale } from 'next-intl'
 
@@ -12,41 +12,28 @@ export function LanguageSelector() {
   const locale = useLocale()
 
   return (
-    <Menu.Root>
-      <Menu.Trigger className="flex size-10 items-center justify-center rounded-lg outline-none ring-accent-8 focus-visible:ring-2 data-popup-open:bg-accent-3">
-        <Image
-          alt={locale}
-          className="size-6"
-          height={16}
-          src={`https://flags.willa.app/flags/${flags[locale]}.svg`}
-          unoptimized
-          width={16}
-        />
-      </Menu.Trigger>
-
-      <Menu.Portal>
-        <Menu.Positioner className="outline-none" sideOffset={-40}>
-          <Menu.Popup className="rounded-lg bg-accent-3 outline-none">
-            {routing.locales.map((item) => (
-              <Menu.LinkItem
-                className="flex size-10 items-center justify-center rounded-lg outline-none ring-accent-8 focus-visible:ring-2"
-                key={item}
-                render={<Link href={path} locale={item} />}
-              >
-                <Image
-                  alt={item}
-                  className="size-6"
-                  height={16}
-                  src={`https://flags.willa.app/flags/${flags[item]}.svg`}
-                  unoptimized
-                  width={16}
-                />
-              </Menu.LinkItem>
-            ))}
-          </Menu.Popup>
-        </Menu.Positioner>
-      </Menu.Portal>
-    </Menu.Root>
+    <div className="flex gap-2">
+      {routing.locales.map((item) => (
+        <Link
+          className={cn(
+            'flex size-10 items-center justify-center rounded-lg outline-none ring-accent-8 focus-visible:ring-2',
+            item === locale && 'bg-accent-5',
+          )}
+          href={path}
+          key={item}
+          locale={item}
+        >
+          <Image
+            alt={item}
+            className="size-6"
+            height={16}
+            src={`https://flags.willa.app/flags/${flags[item]}.svg`}
+            unoptimized
+            width={16}
+          />
+        </Link>
+      ))}
+    </div>
   )
 }
 

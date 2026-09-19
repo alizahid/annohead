@@ -3,7 +3,16 @@
   "component": {
     "search": {
       "box": {
-        "placeholder": "Search"
+        "placeholder": "Search",
+        "type": {
+          "all": "All",
+          "building": "Buildings",
+          "item": "Items",
+          "product": "Products",
+          "tech": "Technologies",
+          "quest": "Quests",
+          "chain": "Production chains"
+        }
       }
     },
     "layouts": {
