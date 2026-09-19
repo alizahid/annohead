@@ -9,6 +9,7 @@ import { useTranslations } from 'next-intl'
 
 import { type BuildingFilters } from '@/lib/validators'
 
+import { Empty } from '../common/empty'
 import { Pagination } from '../common/pagination'
 import { BuildingCard } from './card'
 import { BuildingFiltersCard } from './filters'
@@ -33,7 +34,7 @@ export function BuildingsPage({
   const t = useTranslations('component.buildings.page')
 
   return (
-    <div className="flex flex-col gap-12">
+    <div className="flex flex-1 flex-col gap-12">
       <h1 className="text-4xl">{t('title')}</h1>
 
       <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
@@ -45,11 +46,15 @@ export function BuildingsPage({
         />
 
         <div className="flex flex-1 flex-col gap-12">
-          <div className="grid items-start gap-4 sm:grid-cols-2 md:grid-cols-3">
-            {buildings.rows.map((building) => (
-              <BuildingCard building={building} key={building.guid} />
-            ))}
-          </div>
+          {buildings.rows.length ? (
+            <div className="grid items-start gap-4 sm:grid-cols-2 md:grid-cols-3">
+              {buildings.rows.map((building) => (
+                <BuildingCard building={building} key={building.guid} />
+              ))}
+            </div>
+          ) : (
+            <Empty>{t('empty')}</Empty>
+          )}
 
           <Pagination page={filters.page} pages={buildings.pages} />
         </div>

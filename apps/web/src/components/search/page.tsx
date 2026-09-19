@@ -3,6 +3,7 @@ import { useTranslations } from 'next-intl'
 
 import { type SearchFilters } from '@/lib/validators'
 
+import { Empty } from '../common/empty'
 import { Pagination } from '../common/pagination'
 import { SearchFiltersCard } from './filters'
 import { SearchItem } from './item'
@@ -16,7 +17,7 @@ export function SearchPage({ data, filters }: Props) {
   const t = useTranslations('component.search.page')
 
   return (
-    <div className="flex flex-col gap-12">
+    <div className="flex flex-1 flex-col gap-12">
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-4">
           <h1 className="text-4xl">{t('title')}</h1>
@@ -40,11 +41,7 @@ export function SearchPage({ data, filters }: Props) {
           ))}
         </div>
       ) : (
-        <p>
-          {t('empty', {
-            query: filters.query,
-          })}
-        </p>
+        <Empty>{t('empty')}</Empty>
       )}
 
       <Pagination page={filters.page} pages={data.pages} />

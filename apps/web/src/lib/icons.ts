@@ -13,6 +13,7 @@ const icons = {
   Marsh: '/img/anno/icon_2d_category_marsh_drainage_0.png',
   Military: '/img/anno/icon_2d_category_military_buildings_0.png',
   Monument: '/img/anno/icon_2d_colloseum_0.png',
+  notFound: '/img/anno/icon_3d_sideques_roman_ruins_0.png',
   Production: '/img/anno/icon_2d_production_buildings_0.png',
   'Public Service': '/img/anno/icon_2d_category_civic_0.png',
   product: '/img/anno/icon_2d_generic_goods.png',
