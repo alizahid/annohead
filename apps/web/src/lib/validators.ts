@@ -1,4 +1,4 @@
-import { type SearchType, SearchTypes } from '@anno/db/search'
+import { SearchTypes } from '@anno/db/search'
 import { hasLocale } from 'next-intl'
 import { z } from 'zod'
 
@@ -14,10 +14,18 @@ export function getId(id: string) {
   return IdSchema.parse(id)
 }
 
-const SearchTypeSchema = z.enum(SearchTypes)
+const SearchFiltersSchema = z.object({
+  p: z.coerce.number().optional(),
+  q: z.coerce.string(),
+  t: z.enum(SearchTypes).optional(),
+})
 
-export function validateSearchType(type: unknown): SearchType | undefined {
-  if (SearchTypeSchema.validate(type)) {
-    return SearchTypeSchema.parse(type)
+export function validateSearchFilters(type: unknown) {
+  const { p, q, t } = SearchFiltersSchema.parse(type)
+
+  return {
+    page: p,
+    query: q,
+    type: t,
   }
 }

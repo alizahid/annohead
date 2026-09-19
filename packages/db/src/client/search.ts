@@ -267,6 +267,7 @@ async function search(f: SearchFilter & Page) {
   )
   const { limit, offset } = paginate(f)
   return {
+    pages: Math.ceil(hits.length / limit),
     rows: hits
       .slice(offset, offset + limit)
       .map(({ row: { regions, ...row } }): SearchHit => {

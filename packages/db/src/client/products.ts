@@ -86,6 +86,7 @@ async function list(f: ProductFilter & Page) {
   const p = groupBy(producedBy, 'productGuid')
   const c = groupBy(consumedBy, 'productGuid')
   return {
+    pages: Math.ceil(total / limit),
     rows: rows.map((r) => ({
       ...r,
       consumedBy: c(r.guid),

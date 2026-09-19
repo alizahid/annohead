@@ -144,6 +144,7 @@ async function listStorylines(f: StorylineFilter & Page) {
     )
   const q = groupBy(quests, 'storylineGuid')
   return {
+    pages: Math.ceil(total / limit),
     rows: rows.map((r) => ({ ...r, quests: q(r.guid) })),
     total,
   }
@@ -272,6 +273,7 @@ async function listQuests(f: QuestFilter & Page) {
     'questGuid',
   )
   return {
+    pages: Math.ceil(total / limit),
     rows: rows.map((q) => ({ ...q, steps: steps(q.guid) })),
     total,
   }

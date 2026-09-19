@@ -81,6 +81,7 @@ async function list(f: ChainFilter & Page) {
     .orderBy(asc(productionChainNode.tier), asc(productionChainNode.id))
   const n = groupBy(nodes, 'chainGuid')
   return {
+    pages: Math.ceil(total / limit),
     rows: rows.map((c) => ({ ...c, nodes: n(c.guid) })),
     total,
   }

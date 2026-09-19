@@ -82,7 +82,14 @@
           "tech": "Technologies"
         }
       },
-      "page": {}
+      "page": {
+        "empty": "Nothing found for {query}",
+        "meta": {
+          "title": "Annohead × Search"
+        },
+        "title": "Search",
+        "results": "{total, plural, =0 {No results} =1 {1 result} other {# results}}"
+      }
     }
   },
   "hook": {

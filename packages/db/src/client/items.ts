@@ -199,6 +199,7 @@ async function list(f: ItemFilter & Page) {
     f.lang,
   )
   return {
+    pages: Math.ceil(total / limit),
     rows: rows.map((r) => ({
       ...r,
       boosts: d.boosts(r.guid),

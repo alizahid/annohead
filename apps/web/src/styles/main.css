@@ -98,3 +98,7 @@ h5,
 h6 {
   @apply font-heading font-black;
 }
+
+h1 {
+  @apply text-accent-11;
+}

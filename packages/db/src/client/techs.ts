@@ -71,6 +71,7 @@ async function list(f: TechFilter & Page) {
   const u = groupBy(unlocks, 'techGuid')
   const res = groupBy(resources, 'techGuid')
   return {
+    pages: Math.ceil(total / limit),
     rows: rows.map((t) => ({
       ...t,
       resources: res(t.guid),

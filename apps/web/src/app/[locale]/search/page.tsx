@@ -1,30 +1,46 @@
 import { anno } from '@anno/db/client'
+import { type Metadata } from 'next'
+import { getTranslations } from 'next-intl/server'
 
-import { SearchItem } from '@/components/search/item'
-import { validateLocale, validateSearchType } from '@/lib/validators'
+import { SearchPage } from '@/components/search/page'
+import { validateLocale, validateSearchFilters } from '@/lib/validators'
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('component.search.page')
+
+  return {
+    title: t('meta.title'),
+  }
+}
 
 export default async function Page({
   params,
   searchParams,
 }: PageProps<'/[locale]/search'>) {
   const { locale } = await params
-  const { q, t } = await searchParams
+  const { q, t, p } = await searchParams
 
-  const type = validateSearchType(t)
+  const { page, query, type } = validateSearchFilters({
+    p,
+    q,
+    t: t || undefined,
+  })
 
-  const { rows } = await anno.search({
+  const { rows, pages, total } = await anno.search({
     lang: validateLocale(locale),
-    query: q ? String(q) : '',
+    page,
+    query,
     type: type ? [type] : undefined,
   })
 
   return (
-    <div className="flex flex-col gap-2">
-      {rows
-        .filter((item) => item.name)
-        .map((item) => (
-          <SearchItem item={item} key={item.guid} />
-        ))}
-    </div>
+    <SearchPage
+      hits={rows.filter((item) => item.name)}
+      page={page}
+      pages={pages}
+      query={query}
+      total={total}
+      type={type}
+    />
   )
 }

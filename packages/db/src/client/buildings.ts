@@ -263,6 +263,7 @@ async function list(f: BuildingFilter & Page) {
     f.lang,
   )
   return {
+    pages: Math.ceil(total / limit),
     rows: rows.map((r) => ({
       ...r,
       /** need fulfilment of a public building: attributes residences gain */
