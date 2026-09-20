@@ -43,7 +43,7 @@ export function Pagination({ page, pages }: Props) {
           return (
             <NavLink
               className={cn(
-                'flex size-8 items-center justify-center rounded-lg bg-accent-3 text-sm tabular-nums',
+                'flex size-8 items-center justify-center rounded-lg bg-accent-3 text-sm tabular-nums outline-none ring-accent-8 focus-visible:ring-2',
                 index === page && 'bg-accent-5',
                 index === 1 && !page && 'bg-accent-5',
               )}
