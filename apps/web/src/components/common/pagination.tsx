@@ -4,7 +4,7 @@ import { cn } from 'cn'
 import { range } from 'lodash'
 import { useSearchParams } from 'next/navigation'
 
-import { Link, usePathname } from '@/intl/nav'
+import { NavLink, usePathname } from '@/intl/nav'
 
 type Props = {
   page: number | null
@@ -41,7 +41,7 @@ export function Pagination({ page, pages }: Props) {
           }
 
           return (
-            <Link
+            <NavLink
               className={cn(
                 'flex size-8 items-center justify-center rounded-lg bg-accent-3 text-sm tabular-nums',
                 index === page && 'bg-accent-5',
@@ -51,7 +51,7 @@ export function Pagination({ page, pages }: Props) {
               key={index}
             >
               {index}
-            </Link>
+            </NavLink>
           )
         })}
       </div>

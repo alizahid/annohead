@@ -1,6 +1,6 @@
 import { type Building } from '@anno/db/client'
 
-import { Link } from '@/intl/nav'
+import { NavLink } from '@/intl/nav'
 import { getIcon } from '@/lib/icons'
 import { getUrl } from '@/lib/url'
 
@@ -12,7 +12,7 @@ type Props = {
 
 export function BuildingCard({ building }: Props) {
   return (
-    <Link
+    <NavLink
       className="relative flex flex-col gap-4 rounded-lg p-4 outline-none ring-accent-8 hover:bg-accent-4 focus-visible:ring-2"
       href={getUrl('building', building.guid, building.name)}
     >
@@ -37,6 +37,6 @@ export function BuildingCard({ building }: Props) {
           </div>
         ) : null}
       </div>
-    </Link>
+    </NavLink>
   )
 }

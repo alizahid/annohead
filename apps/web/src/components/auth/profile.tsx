@@ -7,7 +7,7 @@ import { UserCircleDashedIcon } from '@phosphor-icons/react/dist/ssr'
 import { cn } from 'cn'
 
 import { Spinner } from '@/components/common/spinner'
-import { Link } from '@/intl/nav'
+import { NavLink } from '@/intl/nav'
 import { getIcon } from '@/lib/icons'
 
 import { Icon } from '../common/icon'
@@ -29,15 +29,15 @@ export function AuthProfile({ className }: Props) {
       </AuthLoading>
 
       <Authenticated>
-        <Link className="outline-none" href="/auth/profile">
+        <NavLink className="outline-none" href="/auth/profile">
           <Icon className="size-6" icon={getIcon('profile')} />
-        </Link>
+        </NavLink>
       </Authenticated>
 
       <Unauthenticated>
-        <Link className="outline-none" href="/auth/sign-in">
+        <NavLink className="outline-none" href="/auth/sign-in">
           <UserCircleDashedIcon className="size-6" />
-        </Link>
+        </NavLink>
       </Unauthenticated>
     </div>
   )

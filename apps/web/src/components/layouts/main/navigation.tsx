@@ -3,7 +3,7 @@ import { useTranslations } from 'next-intl'
 
 import { Icon } from '@/components/common/icon'
 import { Tooltip } from '@/components/common/tooltip'
-import { Link } from '@/intl/nav'
+import { NavLink } from '@/intl/nav'
 import { getIcon } from '@/lib/icons'
 
 type Props = {
@@ -54,7 +54,7 @@ export function Navigation({ className }: Props) {
           key={section.key}
           offset={8}
           render={
-            <Link
+            <NavLink
               className="flex size-10 items-center justify-center gap-4 rounded-sm outline-none ring-accent-8 focus-visible:ring-2"
               href={section.href}
             />

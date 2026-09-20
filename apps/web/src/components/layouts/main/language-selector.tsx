@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { type Locale, useLocale } from 'next-intl'
 
 import { routing } from '@/intl'
-import { Link, usePathname } from '@/intl/nav'
+import { NavLink, usePathname } from '@/intl/nav'
 
 export function LanguageSelector() {
   const path = usePathname()
@@ -14,7 +14,7 @@ export function LanguageSelector() {
   return (
     <div className="flex gap-2">
       {routing.locales.map((item) => (
-        <Link
+        <NavLink
           className={cn(
             'flex size-10 items-center justify-center rounded-lg outline-none ring-accent-8 focus-visible:ring-2',
             item === locale && 'bg-accent-5',
@@ -31,7 +31,7 @@ export function LanguageSelector() {
             unoptimized
             width={16}
           />
-        </Link>
+        </NavLink>
       ))}
     </div>
   )

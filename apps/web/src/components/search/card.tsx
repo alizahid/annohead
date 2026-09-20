@@ -1,6 +1,6 @@
 import { type SearchHit } from '@anno/db/client'
 
-import { Link } from '@/intl/nav'
+import { NavLink } from '@/intl/nav'
 import { getIcon } from '@/lib/icons'
 import { getUrl } from '@/lib/url'
 
@@ -12,7 +12,7 @@ type Props = {
 
 export function SearchCard({ item }: Props) {
   return (
-    <Link
+    <NavLink
       className="flex gap-4 rounded-lg p-4 outline-none ring-accent-8 transition-colors hover:bg-accent-4 focus-visible:ring-2"
       href={getUrl(item.type, item.guid, item.name)}
     >
@@ -49,6 +49,6 @@ export function SearchCard({ item }: Props) {
           </div>
         ) : null}
       </div>
-    </Link>
+    </NavLink>
   )
 }

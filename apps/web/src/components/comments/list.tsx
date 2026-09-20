@@ -7,7 +7,7 @@ import { usePaginatedQuery } from 'convex/react'
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 
-import { Link } from '@/intl/nav'
+import { NavLink } from '@/intl/nav'
 
 import { Button } from '../common/button'
 import { Empty } from '../common/empty'
@@ -62,9 +62,9 @@ export function CommentList({ guid }: Props) {
         <p className="-mt-2 text-gray-11 text-sm">
           {t.rich('signIn', {
             link: (text) => (
-              <Link className="text-accent-11" href="/auth/sign-in">
+              <NavLink className="text-accent-11" href="/auth/sign-in">
                 {text}
-              </Link>
+              </NavLink>
             ),
           })}
         </p>

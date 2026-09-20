@@ -1,12 +1,11 @@
 import { type Building } from '@anno/db/client'
-import { compact } from 'lodash'
 import { useFormatter, useTranslations } from 'next-intl'
 
 import { getIcon } from '@/lib/icons'
 
 import { CommentList } from '../comments/list'
 import { Icon } from '../common/icon'
-import { Box } from './box'
+import { DataList } from '../data-list'
 
 type Props = {
   building: Building
@@ -50,165 +49,181 @@ export function BuildingPage({ building }: Props) {
 
       <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {building.costs.length ? (
-          <Box
-            items={building.costs.map((item) => ({
-              icon: item.icon,
-              id: item.guid,
-              name: item.name,
-              value: item.amount,
-            }))}
-            title={t('construction')}
-            type="product"
-          />
+          <DataList.Root title={t('construction')}>
+            {building.costs.map((item) => (
+              <DataList.Link
+                icon={item.icon}
+                id={item.guid}
+                key={item.guid}
+                name={item.name}
+                type="product"
+                value={item.amount}
+              />
+            ))}
+          </DataList.Root>
         ) : null}
 
         {building.maintenance.length ? (
-          <Box
-            items={building.maintenance.map((item) => ({
-              icon: item.icon,
-              id: item.guid,
-              name: item.name,
-              value: item.amount,
-            }))}
-            title={t('maintenance')}
-          />
+          <DataList.Root title={t('maintenance')}>
+            {building.maintenance.map((item) => (
+              <DataList.Item
+                icon={item.icon}
+                key={item.guid}
+                name={item.name}
+                value={item.amount}
+              />
+            ))}
+          </DataList.Root>
         ) : null}
 
         {building.inputs.length ? (
-          <Box
-            items={building.inputs.map((item) => ({
-              icon: item.icon,
-              id: item.guid,
-              name: item.name,
-              value: item.amount,
-            }))}
-            title={t('inputs')}
-            type="product"
-          />
+          <DataList.Root title={t('inputs')}>
+            {building.inputs.map((item) => (
+              <DataList.Link
+                icon={item.icon}
+                id={item.guid}
+                key={item.guid}
+                name={item.name}
+                type="product"
+                value={item.amount}
+              />
+            ))}
+          </DataList.Root>
         ) : null}
 
         {building.outputs.length ? (
-          <Box
-            items={building.outputs.map((item) => ({
-              icon: item.icon,
-              id: item.guid,
-              name: item.name,
-              value: item.amount,
-            }))}
-            title={t('outputs')}
-            type="product"
-          />
+          <DataList.Root title={t('outputs')}>
+            {building.outputs.map((item) => (
+              <DataList.Link
+                icon={item.icon}
+                id={item.guid}
+                key={item.guid}
+                name={item.name}
+                type="product"
+                value={item.amount}
+              />
+            ))}
+          </DataList.Root>
         ) : null}
 
         {building.workforce.length ? (
-          <Box
-            items={building.workforce.map((item) => ({
-              icon: item.icon,
-              id: item.guid,
-              name: item.name,
-              value: item.amount,
-            }))}
-            title={t('workforce')}
-          />
+          <DataList.Root title={t('workforce')}>
+            {building.workforce.map((item) => (
+              <DataList.Item
+                icon={item.icon}
+                key={item.guid}
+                name={item.name}
+                value={item.amount}
+              />
+            ))}
+          </DataList.Root>
         ) : null}
 
         {building.effects.length ? (
-          <Box
-            items={building.effects.map((item) => ({
-              icon: item.attribute ? getIcon(item.attribute) : null,
-              id: item.buffGuid,
-              name: item.name,
-              value: item.value
-                ? f.number(item.isPercent ? item.value / 100 : item.value, {
-                    signDisplay: 'always',
-                    style: item.isPercent ? 'percent' : undefined,
-                  })
-                : null,
-            }))}
-            title={t('effects')}
-          />
+          <DataList.Root title={t('effects')}>
+            {building.effects.map((item) => (
+              <DataList.Item
+                icon={item.attribute ? getIcon(item.attribute) : null}
+                key={`${item.buildingGuid}:${item.attribute}`}
+                name={item.name}
+                value={
+                  item.value
+                    ? f.number(item.isPercent ? item.value / 100 : item.value, {
+                        signDisplay: 'always',
+                        style: item.isPercent ? 'percent' : undefined,
+                      })
+                    : undefined
+                }
+              />
+            ))}
+          </DataList.Root>
         ) : null}
 
         {building.buffs.length ? (
-          <Box
-            items={building.buffs.map((item) => ({
-              icon: item.attribute ? getIcon(item.attribute) : null,
-              id: `${item.buildingGuid}:${item.attribute}`,
-              name: item.name,
-              value: item.value
-                ? f.number(item.value, {
-                    signDisplay: 'always',
-                  })
-                : null,
-            }))}
-            title={t('buffs')}
-          />
+          <DataList.Root title={t('buffs')}>
+            {building.buffs.map((item) => (
+              <DataList.Item
+                icon={item.attribute ? getIcon(item.attribute) : undefined}
+                key={`${item.buildingGuid}:${item.attribute}`}
+                name={item.name}
+                value={
+                  item.value
+                    ? f.number(item.value, {
+                        signDisplay: 'always',
+                      })
+                    : undefined
+                }
+              />
+            ))}
+          </DataList.Root>
         ) : null}
 
         {building.unlockedBy.length ? (
-          <Box
-            items={building.unlockedBy.map((item) => ({
-              icon: item.icon,
-              id: item.guid,
-              name: item.name,
-            }))}
-            title={t('unlocked')}
-            type="tech"
-          />
+          <DataList.Root title={t('unlocked')}>
+            {building.unlockedBy.map((item) => (
+              <DataList.Link
+                icon={item.icon}
+                id={item.guid}
+                key={item.guid}
+                name={item.name}
+                type="tech"
+              />
+            ))}
+          </DataList.Root>
         ) : null}
 
-        <Box
-          items={compact([
-            building.baseProductivity && {
-              icon: null,
-              id: 'baseProductivity',
-              name: t('other.baseProductivity'),
-              value: f.number(building.baseProductivity / 100, {
+        <DataList.Root title={t('other.title')}>
+          {building.baseProductivity ? (
+            <DataList.Item
+              name={t('other.baseProductivity')}
+              value={f.number(building.baseProductivity / 100, {
                 style: 'percent',
-              }),
-            },
-            building.cycleTime && {
-              icon: null,
-              id: 'cycleTime',
-              name: t('other.cycleTime'),
-              value: f.number(building.cycleTime, {
+              })}
+            />
+          ) : null}
+
+          {building.cycleTime ? (
+            <DataList.Item
+              name={t('other.cycleTime')}
+              value={f.number(building.cycleTime, {
                 style: 'unit',
                 unit: 'second',
-              }),
-            },
-            building.radius && {
-              icon: null,
-              id: 'radius',
-              name: t('other.radius'),
-              value: building.radius,
-            },
-            building.transporterRange && {
-              icon: null,
-              id: 'transporterRange',
-              name: t('other.transporterRange'),
-              value: building.transporterRange,
-            },
-            building.streetRadius && {
-              icon: null,
-              id: 'streetRadius',
-              name: t('other.streetRadius'),
-              value: building.streetRadius,
-            },
-            building.category && {
-              icon: null,
-              id: 'category',
-              name: t('other.category'),
-              value: building.category,
-            },
-            building.template && {
-              icon: null,
-              id: 'template',
-              name: t('other.template'),
-              value: building.template,
-            },
-          ])}
-          title={t('other.title')}
-        />
+              })}
+            />
+          ) : null}
+
+          {building.radius ? (
+            <DataList.Item name={t('other.radius')} value={building.radius} />
+          ) : null}
+
+          {building.transporterRange ? (
+            <DataList.Item
+              name={t('other.transporterRange')}
+              value={building.transporterRange}
+            />
+          ) : null}
+
+          {building.streetRadius ? (
+            <DataList.Item
+              name={t('other.streetRadius')}
+              value={building.streetRadius}
+            />
+          ) : null}
+
+          {building.category ? (
+            <DataList.Item
+              name={t('other.category')}
+              value={building.category}
+            />
+          ) : null}
+
+          {building.template ? (
+            <DataList.Item
+              name={t('other.template')}
+              value={building.template}
+            />
+          ) : null}
+        </DataList.Root>
       </div>
 
       <CommentList guid={building.guid} />

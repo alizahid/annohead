@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl'
 import { Controller } from 'react-hook-form'
 
 import { useSignIn } from '@/hooks/auth/sign-in'
-import { Link } from '@/intl/nav'
+import { NavLink } from '@/intl/nav'
 
 import { Button } from '../common/button'
 import { Field } from '../common/field'
@@ -58,12 +58,12 @@ export function SignIn() {
           {t('action.submit')}
         </Button>
 
-        <Link
+        <NavLink
           className="text-gray-11 text-sm leading-tight"
           href="/auth/sign-up"
         >
           {t('action.signUp')}
-        </Link>
+        </NavLink>
       </div>
     </form>
   )
