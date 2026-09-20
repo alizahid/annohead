@@ -4,7 +4,7 @@ import { cn } from 'cn'
 import { type Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
 
-import { heading, text } from '@/assets/fonts'
+import { code, heading, text } from '@/assets/fonts'
 import { MainLayout } from '@/components/layouts/main'
 import { Providers } from '@/components/providers'
 import { routing } from '@/intl'
@@ -31,7 +31,7 @@ export default async function Layout({
 
   return (
     <html
-      className={cn(text.variable, heading.variable)}
+      className={cn(text.variable, heading.variable, code.variable)}
       lang={locale}
       suppressHydrationWarning
     >

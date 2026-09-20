@@ -4,13 +4,14 @@ import { useFormatter } from 'next-intl'
 import { Icon } from '../common/icon'
 
 type Props = {
+  code?: boolean
   icon?: string | null
   name: string | null
   tier?: boolean
   value?: string | number | null
 }
 
-export function Item({ name, icon, tier, value }: Props) {
+export function Item({ code, name, icon, tier, value }: Props) {
   const f = useFormatter()
 
   return (
@@ -27,7 +28,7 @@ export function Item({ name, icon, tier, value }: Props) {
       </div>
 
       {value ? (
-        <div className="text-sm tabular-nums">
+        <div className={cn('text-sm tabular-nums', code && 'font-code')}>
           {typeof value === 'number' ? f.number(value) : null}
 
           {typeof value === 'string' ? value : null}

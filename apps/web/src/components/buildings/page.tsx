@@ -224,6 +224,7 @@ export function BuildingPage({ building }: Props) {
 
             {building.category ? (
               <DataList.Item
+                code
                 name={t('other.category')}
                 value={building.category}
               />
@@ -231,6 +232,7 @@ export function BuildingPage({ building }: Props) {
 
             {building.template ? (
               <DataList.Item
+                code
                 name={t('other.template')}
                 value={building.template}
               />
