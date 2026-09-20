@@ -52,7 +52,7 @@ export function BuildingFiltersCard({ dlcs, kinds, regions, tiers }: Props) {
         >
           {orderBy(regions, 'id').map((item) => (
             <Checkbox.Root
-              className="flex h-8 cursor-default items-center gap-2 rounded-md px-1 outline-none focus-visible:bg-accent-4 data-checked:text-accent-11"
+              className="flex h-8 items-center gap-2 rounded-md px-1 outline-none focus-visible:bg-accent-4 data-checked:text-accent-11"
               key={item.id}
               value={String(item.id)}
             >
@@ -83,7 +83,7 @@ export function BuildingFiltersCard({ dlcs, kinds, regions, tiers }: Props) {
         >
           {orderBy(tiers, ['region', 'tier'], ['desc', 'asc']).map((item) => (
             <Checkbox.Root
-              className="flex h-8 cursor-default items-center gap-2 rounded-md px-1 outline-none focus-visible:bg-accent-4 data-checked:text-accent-11"
+              className="flex h-8 items-center gap-2 rounded-md px-1 outline-none focus-visible:bg-accent-4 data-checked:text-accent-11"
               key={item.guid}
               value={String(item.guid)}
             >
@@ -125,7 +125,7 @@ export function BuildingFiltersCard({ dlcs, kinds, regions, tiers }: Props) {
         >
           {orderBy(dlcs, 'guid').map((item) => (
             <Checkbox.Root
-              className="flex h-8 cursor-default items-center gap-2 rounded-md px-1 outline-none focus-visible:bg-accent-4 data-checked:text-accent-11"
+              className="flex h-8 items-center gap-2 rounded-md px-1 outline-none focus-visible:bg-accent-4 data-checked:text-accent-11"
               key={item.guid}
               value={String(item.guid)}
             >
@@ -154,7 +154,7 @@ export function BuildingFiltersCard({ dlcs, kinds, regions, tiers }: Props) {
         >
           {kinds.map((item) => (
             <Checkbox.Root
-              className="flex h-8 cursor-default items-center gap-2 rounded-md px-1 outline-none focus-visible:bg-accent-4 data-checked:text-accent-11"
+              className="flex h-8 items-center gap-2 rounded-md px-1 outline-none focus-visible:bg-accent-4 data-checked:text-accent-11"
               key={item.key}
               value={item.key}
             >

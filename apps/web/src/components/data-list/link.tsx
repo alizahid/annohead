@@ -19,7 +19,7 @@ export function Link({ id, name, type, icon, value }: Props) {
 
   return (
     <NavLink
-      className="flex items-center justify-between gap-4 rounded-sm outline-none ring-accent-8 ring-offset-4 ring-offset-gray-2 focus-visible:ring-2"
+      className="-mx-4 flex items-center justify-between gap-4 rounded-sm px-4 py-1 outline-none ring-accent-8 transition-colors hover:bg-accent-4 focus-visible:ring-2"
       href={getUrl(type, id, name)}
     >
       <div className="flex flex-1 items-center gap-2">
