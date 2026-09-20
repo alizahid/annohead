@@ -27,7 +27,7 @@ export function CommentList({ guid }: Props) {
 
   const [visible, setVisible] = useState(false)
 
-  const { results, status, loadMore } = usePaginatedQuery(
+  const { results, status, loadMore, isLoading } = usePaginatedQuery(
     api.comments.queries.list,
     {
       guid,
@@ -85,7 +85,7 @@ export function CommentList({ guid }: Props) {
             <CommentCard comment={comment} key={comment._id} />
           ))}
         </div>
-      ) : (
+      ) : isLoading ? null : (
         <Empty>{t('empty')}</Empty>
       )}
 
