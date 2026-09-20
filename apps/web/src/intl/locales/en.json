@@ -50,11 +50,17 @@
         "title": "Buildings"
       },
       "page": {
-        "buffs": "Need fulfillment",
-        "construction": "Construction costs",
-        "effects": "Area effects",
-        "inputs": "Inputs",
-        "maintenance": "Maintenance",
+        "details": {
+          "buffs": "Need fulfillment",
+          "construction": "Construction costs",
+          "effects": "Area effects",
+          "inputs": "Inputs",
+          "maintenance": "Maintenance",
+          "outputs": "Outputs",
+          "title": "Details",
+          "unlocked": "Unlocked by",
+          "workforce": "Workforce needed"
+        },
         "other": {
           "baseProductivity": "Base productivity",
           "category": "Category",
@@ -65,9 +71,12 @@
           "title": "Other",
           "transporterRange": "Transporter range"
         },
-        "outputs": "Outputs",
-        "unlocked": "Unlocked by",
-        "workforce": "Workforce needed"
+        "phases": {
+          "duration": "Duration",
+          "phase": "Phase",
+          "title": "Phases",
+          "unlock": "Unlock requirements"
+        }
       }
     },
     "comments": {

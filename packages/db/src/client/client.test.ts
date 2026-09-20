@@ -301,6 +301,70 @@ test('modifier percentage flags are booleans', async () => {
   ).toBe(true)
 })
 
+test('Amphitheatre phases expose construction inputs, time, workforce and unlocks', async () => {
+  const building = await anno.buildings.get({ id: 3621, lang: 'en' })
+  expect(building?.phases.map((phase) => phase.name)).toEqual([
+    'Amphitheatre: Foundation',
+    'Amphitheatre: Base Structure',
+    'Amphitheatre: Outer Walls',
+    'Amphitheatre: Arena',
+  ])
+  expect(building?.phases.map((phase) => phase.durationSeconds)).toEqual([
+    0, 1800, 1800, 1800,
+  ])
+  expect(
+    building?.phases.map((phase) =>
+      Object.fromEntries(phase.costs.map((cost) => [cost.guid, cost.amount])),
+    ),
+  ).toEqual([
+    { 2174: 100, 2178: 60, 1010017: 75_000 },
+    { 2171: 150, 2174: 150, 2178: 300 },
+    { 2171: 150, 2176: 300, 2178: 150, 2179: 300 },
+    { 2152: 300, 2176: 300, 2178: 300, 2179: 300, 31698: 60 },
+  ])
+  expect(
+    building?.phases.map((phase) =>
+      phase.maintenance.map((entry) => [entry.guid, entry.amount]),
+    ),
+  ).toEqual([[], [[2181, 350]], [[2184, 200]], [[2185, 150]]])
+  expect(
+    building?.phases.map((phase) =>
+      phase.unlockRequirements.map((requirement) => [
+        requirement.population?.guid,
+        requirement.population?.amount,
+      ]),
+    ),
+  ).toEqual([[[1498, 1]], [[1498, 1]], [[1498, 750]], [[1498, 2250]]])
+  expect(building?.unlockRequirements[0]?.population?.amount).toBe(1)
+  expect(building?.costs.find((cost) => cost.guid === 1_010_017)?.amount).toBe(
+    75_000,
+  )
+  expect(building?.costs.find((cost) => cost.guid === 31_698)?.amount).toBe(60)
+  expect(
+    building?.maintenance.find((entry) => entry.guid === 1_010_017)?.amount,
+  ).toBe(400)
+  const german = await anno.buildings.get({ id: 3621, lang: 'de' })
+  const tiers = await anno.populationTiers.list({ lang: 'de' })
+  expect(german?.phases[3]?.unlockRequirements[0]?.population?.name).toBe(
+    tiers.find((tier) => tier.guid === 1498)?.name ?? null,
+  )
+  const listed = await anno.buildings.list({
+    lang: 'en',
+    search: 'Amphitheatre',
+  })
+  expect(listed.rows.find((row) => row.guid === 3621)?.phases).toEqual(
+    building?.phases ?? [],
+  )
+})
+
+test('Hippodrome phase time uses each stage microphase count', async () => {
+  const building = await anno.buildings.get({ id: 152_714, lang: 'en' })
+  expect(building?.phases.map((phase) => phase.durationSeconds)).toEqual([
+    0, 1800, 2400, 3000, 3600,
+  ])
+  expect(building?.phases[0]?.maintenance).toEqual([])
+})
+
 test('products and techs', async () => {
   const p = await anno.products.list({
     lang: 'en',

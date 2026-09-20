@@ -39,6 +39,7 @@ import {
   paginate,
   regionColumns,
 } from './shared'
+import { unlockRequirements } from './unlock-requirements'
 export type BuildingFilter = {
   lang: Lang
   search?: string
@@ -135,6 +136,7 @@ async function phaseRows(guids: Array<number>, lang: Lang) {
   const rows = await db
     .select({
       buildingGuid: buildingPhase.buildingGuid,
+      durationSeconds: buildingPhase.durationSeconds,
       guid: buildingPhase.guid,
       name: nameT.value,
       phase: buildingPhase.phase,
@@ -144,16 +146,26 @@ async function phaseRows(guids: Array<number>, lang: Lang) {
     .where(inArray(buildingPhase.buildingGuid, guids))
     .orderBy(asc(buildingPhase.phase))
   const phaseGuids = rows.map((r) => r.guid)
-  const [costs, maintenance] = await Promise.all([
+  const [costs, maintenance, requirements] = await Promise.all([
     productRows(buildingPhaseCost, phaseGuids, lang),
     productRows(buildingPhaseMaintenance, phaseGuids, lang),
+    unlockRequirements(phaseGuids, lang),
   ])
   const c = groupBy(costs, 'owner')
   const m = groupBy(maintenance, 'owner')
+  const u = groupBy(requirements, 'assetGuid')
   return rows.map((r) => ({
     ...r,
     costs: c(r.guid),
     maintenance: m(r.guid),
+    name:
+      r.buildingGuid === 3621 && r.phase === 2
+        ? {
+            de: 'Amphitheater: Grundstruktur',
+            en: 'Amphitheatre: Base Structure',
+          }[lang]
+        : r.name,
+    unlockRequirements: u(r.guid),
   }))
 }
 
@@ -220,6 +232,7 @@ async function buildingDetails(guids: Array<number>, lang: Lang) {
     buffs,
     productionBuffs,
     workforce,
+    requirements,
     techs,
   ] = await Promise.all([
     productRows(buildingCost, guids, lang),
@@ -231,6 +244,7 @@ async function buildingDetails(guids: Array<number>, lang: Lang) {
     buffRows(guids),
     productionBuffRows(guids),
     workforceRows(guids, lang),
+    unlockRequirements(guids, lang),
     db
       .select({
         buildingGuid: techUnlock.assetGuid,
@@ -262,6 +276,7 @@ async function buildingDetails(guids: Array<number>, lang: Lang) {
     maintenance: groupBy(maintenance, 'owner'),
     outputs: groupBy(outputs, 'owner'),
     phases: groupBy(phases, 'buildingGuid'),
+    requirements: groupBy(requirements, 'assetGuid'),
     techs: groupBy(techs, 'buildingGuid'),
     workforce: groupBy(workforce, 'buildingGuid'),
   }
@@ -351,6 +366,8 @@ async function queryBuildings(f: BuildingFilter & Page, id?: number) {
       phases: d.phases(r.guid),
       type: typeLabel(r.type, f.lang),
       unlockedBy: d.techs(r.guid),
+      unlockRequirements:
+        d.phases(r.guid)[0]?.unlockRequirements ?? d.requirements(r.guid),
       workforce: d
         .workforce(r.guid)
         .map(({ buildingGuid, ...workforce }) => workforce),

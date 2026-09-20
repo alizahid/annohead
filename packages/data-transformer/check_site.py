@@ -43,15 +43,31 @@ assert ("ReputationGainSuccess",) in q(
 assert ("CounterAmount", "50") in q(
     "select key, value from unlock u join condition_param cp on cp.condition_id=u.condition_id where u.asset_guid=3187"
 )
-# amphitheatre: one building with four construction phases, the last being the finished building; phase assets
-# are not buildings; phase 4 needs 300 mosaics and the building's cost is the sum of all phases (timber
-# 100+250+250+250); phase unlocks stay per phase, the monument also gets phase 1's
-assert q("select phase, guid from building_phase where building_guid=3621 order by 1") == [(1, 36908), (2, 36911), (3, 36912), (4, 3621)]
+# Amphitheatre: instant placement, then three timed construction stages. Costs come from
+# factory inputs per microphase, not the cumulative/editor Cost values on target assets.
+assert q("select phase, guid, duration_seconds from building_phase where building_guid=3621 order by 1") == [(1, 36908, 0), (2, 36911, 1800), (3, 36912, 1800), (4, 3621, 1800)]
 assert q("select count(*) from building where guid in (36908, 97847)") == [(0,)]
-assert q("select amount from building_phase_cost where phase_guid=3621 and product_guid=2152") == [(300.0,)]
-assert q("select amount from building_cost where building_guid=3621 and product_guid=2174") == [(850.0,)]
-assert q("select asset_guid from unlock where source_guid=43128 order by 1") == [(3621,), (36908,), (36911,)]
+expected_costs = {
+    36908: {1010017: 75000, 2174: 100, 2178: 60},
+    36911: {2174: 150, 2178: 300, 2171: 150},
+    36912: {2178: 150, 2176: 300, 2179: 300, 2171: 150},
+    3621: {2178: 300, 2176: 300, 2179: 300, 2152: 300, 31698: 60},
+}
+for guid, costs in expected_costs.items():
+    assert dict(q("select product_guid, amount from building_phase_cost where phase_guid=?", guid)) == costs
+assert q("select amount from building_cost where building_guid=3621 and product_guid=2174") == [(250.0,)]
+assert q("select amount from building_cost where building_guid=3621 and product_guid=1010017") == [(75000.0,)]
+assert q("select amount from building_cost where building_guid=3621 and product_guid=31698") == [(60.0,)]
+assert q("select product_guid,amount from building_phase_maintenance where phase_guid=36908") == []
+assert q("select product_guid,amount from building_phase_maintenance where phase_guid=36911") == [(2181, 350.0)]
+assert q("select product_guid,amount from building_phase_maintenance where phase_guid=36912") == [(2184, 200.0)]
+assert q("select product_guid,amount from building_phase_maintenance where phase_guid=3621") == [(2185, 150.0)]
+assert q("select product_guid,amount from building_maintenance where building_guid=3621") == [(1010017, 400.0)]
+assert q("select asset_guid from unlock where source_guid=43128 order by 1") == [(36908,), (36911,)]
 assert q("select asset_guid from unlock where source_guid=43129") == [(36912,)]
+assert q("select cp.value from unlock u join condition_param cp on cp.condition_id=u.condition_id where u.asset_guid=3621 and cp.key='CounterAmount'") == [('2250',)]
+# Hippodrome has 30/40/50/60 construction cycles; don't assume Amphitheatre's duration.
+assert q("select duration_seconds from building_phase where building_guid=152714 order by phase") == [(0,), (1800,), (2400,), (3000,), (3600,)]
 # DLC ownership follows model paths; base buildings with DLC variants stay unassigned.
 assert q("select dlc_guid from building where guid=152714") == [(67903,)]
 assert q("select dlc_guid from building where guid=145229") == [(67902,)]

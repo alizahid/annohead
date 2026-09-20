@@ -223,6 +223,7 @@ export const buildingPhase = sqliteTable(
   'building_phase',
   {
     buildingGuid: integer('building_guid').references(() => building.guid),
+    durationSeconds: integer('duration_seconds'),
     guid: integer().primaryKey(),
     nameText: integer('name_text'),
     phase: integer(),

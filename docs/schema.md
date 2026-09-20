@@ -83,13 +83,19 @@ Sub-tables:
 - `building_residence` (Residence7): `population_level`, `needs[] (need, consumption_rate, buff_only)`,
   `upgrade_thresholds`, `upgrades_to (building, cost[])`.
 - `building_public_service` (PublicService): service effect.
-- `building_phase` (template `Monument`): construction phases of a monument, in order (Amphitheatre: Foundation,
-  Outer Walls, Arena, then the finished Amphitheatre as phase 4). The game models each phase as its own asset
-  chained by `Monument.UpgradeTarget` up to the finished building; here they are rows of the finished building,
-  not buildings. Each phase has its own `building_phase_cost[]` and `building_phase_maintenance[]` (workforce
-  during that phase); the monument's own `building_cost[]` is the sum over all phases. Each phase keeps its own `unlock`
-  rows (Outer Walls unlocks at Patricians); the monument also gets phase 1's, and `tech_unlock` rows pointing at
-  a phase move to the monument. The campaign's scripted copy of the Amphitheatre chain is skipped.
+- `building_phase` (template `Monument`): instant foundation placement followed by timed construction
+  stages. A row's `guid` is the target asset reached after the stage; its name, construction inputs,
+  and workforce come from the preceding `Monument` asset. Placement uses the root asset's `Cost`;
+  later `building_phase_cost[]` values are `FactoryInputs.Amount × MicrophaseCount`.
+  `durationSeconds` is `CycleTime × MicrophaseCount` at base productivity (zero for placement).
+  `building_phase_maintenance[]` holds construction workforce, not the completed building's upkeep.
+  The monument's `building_cost[]` sums these actual stage costs. For Amphitheatre this includes
+  75,000 Denarii once, 300 ropes, and 60 gold. Its operational 400-Denarii maintenance remains on the building.
+  `unlockRequirements[]` exposes each target's unlock condition, raw parameters, and localized
+  `population` with its required `amount` when the condition is `PopulationByLevel`. The building's
+  requirements use its first phase; Amphitheatre phase 3 requires 750 Patricians and phase 4 requires 2,250.
+  Ordinary buildings also expose `unlockRequirements[]`; technology unlocks remain in `unlockedBy[]`.
+  The campaign's scripted copy of the Amphitheatre chain is skipped.
 - `building_unlock`: how it becomes buildable, see Unlocks.
 
 ### production_chain

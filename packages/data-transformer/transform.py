@@ -742,9 +742,7 @@ class T:
 
     # ---- monument construction phases ----------------------------------------------------------------------
     def phases(self):
-        """Phase assets (Amphitheatre: Foundation, ...) chain via Monument.UpgradeTarget up to the finished
-        building, which is the last phase. They become building_phase rows of that building instead of
-        buildings of their own; each carries its own cost, the building's cost becomes the sum of all phases."""
+        """Separate instant placement from timed construction, using factory input per microphase."""
         for a in self.assets.values():
             m = D(a["v"].get("Monument"))
             if self.num(m.get("BaseAsset")) != a["guid"] or (a["name"] or "").startswith(
@@ -757,20 +755,36 @@ class T:
                 g = self.num(D(self.assets[g]["v"]["Monument"]).get("UpgradeTarget"))
             chain.append(self.assets[g])
             for i, p in enumerate(chain, 1):
+                # Each row describes reaching the target asset. Construction happens on its predecessor.
+                source = chain[i - 2] if i > 1 else p
+                factory = D(source["v"].get("FactoryBase"))
+                cycles = self.num(D(source["v"].get("Monument")).get("MicrophaseCount"), 0)
+                duration = cycles * self.num(factory.get("CycleTime"), 0) if i > 1 else 0
                 self.db.execute(
-                    "insert into building_phase values(?,?,?,?)",
-                    (p["guid"], g, i, self.text(p["text_id"])),
+                    "insert into building_phase values(?,?,?,?,?)",
+                    (p["guid"], g, i, self.text(source["text_id"]), duration),
                 )
-                self.cost_rows(p["v"], p["guid"], "building_phase")
-                self.db.execute(  # tech_unlock joins building; a tech unlocking a phase unlocks the monument
+                if i == 1:
+                    self.cost_rows(
+                        {"Cost": source["v"].get("Cost")}, p["guid"], "building_phase"
+                    )
+                else:
+                    self.cost_rows(
+                        {"Maintenance": source["v"].get("Maintenance")},
+                        p["guid"],
+                        "building_phase",
+                    )
+                    for item in self.items(factory.get("FactoryInputs")):
+                        amount = self.num(item.get("Amount"), 1) * cycles
+                        if amount:
+                            self.db.execute(
+                                "insert into building_phase_cost values(?,?,?)",
+                                (p["guid"], self.num(item.get("Product")), amount),
+                            )
+                self.db.execute(
                     "update or replace tech_unlock set asset_guid=? where asset_guid=?",
                     (g, p["guid"]),
                 )
-            # each phase keeps its own unlock (Outer Walls at Patricians, ...); the monument starts with phase 1's
-            self.db.execute(
-                "insert or ignore into unlock select ?, source_kind, source_guid, condition_id from unlock where asset_guid=?",
-                (g, chain[0]["guid"]),
-            )
             self.db.execute("delete from building_cost where building_guid=?", (g,))
             self.db.execute(
                 """insert into building_cost select ?, product_guid, sum(amount) from building_phase_cost
@@ -1097,7 +1111,7 @@ create table building_region(building_guid int references building(guid), region
 create table building_cost(building_guid int references building(guid), product_guid int references product(guid), amount real);
 create table building_maintenance(building_guid int references building(guid), product_guid int references product(guid), amount real);
 create table building_effect(building_guid int references building(guid), effect_guid int, kind text);
-create table building_phase(guid integer primary key, building_guid int references building(guid), phase int, name_text integer);
+create table building_phase(guid integer primary key, building_guid int references building(guid), phase int, name_text integer, duration_seconds int);
 create table building_phase_cost(phase_guid int references building_phase(guid), product_guid int references product(guid), amount real);
 create table building_phase_maintenance(phase_guid int references building_phase(guid), product_guid int references product(guid), amount real);
 create table factory(building_guid integer primary key references building(guid), cycle_time real, base_productivity real, transporter_range int);

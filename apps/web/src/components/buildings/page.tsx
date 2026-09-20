@@ -1,4 +1,5 @@
 import { type Building } from '@anno/db/client'
+import { compact } from 'lodash'
 import { useFormatter, useTranslations } from 'next-intl'
 
 import { getIcon } from '@/lib/icons'
@@ -36,7 +37,7 @@ export function BuildingPage({ building }: Props) {
               <div className="text-gray-11 text-sm">{building.kind.name}</div>
             ) : null}
 
-            <h1 className="text-2xl leading-tight">{building.name}</h1>
+            <h1 className="text-4xl leading-tight">{building.name}</h1>
 
             {building.description ? <p>{building.description}</p> : null}
           </div>
@@ -50,7 +51,7 @@ export function BuildingPage({ building }: Props) {
       <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         <div className="flex flex-col gap-6 empty:hidden">
           {building.costs.length ? (
-            <DataList.Root title={t('construction')}>
+            <DataList.Root title={t('details.construction')}>
               {building.costs.map((item) => (
                 <DataList.Link
                   icon={item.icon}
@@ -65,7 +66,7 @@ export function BuildingPage({ building }: Props) {
           ) : null}
 
           {building.maintenance.length ? (
-            <DataList.Root title={t('maintenance')}>
+            <DataList.Root title={t('details.maintenance')}>
               {building.maintenance.map((item) => (
                 <DataList.Item
                   icon={item.icon}
@@ -80,7 +81,7 @@ export function BuildingPage({ building }: Props) {
 
         <div className="flex flex-col gap-6 empty:hidden">
           {building.inputs.length ? (
-            <DataList.Root title={t('inputs')}>
+            <DataList.Root title={t('details.inputs')}>
               {building.inputs.map((item) => (
                 <DataList.Link
                   icon={item.icon}
@@ -95,7 +96,7 @@ export function BuildingPage({ building }: Props) {
           ) : null}
 
           {building.outputs.length ? (
-            <DataList.Root title={t('outputs')}>
+            <DataList.Root title={t('details.outputs')}>
               {building.outputs.map((item) => (
                 <DataList.Link
                   icon={item.icon}
@@ -110,12 +111,13 @@ export function BuildingPage({ building }: Props) {
           ) : null}
 
           {building.workforce.length ? (
-            <DataList.Root title={t('workforce')}>
+            <DataList.Root title={t('details.workforce')}>
               {building.workforce.map((item) => (
                 <DataList.Item
                   icon={item.icon}
                   key={item.guid}
                   name={item.name}
+                  tier
                   value={item.amount}
                 />
               ))}
@@ -125,7 +127,7 @@ export function BuildingPage({ building }: Props) {
 
         <div className="flex flex-col gap-6 empty:hidden">
           {building.effects.length ? (
-            <DataList.Root title={t('effects')}>
+            <DataList.Root title={t('details.effects')}>
               {building.effects.map((item) => (
                 <DataList.Item
                   icon={item.attribute ? getIcon(item.attribute) : null}
@@ -148,7 +150,7 @@ export function BuildingPage({ building }: Props) {
           ) : null}
 
           {building.buffs.length ? (
-            <DataList.Root title={t('buffs')}>
+            <DataList.Root title={t('details.buffs')}>
               {building.buffs.map((item) => (
                 <DataList.Item
                   icon={item.attribute ? getIcon(item.attribute) : undefined}
@@ -169,7 +171,7 @@ export function BuildingPage({ building }: Props) {
 
         <div className="flex flex-col gap-6 empty:hidden">
           {building.unlockedBy.length ? (
-            <DataList.Root title={t('unlocked')}>
+            <DataList.Root title={t('details.unlocked')}>
               {building.unlockedBy.map((item) => (
                 <DataList.Link
                   icon={item.icon}
@@ -236,6 +238,70 @@ export function BuildingPage({ building }: Props) {
           </DataList.Root>
         </div>
       </div>
+
+      {building.phases.length ? (
+        <div className="flex flex-col gap-4">
+          <h3 className="text-2xl">{t('phases.title')}</h3>
+
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+            {building.phases.map((phase) => (
+              <DataList.Root
+                className="flex-1"
+                key={phase.guid}
+                title={phase.name ?? t('phases.phase')}
+              >
+                {phase.durationSeconds ? (
+                  <DataList.Item
+                    name={t('phases.duration')}
+                    value={f.number(phase.durationSeconds / 60, {
+                      style: 'unit',
+                      unit: 'minute',
+                    })}
+                  />
+                ) : null}
+
+                <DataList.Label>{t('details.construction')}</DataList.Label>
+
+                {phase.costs.map((item) => (
+                  <DataList.Link
+                    icon={item.icon}
+                    id={item.guid}
+                    key={item.guid}
+                    name={item.name}
+                    type="product"
+                    value={item.amount}
+                  />
+                ))}
+
+                <DataList.Label>{t('details.maintenance')}</DataList.Label>
+
+                {phase.maintenance.map((item) => (
+                  <DataList.Item
+                    icon={item.icon}
+                    key={item.guid}
+                    name={item.name}
+                    value={item.amount}
+                  />
+                ))}
+
+                <DataList.Label>{t('phases.unlock')}</DataList.Label>
+
+                {compact(
+                  phase.unlockRequirements.map((item) => item.population),
+                ).map((item) => (
+                  <DataList.Item
+                    icon={item.icon}
+                    key={item.guid}
+                    name={item.name}
+                    tier
+                    value={item.amount}
+                  />
+                ))}
+              </DataList.Root>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       <CommentList guid={building.guid} />
     </div>
