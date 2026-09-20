@@ -1,10 +1,6 @@
-'use client'
-
 import { cn } from 'cn'
 import Image from 'next/image'
 import { useTranslations } from 'next-intl'
-import { useState } from 'react'
-import { useHotkeys } from 'react-hotkeys-hook'
 
 import { Tooltip } from '@/components/common/tooltip'
 import { Link } from '@/intl/nav'
@@ -16,18 +12,6 @@ type Props = {
 
 export function Navigation({ className }: Props) {
   const t = useTranslations('component.layouts.main.nav')
-
-  const [open, setOpen] = useState(false)
-
-  useHotkeys(
-    'esc',
-    () => {
-      setOpen(false)
-    },
-    {
-      enabled: open,
-    },
-  )
 
   const sections = [
     {

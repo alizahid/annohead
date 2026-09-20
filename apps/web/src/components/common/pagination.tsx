@@ -15,9 +15,6 @@ export function Pagination({ page, pages }: Props) {
   const path = usePathname()
   const search = useSearchParams()
 
-  console.log('path', path)
-  console.log('search', search)
-
   const pagination = getPagination(pages)
 
   if (pagination.length > 1) {

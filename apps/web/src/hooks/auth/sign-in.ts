@@ -107,8 +107,6 @@ export function useSignIn() {
   })
 
   const onSubmit = form.handleSubmit((data) => {
-    console.log('onSubmit', data)
-
     if (isPending) {
       return
     }

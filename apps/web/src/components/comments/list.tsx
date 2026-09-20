@@ -10,6 +10,7 @@ import { useState } from 'react'
 import { Link } from '@/intl/nav'
 
 import { Button } from '../common/button'
+import { Empty } from '../common/empty'
 import { IconButton } from '../common/icon-button'
 import { Spinner } from '../common/spinner'
 import { CommentCard } from './card'
@@ -79,16 +80,14 @@ export function CommentList({ guid }: Props) {
       ) : null}
 
       {results.length ? (
-        <div className="-mx-4 flex flex-col border-gray-6 border-y lg:-mx-8">
+        <div className="flex flex-col gap-4">
           {results.map((comment) => (
-            <CommentCard
-              className="border-gray-6 not-first:border-t p-4 lg:px-8"
-              comment={comment}
-              key={comment._id}
-            />
+            <CommentCard comment={comment} key={comment._id} />
           ))}
         </div>
-      ) : null}
+      ) : (
+        <Empty>{t('empty')}</Empty>
+      )}
 
       {status === 'LoadingFirstPage' ? (
         <Spinner className="size-8" />

@@ -82,6 +82,7 @@
         }
       },
       "list": {
+        "empty": "No comments yet",
         "more": "Load more",
         "signIn": "<link>Sign in</link> to join the conversation.",
         "title": "Comments"

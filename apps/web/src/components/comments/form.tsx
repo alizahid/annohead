@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
 import { Controller, useForm } from 'react-hook-form'
+import { useHotkeys } from 'react-hotkeys-hook'
 import { z } from 'zod'
 
 import { Button } from '../common/button'
@@ -20,6 +21,16 @@ type Props = {
 
 export function CommentForm({ guid, onSuccess }: Props) {
   const t = useTranslations('component.comments.form')
+
+  useHotkeys(
+    'meta+enter',
+    () => {
+      onSubmit()
+    },
+    {
+      enableOnFormTags: true,
+    },
+  )
 
   const { control, handleSubmit, reset } = useForm({
     defaultValues: {
