@@ -15,7 +15,7 @@ export function MainLayout({ children }: Props) {
 
   return (
     <div className="mx-auto flex min-h-screen max-w-7xl flex-col gap-12 bg-gray-1 p-4 md:p-8">
-      <header className="grid grid-cols-[1fr_2.5rem] items-center gap-4 lg:grid-cols-[14.5rem_1fr_2.5rem]">
+      <header className="grid grid-cols-[1fr_2.5rem] items-center gap-4 lg:grid-cols-[17.5rem_1fr_2.5rem]">
         <Navigation className="col-start-1" />
 
         <Suspense>

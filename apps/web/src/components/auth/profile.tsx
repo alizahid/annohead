@@ -5,11 +5,12 @@ import {
 } from '@convex-dev/auth/react'
 import { UserCircleDashedIcon } from '@phosphor-icons/react/dist/ssr'
 import { cn } from 'cn'
-import Image from 'next/image'
 
 import { Spinner } from '@/components/common/spinner'
 import { Link } from '@/intl/nav'
 import { getIcon } from '@/lib/icons'
+
+import { Icon } from '../common/icon'
 
 type Props = {
   className?: string
@@ -29,13 +30,7 @@ export function AuthProfile({ className }: Props) {
 
       <Authenticated>
         <Link className="outline-none" href="/auth/profile">
-          <Image
-            alt="Profile"
-            className="size-6"
-            height={64}
-            src={getIcon('profile')}
-            width={64}
-          />
+          <Icon className="size-6" icon={getIcon('profile')} />
         </Link>
       </Authenticated>
 

@@ -1,7 +1,7 @@
 import { cn } from 'cn'
-import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 
+import { Icon } from '@/components/common/icon'
 import { Tooltip } from '@/components/common/tooltip'
 import { Link } from '@/intl/nav'
 import { getIcon } from '@/lib/icons'
@@ -52,6 +52,7 @@ export function Navigation({ className }: Props) {
         <Tooltip
           content={t(section.key)}
           key={section.key}
+          offset={8}
           render={
             <Link
               className="flex size-10 items-center justify-center gap-4 rounded-sm outline-none ring-accent-8 focus-visible:ring-2"
@@ -59,12 +60,9 @@ export function Navigation({ className }: Props) {
             />
           }
         >
-          <Image
-            alt={section.key}
+          <Icon
             className="size-6 invert dark:invert-0"
-            height={16}
-            src={getIcon(section.icon)}
-            width={16}
+            icon={getIcon(section.icon)}
           />
         </Tooltip>
       ))}

@@ -1,9 +1,10 @@
 import { type SearchHit } from '@anno/db/client'
-import Image from 'next/image'
 
 import { Link } from '@/intl/nav'
-import { getIcon, getIconUrl } from '@/lib/icons'
+import { getIcon } from '@/lib/icons'
 import { getUrl } from '@/lib/url'
+
+import { Icon } from '../common/icon'
 
 type Props = {
   item: SearchHit
@@ -17,33 +18,14 @@ export function SearchCard({ item }: Props) {
     >
       <aside className="relative flex size-16">
         {item.icon ? (
-          <Image
-            alt={item.name}
-            className="size-16"
-            height={64}
-            src={getIconUrl(item.icon)}
-            unoptimized
-            width={64}
-          />
+          <Icon className="size-16" icon={item.icon} />
         ) : (
-          <Image
-            alt={item.type}
-            className="size-16"
-            height={64}
-            src={getIcon(item.type)}
-            width={64}
-          />
+          <Icon className="size-16" icon={getIcon(item.type)} />
         )}
 
         {item.icon ? (
           <div className="absolute right-0 bottom-0 flex rounded-full bg-accent-2 p-1">
-            <Image
-              alt={item.type}
-              className="size-4"
-              height={32}
-              src={getIcon(item.type)}
-              width={32}
-            />
+            <Icon className="size-4" icon={getIcon(item.type)} />
           </div>
         ) : null}
       </aside>
@@ -55,14 +37,7 @@ export function SearchCard({ item }: Props) {
           {item.type === 'building' || item.type === 'chain' ? (
             <div className="flex gap-2">
               {item.regions.map((region) => (
-                <Image
-                  alt={region}
-                  height={24}
-                  key={region}
-                  src={getIcon(region)}
-                  title={region}
-                  width={24}
-                />
+                <Icon icon={getIcon(region)} key={region} />
               ))}
             </div>
           ) : null}
