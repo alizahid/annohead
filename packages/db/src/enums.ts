@@ -169,6 +169,13 @@ export type Attribute = (typeof attributeValues)[number]
 export const langValues = ['en', 'de'] as const
 export type Lang = (typeof langValues)[number]
 
+export const dlcValues = [
+  'DLC01_Prophecies_of_Ash',
+  'DLC02_The_Hippodrome',
+  'DLC03_Dawn_of_Delta',
+] as const
+export type Dlc = (typeof dlcValues)[number]
+
 export const regionValues = ['Roman', 'Celtic', 'Egyptian'] as const
 export type Region = (typeof regionValues)[number]
 

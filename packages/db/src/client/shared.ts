@@ -57,6 +57,6 @@ export function groupBy<T, K extends keyof T>(rows: Array<T>, key: K) {
 export const modifierColumns = {
   attribute: attribute.key,
   buffGuid: buff.guid,
-  isPercent: buffModifier.isPercent,
+  isPercent: sql`coalesce(${buffModifier.isPercent}, 0)`.mapWith(Boolean),
   value: buffModifier.value,
 }

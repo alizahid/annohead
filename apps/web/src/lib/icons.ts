@@ -1,5 +1,7 @@
 const icons = {
+  AdditionalNeedAttributes: '/img/anno/icon_2d_mark_question_0.png',
   Aqueduct: '/img/anno/icon_2d_aqueduct_0.png',
+  Belief: '/img/anno/icon_2d_devotion_0.png',
   building: '/img/anno/icon_2d_category_house.png',
   Celtic: '/img/anno/icon_2d_region_wetlands.png',
   'City Watch': '/img/anno/icon_2d_institution_buildings_0.png',
@@ -8,12 +10,19 @@ const icons = {
   DLC02_The_Hippodrome: '/img/anno/icon_3d_dlc_category_circus_maximus_0.png',
   DLC03_Dawn_of_Delta: '/img/anno/icon_3d_dlc_category_egypt_0.png',
   Egyptian: '/img/anno/icon_2d_region_global.png',
+  FireSafety: '/img/anno/icon_2d_fire_safety_0.png',
+  Happiness: '/img/anno/icon_2d_happiness_0.png',
   Harbour: '/img/anno/icon_2d_naval_buildings_0.png',
+  Health: '/img/anno/icon_2d_health_0.png',
   item: '/img/anno/icon_2d_generic_item.png',
+  Knowledge: '/img/anno/icon_2d_techtree_knowledge_0.png',
   Marsh: '/img/anno/icon_2d_category_marsh_drainage_0.png',
   Military: '/img/anno/icon_2d_category_military_buildings_0.png',
+  Money: '/img/anno/icon_2d_income_0.png',
   Monument: '/img/anno/icon_2d_colloseum_0.png',
   notFound: '/img/anno/icon_3d_sideques_roman_ruins_0.png',
+  Population: '/img/anno/icon_2d_population_0.png',
+  Prestige: '/img/anno/icon_2d_prestige_0.png',
   Production: '/img/anno/icon_2d_production_buildings_0.png',
   'Public Service': '/img/anno/icon_2d_category_civic_0.png',
   product: '/img/anno/icon_2d_generic_goods.png',
@@ -31,20 +40,6 @@ const icons = {
 
 export function getIcon(name: keyof typeof icons) {
   return icons[name]
-}
-
-export function getDlcIcon(guid: number | null) {
-  if (guid === 67_902) {
-    return 'DLC01_Prophecies_of_Ash'
-  }
-
-  if (guid === 67_903) {
-    return 'DLC02_The_Hippodrome'
-  }
-
-  if (guid === 67_904) {
-    return 'DLC03_Dawn_of_Delta'
-  }
 }
 
 export function getIconUrl(icon: string) {

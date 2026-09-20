@@ -36,7 +36,7 @@ export function BuildingFiltersCard({ dlcs, kinds, regions, tiers }: Props) {
   return (
     <div className="grid gap-8 md:grid-cols-4 lg:flex lg:w-64 lg:flex-col">
       <div className="flex flex-col gap-4">
-        <h3>{t('regions.title')}</h3>
+        <h3>{t('regions')}</h3>
 
         <CheckboxGroup
           className="flex flex-col"
@@ -60,16 +60,14 @@ export function BuildingFiltersCard({ dlcs, kinds, regions, tiers }: Props) {
                 <Icon className="size-6" icon={getIcon(item.key)} />
               ) : null}
 
-              <span className="font-bold text-sm">
-                {t(`regions.${item.key ?? 'Roman'}`)}
-              </span>
+              <span className="font-bold text-sm">{item.name}</span>
             </Checkbox.Root>
           ))}
         </CheckboxGroup>
       </div>
 
       <div className="flex flex-col gap-4">
-        <h3>{t('tiers.title')}</h3>
+        <h3>{t('tiers')}</h3>
 
         <CheckboxGroup
           className="flex flex-col"
@@ -111,7 +109,7 @@ export function BuildingFiltersCard({ dlcs, kinds, regions, tiers }: Props) {
       </div>
 
       <div className="flex flex-col gap-4">
-        <h3>{t('dlcs.title')}</h3>
+        <h3>{t('dlcs')}</h3>
 
         <CheckboxGroup
           className="flex flex-col"
@@ -140,7 +138,7 @@ export function BuildingFiltersCard({ dlcs, kinds, regions, tiers }: Props) {
       </div>
 
       <div className="flex flex-col gap-4">
-        <h3>{t('kinds.title')}</h3>
+        <h3>{t('kinds')}</h3>
 
         <CheckboxGroup
           className="flex flex-col"

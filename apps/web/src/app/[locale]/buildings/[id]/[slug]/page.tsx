@@ -1,6 +1,7 @@
 import { anno } from '@anno/db/client'
+import { notFound } from 'next/navigation'
 
-import { CommentList } from '@/components/comments/list'
+import { BuildingItem } from '@/components/buildings/item'
 import { getId, validateLocale } from '@/lib/validators'
 
 export default async function Page({
@@ -15,13 +16,9 @@ export default async function Page({
     lang: validateLocale(locale),
   })
 
-  return (
-    <div className="flex flex-col gap-8">
-      <pre className="font-mono text-xs">
-        {JSON.stringify(building, null, 2)}
-      </pre>
+  if (!building) {
+    notFound()
+  }
 
-      <CommentList guid={guid} />
-    </div>
-  )
+  return <BuildingItem building={building} />
 }

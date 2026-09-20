@@ -47,7 +47,7 @@ test('buildings join costs, workforce and outputs', async () => {
   })
   const bakery = rows.find((r) => r.outputs.length > 0)
   expect(bakery?.costs.length).toBeGreaterThan(0)
-  expect(bakery?.populationLevel?.name).toBeTruthy()
+  expect(bakery?.workforce[0]?.name).toBeTruthy()
   expect(bakery?.cycleTime).toBeGreaterThan(0)
   const guid = bakery?.guid ?? 0
   expect(
@@ -66,13 +66,100 @@ test('buildings join costs, workforce and outputs', async () => {
   ).toBeNull()
 })
 
+test.each([
+  { id: 50_972, names: ['Liberti', 'Plebeians'], tiers: [1499, 1496] },
+  { id: 50_974, names: ['Waders', 'Mercators'], tiers: [1500, 1503] },
+])(
+  'buildings include every workforce tier for $id',
+  async ({ id, tiers, names }) => {
+    const building = await anno.buildings.get({ id, lang: 'en' })
+    expect(building?.workforce.map((entry) => entry.guid)).toEqual([...tiers])
+    expect(building?.workforce.map((entry) => entry.name)).toEqual([...names])
+    expect(building?.workforce.map((entry) => entry.amount)).toEqual([6, 16])
+    expect(building).not.toHaveProperty('populationLevel')
+    const localized = await anno.buildings.get({ id, lang: 'de' })
+    const populationTiers = await anno.populationTiers.list({ lang: 'de' })
+    expect(localized?.workforce.map((entry) => entry.name)).toEqual(
+      tiers.map(
+        (guid) =>
+          populationTiers.find((tier) => tier.guid === guid)?.name ?? null,
+      ),
+    )
+  },
+)
+
+test.each([1499, 1496])(
+  'workforce filter matches either required tier: %s',
+  async (tier) => {
+    const result = await anno.buildings.list({
+      lang: 'en',
+      perPage: 1000,
+      workforce: [tier],
+    })
+    expect(result.rows.map((row) => row.guid)).toContain(50_972)
+    expect(
+      result.rows.every((row) =>
+        row.workforce.some((entry) => entry.guid === tier),
+      ),
+    ).toBe(true)
+    expect(result.total).toBe(result.rows.length)
+  },
+)
+
+test('workforce filters avoid duplicate buildings and ignore empty filters', async () => {
+  const result = await anno.buildings.list({
+    lang: 'en',
+    perPage: 1000,
+    workforce: [1499, 1496],
+  })
+  expect(result.rows.filter((row) => row.guid === 50_972)).toHaveLength(1)
+  expect(result.total).toBe(result.rows.length)
+  const empty = await anno.buildings.list({
+    lang: 'en',
+    perPage: 1,
+    workforce: [],
+  })
+  const unfiltered = await anno.buildings.list({ lang: 'en', perPage: 1 })
+  expect(empty).toEqual(unfiltered)
+  const residence = await anno.buildings.get({ id: 3087, lang: 'en' })
+  expect(residence).not.toBeNull()
+  expect(residence?.workforce).toEqual([])
+})
+
+test.each([
+  { kindName: 'Production', lang: 'en', typeName: 'Factory' },
+  { kindName: 'Produktion', lang: 'de', typeName: 'Fabrik' },
+] as const)(
+  'building kind and type have localized names in $lang',
+  async ({ lang, kindName, typeName }) => {
+    const building = await anno.buildings.get({ id: 145_229, lang })
+    expect(building?.kind).toEqual({ id: 'Production', name: kindName })
+    expect(building?.type).toEqual({ id: 'Factory', name: typeName })
+    const listed = await anno.buildings.list({
+      dlc: [67_902],
+      kind: ['Production'],
+      lang,
+      perPage: 1000,
+      type: ['Factory'],
+    })
+    expect(listed.rows.find((row) => row.guid === 145_229)?.kind).toEqual(
+      building?.kind ?? null,
+    )
+    expect(
+      listed.rows.every(
+        (row) => row.kind?.id === 'Production' && row.type?.id === 'Factory',
+      ),
+    ).toBe(true)
+  },
+)
+
 test('buildings filter by DLC and ignore an empty DLC filter', async () => {
   const hippodrome = await anno.buildings.list({
     dlc: [67_903],
     lang: 'en',
   })
   expect(hippodrome.rows.map((row) => row.guid)).toContain(152_714)
-  expect(hippodrome.rows.every((row) => row.dlcGuid === 67_903)).toBe(true)
+  expect(hippodrome.rows.every((row) => row.dlc?.guid === 67_903)).toBe(true)
   const multiple = await anno.buildings.list({
     dlc: [67_902, 67_903],
     lang: 'en',
@@ -94,6 +181,21 @@ test('buildings filter by DLC and ignore an empty DLC filter', async () => {
   expect(empty.rows).toEqual(unfiltered.rows)
 })
 
+test.each(['en', 'de'] as const)(
+  'buildings include localized DLC details in %s',
+  async (lang) => {
+    const dlcs = await anno.dlc.list({ lang })
+    const building = await anno.buildings.get({ id: 152_714, lang })
+    expect(building?.dlc).toEqual(
+      dlcs.find((dlc) => dlc.guid === 67_903) ?? null,
+    )
+    expect(building?.dlc?.name).toBeTruthy()
+    const baseGameBuilding = await anno.buildings.get({ id: 3615, lang })
+    expect(baseGameBuilding).not.toBeNull()
+    expect(baseGameBuilding?.dlc).toBeNull()
+  },
+)
+
 test('buildings carry effects and buffs', async () => {
   const { rows } = await anno.buildings.list({
     lang: 'en',
@@ -107,21 +209,96 @@ test('buildings carry effects and buffs', async () => {
     id: 3527,
     lang: 'en',
   })
+  expect(market?.effects).toEqual([])
   expect(market?.buffs).toEqual([
     {
       attribute: 'Population',
       buildingGuid: 3527,
+      name: 'Population',
       value: 1,
     },
     {
       attribute: 'Money',
       buildingGuid: 3527,
+      name: 'Income',
       value: 1,
     },
   ])
   const kind: 'Production' | undefined =
-    rows[0]?.kind === 'Production' ? rows[0].kind : undefined
+    rows[0]?.kind?.id === 'Production' ? rows[0].kind.id : undefined
   expect(kind).toBe('Production')
+})
+
+test('production buffs include output need fulfillment without duplicate needs', async () => {
+  const caelator = await anno.buildings.get({ id: 145_229, lang: 'en' })
+  expect(
+    caelator?.effects.map(({ attribute, value }) => ({ attribute, value })),
+  ).toEqual(
+    expect.arrayContaining([
+      { attribute: 'Prestige', value: 2 },
+      { attribute: 'Health', value: -1 },
+    ]),
+  )
+  expect(caelator?.buffs).toHaveLength(3)
+  expect(caelator?.buffs).toEqual(
+    expect.arrayContaining([
+      {
+        attribute: 'Population',
+        buildingGuid: 145_229,
+        name: 'Population',
+        value: 1,
+      },
+      { attribute: 'Money', buildingGuid: 145_229, name: 'Income', value: 3 },
+      { attribute: 'Belief', buildingGuid: 145_229, name: 'Belief', value: 2 },
+    ]),
+  )
+  const listed = await anno.buildings.list({ lang: 'en', search: 'Caelator' })
+  expect(listed.rows.find((row) => row.guid === 145_229)?.buffs).toEqual(
+    caelator?.buffs ?? [],
+  )
+})
+
+test.each([
+  { health: 'Health', income: 'Income', lang: 'en' },
+  { health: 'Gesundheit', income: 'Einkommen', lang: 'de' },
+] as const)(
+  'building buffs and effects have localized names in $lang',
+  async ({ lang, income, health }) => {
+    const building = await anno.buildings.get({ id: 145_229, lang })
+    expect(
+      building?.buffs.find((bonus) => bonus.attribute === 'Money')?.name,
+    ).toBe(income)
+    expect(
+      building?.effects.find((effect) => effect.attribute === 'Health')?.name,
+    ).toBe(health)
+    const listed = await anno.buildings.list({
+      dlc: [67_902],
+      lang,
+      perPage: 1000,
+    })
+    expect(listed.rows.find((row) => row.guid === 145_229)?.buffs).toEqual(
+      building?.buffs ?? [],
+    )
+  },
+)
+
+test('modifier percentage flags are booleans', async () => {
+  const buildings = await anno.buildings.list({
+    lang: 'en',
+    search: 'Lavender',
+  })
+  const effects = buildings.rows.flatMap((building) => building.effects)
+  expect(effects.length).toBeGreaterThan(0)
+  expect(effects.every((effect) => effect.isPercent === false)).toBe(true)
+  const item = await anno.items.get({ id: 41_350, lang: 'en' })
+  expect(item?.modifiers.some((modifier) => modifier.isPercent === true)).toBe(
+    true,
+  )
+  expect(
+    item?.modifiers.every(
+      (modifier) => typeof modifier.isPercent === 'boolean',
+    ),
+  ).toBe(true)
 })
 
 test('products and techs', async () => {

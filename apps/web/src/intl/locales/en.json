@@ -37,35 +37,30 @@
     },
     "buildings": {
       "card": {
-        "kind": {
-          "Aqueduct": "Aqueduct",
-          "City Watch": "City Watch",
-          "Harbour": "Harbour",
-          "Marsh": "Marsh",
-          "Military": "Military",
-          "Monument": "Monument",
-          "Production": "Production",
-          "Public Service": "Public Service",
-          "Residence": "Residence",
-          "Road": "Road"
-        }
+        "buffs": "Need fulfillment",
+        "construction": "Construction costs",
+        "effects": "Area effects",
+        "inputs": "Inputs",
+        "maintenance": "Maintenance",
+        "other": {
+          "baseProductivity": "Base productivity",
+          "category": "Category",
+          "cycleTime": "Cycle time",
+          "radius": "Radius",
+          "streetRadius": "Street radius",
+          "template": "Template",
+          "title": "Other",
+          "transporterRange": "Transporter range"
+        },
+        "outputs": "Outputs",
+        "unlocked": "Unlocked by",
+        "workforce": "Workforce needed"
       },
       "filters": {
-        "dlcs": {
-          "title": "DLC"
-        },
-        "kinds": {
-          "title": "Type"
-        },
-        "regions": {
-          "Celtic": "Albion",
-          "Egyptian": "Aegyptus",
-          "Roman": "Latium",
-          "title": "Region"
-        },
-        "tiers": {
-          "title": "Population tier"
-        }
+        "dlcs": "DLC",
+        "kinds": "Type",
+        "regions": "Region",
+        "tiers": "Population tier"
       },
       "page": {
         "empty": "Nothing found",

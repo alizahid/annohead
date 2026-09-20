@@ -1,10 +1,9 @@
 import { type SearchHit } from '@anno/db/client'
-import { type SearchType } from '@anno/db/search'
-import { kebabCase } from 'lodash'
 import Image from 'next/image'
 
 import { Link } from '@/intl/nav'
 import { getIcon, getIconUrl } from '@/lib/icons'
+import { getUrl } from '@/lib/url'
 
 type Props = {
   item: SearchHit
@@ -77,25 +76,4 @@ export function SearchItem({ item }: Props) {
       </div>
     </Link>
   )
-}
-
-function getUrl(type: SearchType, id: number, name?: string) {
-  const base =
-    type === 'building'
-      ? 'buildings'
-      : type === 'chain'
-        ? 'chains'
-        : type === 'item'
-          ? 'items'
-          : type === 'product'
-            ? 'products'
-            : type === 'quest'
-              ? 'quests'
-              : 'techs'
-
-  if (name) {
-    return `/${base}/${id}/${kebabCase(name)}`
-  }
-
-  return `/${base}/${id}`
 }

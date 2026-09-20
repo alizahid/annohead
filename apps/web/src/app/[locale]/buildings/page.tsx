@@ -41,10 +41,10 @@ export default async function Page({
       kind: filters.kind ?? undefined,
       lang,
       page: filters.page ?? undefined,
-      populationLevel: filters.tiers ?? undefined,
       regionId: filters.regions ?? undefined,
       search: filters.query ?? undefined,
       type: filters.type ?? undefined,
+      workforce: filters.tiers ?? undefined,
     }),
   ])
 

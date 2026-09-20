@@ -6,17 +6,18 @@ import { getIconUrl } from '@/lib/icons'
 type Props = {
   className?: string
   icon: string
+  size?: number
 }
 
-export function Icon({ className, icon }: Props) {
+export function Icon({ className, icon, size = 64 }: Props) {
   return (
     <Image
       alt={icon}
       className={cn('size-16', className)}
-      height={64}
+      height={size}
       src={icon.startsWith('/img/') ? icon : getIconUrl(icon)}
       unoptimized={!icon.startsWith('/img/')}
-      width={64}
+      width={size}
     />
   )
 }

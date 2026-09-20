@@ -1,4 +1,4 @@
-import { and, asc, count, eq, inArray, like } from 'drizzle-orm'
+import { and, asc, count, eq, exists, inArray, like } from 'drizzle-orm'
 
 import { db } from '../db'
 import { type BuildingKind, type BuildingType, type Lang } from '../enums'
@@ -14,10 +14,12 @@ import {
   buildingPhase,
   buildingPhaseCost,
   buildingPhaseMaintenance,
+  dlc,
   effectBuff,
   factory,
   factoryInput,
   factoryOutput,
+  need,
   needAttribute,
   populationLevel,
   product,
@@ -25,7 +27,8 @@ import {
   tech,
   techUnlock,
 } from '../schema'
-import { kinds, types } from './building-labels'
+import { attributeName } from './attribute-labels'
+import { kindLabel, kinds, typeLabel, types } from './building-labels'
 import {
   type Get,
   groupBy,
@@ -45,7 +48,7 @@ export type BuildingFilter = {
   /** DLC guids */
   dlc?: Array<number>
   /** workforce tier (population_level guid) */
-  populationLevel?: Array<number>
+  workforce?: Array<number>
 }
 
 function buildingWhere(f: BuildingFilter, nameT: ReturnType<typeof localized>) {
@@ -55,8 +58,25 @@ function buildingWhere(f: BuildingFilter, nameT: ReturnType<typeof localized>) {
     f.type?.length ? inArray(building.type, f.type) : undefined,
     f.regionId?.length ? inArray(building.regionId, f.regionId) : undefined,
     f.dlc?.length ? inArray(building.dlcGuid, f.dlc) : undefined,
-    f.populationLevel?.length
-      ? inArray(building.populationLevelGuid, f.populationLevel)
+    f.workforce?.length
+      ? exists(
+          db
+            .select({ buildingGuid: buildingMaintenance.buildingGuid })
+            .from(buildingMaintenance)
+            .innerJoin(
+              populationLevel,
+              eq(
+                populationLevel.workforceProductGuid,
+                buildingMaintenance.productGuid,
+              ),
+            )
+            .where(
+              and(
+                eq(buildingMaintenance.buildingGuid, building.guid),
+                inArray(populationLevel.guid, f.workforce),
+              ),
+            ),
+        )
       : undefined,
   )
 }
@@ -87,6 +107,27 @@ function productRows(
     .innerJoin(product, eq(product.guid, table.productGuid))
     .leftJoin(pName, on(pName, product.nameText, lang))
     .where(inArray(owner, guids))
+}
+
+function workforceRows(guids: Array<number>, lang: Lang) {
+  const nameT = localized('workforce_name')
+  return db
+    .select({
+      amount: buildingMaintenance.amount,
+      buildingGuid: buildingMaintenance.buildingGuid,
+      guid: populationLevel.guid,
+      icon: populationLevel.icon,
+      name: nameT.value,
+      tier: populationLevel.tier,
+    })
+    .from(buildingMaintenance)
+    .innerJoin(
+      populationLevel,
+      eq(populationLevel.workforceProductGuid, buildingMaintenance.productGuid),
+    )
+    .leftJoin(nameT, on(nameT, populationLevel.nameText, lang))
+    .where(inArray(buildingMaintenance.buildingGuid, guids))
+    .orderBy(asc(populationLevel.tier), asc(populationLevel.guid))
 }
 
 async function phaseRows(guids: Array<number>, lang: Lang) {
@@ -131,7 +172,7 @@ function effectRows(guids: Array<number>) {
     .where(inArray(buildingEffect.buildingGuid, guids))
 }
 
-/** Need fulfilment: attribute values residences gain when this building's public service meets their need. */
+/** Need fulfilment: residence attributes granted by a building's service. */
 function buffRows(guids: Array<number>) {
   return db
     .select({
@@ -153,39 +194,76 @@ function buffRows(guids: Array<number>) {
     .where(inArray(buildingEffect.buildingGuid, guids))
 }
 
+function productionBuffRows(guids: Array<number>) {
+  return db
+    .selectDistinct({
+      attribute: attribute.key,
+      buildingGuid: factoryOutput.buildingGuid,
+      value: needAttribute.value,
+    })
+    .from(factoryOutput)
+    .innerJoin(need, eq(need.productGuid, factoryOutput.productGuid))
+    .innerJoin(needAttribute, eq(needAttribute.needGuid, need.guid))
+    .leftJoin(attribute, eq(attribute.id, needAttribute.attributeId))
+    .where(inArray(factoryOutput.buildingGuid, guids))
+}
+
 async function buildingDetails(guids: Array<number>, lang: Lang) {
   const tName = localized('t_name')
-  const [costs, maintenance, inputs, outputs, phases, effects, buffs, techs] =
-    await Promise.all([
-      productRows(buildingCost, guids, lang),
-      productRows(buildingMaintenance, guids, lang),
-      productRows(factoryInput, guids, lang),
-      productRows(factoryOutput, guids, lang),
-      phaseRows(guids, lang),
-      effectRows(guids),
-      buffRows(guids),
-      db
-        .select({
-          buildingGuid: techUnlock.assetGuid,
-          guid: tech.guid,
-          icon: tech.icon,
-          knowledgeNeeded: tech.knowledgeNeeded,
-          name: tName.value,
-        })
-        .from(techUnlock)
-        .innerJoin(tech, eq(tech.guid, techUnlock.techGuid))
-        .leftJoin(tName, on(tName, tech.nameText, lang))
-        .where(inArray(techUnlock.assetGuid, guids)),
-    ])
+  const [
+    costs,
+    maintenance,
+    inputs,
+    outputs,
+    phases,
+    effects,
+    buffs,
+    productionBuffs,
+    workforce,
+    techs,
+  ] = await Promise.all([
+    productRows(buildingCost, guids, lang),
+    productRows(buildingMaintenance, guids, lang),
+    productRows(factoryInput, guids, lang),
+    productRows(factoryOutput, guids, lang),
+    phaseRows(guids, lang),
+    effectRows(guids),
+    buffRows(guids),
+    productionBuffRows(guids),
+    workforceRows(guids, lang),
+    db
+      .select({
+        buildingGuid: techUnlock.assetGuid,
+        guid: tech.guid,
+        icon: tech.icon,
+        knowledgeNeeded: tech.knowledgeNeeded,
+        name: tName.value,
+      })
+      .from(techUnlock)
+      .innerJoin(tech, eq(tech.guid, techUnlock.techGuid))
+      .leftJoin(tName, on(tName, tech.nameText, lang))
+      .where(inArray(techUnlock.assetGuid, guids)),
+  ])
+  const serviceBuffs = groupBy(buffs, 'buildingGuid')
+  // Service bonuses are also encoded as adjacency modifiers in the game data.
+  const areaEffects = effects.filter(
+    (effect) =>
+      effect.isPercent ||
+      !serviceBuffs(effect.buildingGuid).some(
+        (bonus) =>
+          bonus.attribute === effect.attribute && bonus.value === effect.value,
+      ),
+  )
   return {
-    buffs: groupBy(buffs, 'buildingGuid'),
+    buffs: groupBy([...buffs, ...productionBuffs], 'buildingGuid'),
     costs: groupBy(costs, 'owner'),
-    effects: groupBy(effects, 'buildingGuid'),
+    effects: groupBy(areaEffects, 'buildingGuid'),
     inputs: groupBy(inputs, 'owner'),
     maintenance: groupBy(maintenance, 'owner'),
     outputs: groupBy(outputs, 'owner'),
     phases: groupBy(phases, 'buildingGuid'),
     techs: groupBy(techs, 'buildingGuid'),
+    workforce: groupBy(workforce, 'buildingGuid'),
   }
 }
 
@@ -194,7 +272,7 @@ async function queryBuildings(f: BuildingFilter & Page, id?: number) {
   const nameT = localized('name')
   const descT = localized('desc')
   const catT = localized('cat')
-  const plT = localized('pl')
+  const dlcT = localized('dlcName')
   const where = and(
     buildingWhere(f, nameT),
     id === undefined ? undefined : eq(building.guid, id),
@@ -215,17 +293,16 @@ async function queryBuildings(f: BuildingFilter & Page, id?: number) {
         category: catT.value,
         cycleTime: factory.cycleTime,
         description: descT.value,
-        dlcGuid: building.dlcGuid,
+        dlc: {
+          guid: dlc.guid,
+          icon: dlc.icon,
+          key: dlc.key,
+          name: dlcT.value,
+        },
         guid: building.guid,
         icon: building.icon,
         kind: building.kind,
         name: nameT.value,
-        populationLevel: {
-          guid: populationLevel.guid,
-          icon: populationLevel.icon,
-          name: plT.value,
-          tier: populationLevel.tier,
-        },
         radius: building.radius,
         region: regionColumns,
         streetRadius: building.streetRadius,
@@ -238,11 +315,8 @@ async function queryBuildings(f: BuildingFilter & Page, id?: number) {
       .leftJoin(descT, on(descT, building.descriptionText, f.lang))
       .leftJoin(catT, on(catT, building.categoryText, f.lang))
       .leftJoin(region, eq(region.id, building.regionId))
-      .leftJoin(
-        populationLevel,
-        eq(populationLevel.guid, building.populationLevelGuid),
-      )
-      .leftJoin(plT, on(plT, populationLevel.nameText, f.lang))
+      .leftJoin(dlc, eq(dlc.guid, building.dlcGuid))
+      .leftJoin(dlcT, on(dlcT, dlc.nameText, f.lang))
       .leftJoin(factory, eq(factory.buildingGuid, building.guid))
       .where(where)
       .orderBy(asc(nameT.value), asc(building.guid))
@@ -257,17 +331,29 @@ async function queryBuildings(f: BuildingFilter & Page, id?: number) {
     pages: Math.ceil(total / limit),
     rows: rows.map((r) => ({
       ...r,
-      /** need fulfilment of a public building: attributes residences gain */
-      buffs: d.buffs(r.guid),
+      /** Attributes residences gain from the service or produced goods. */
+      buffs: d.buffs(r.guid).map((bonus) => ({
+        ...bonus,
+        name: attributeName(bonus.attribute, f.lang),
+      })),
       costs: d.costs(r.guid),
+      dlc: r.dlc?.guid ? r.dlc : null,
       /** area effects: attribute modifiers applied to nearby buildings */
-      effects: d.effects(r.guid),
+      effects: d.effects(r.guid).map((effect) => ({
+        ...effect,
+        name: attributeName(effect.attribute, f.lang),
+      })),
       inputs: d.inputs(r.guid),
+      kind: kindLabel(r.kind, f.lang),
       maintenance: d.maintenance(r.guid),
       outputs: d.outputs(r.guid),
       /** construction phases of a monument, in order; empty for ordinary buildings */
       phases: d.phases(r.guid),
+      type: typeLabel(r.type, f.lang),
       unlockedBy: d.techs(r.guid),
+      workforce: d
+        .workforce(r.guid)
+        .map(({ buildingGuid, ...workforce }) => workforce),
     })),
     total,
   }

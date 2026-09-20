@@ -14,6 +14,7 @@ import {
   attributeValues,
   buildingKindValues,
   buildingTypeValues,
+  dlcValues,
   effectScopeValues,
   itemTypeValues,
   needCategoryValues,
@@ -40,7 +41,9 @@ export const region = sqliteTable('region', {
 export const dlc = sqliteTable('dlc', {
   guid: integer().primaryKey(),
   icon: text(),
-  key: text(),
+  key: text({
+    enum: dlcValues,
+  }),
   nameText: integer('name_text'),
 })
 

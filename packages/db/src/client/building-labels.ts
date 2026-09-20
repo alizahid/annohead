@@ -52,6 +52,14 @@ const typeNames: Record<Lang, Record<BuildingType, string>> = {
   },
 }
 
+export function kindLabel(id: BuildingKind | null, lang: Lang) {
+  return id === null ? null : { id, name: kindNames[lang][id] }
+}
+
+export function typeLabel(id: BuildingType | null, lang: Lang) {
+  return id === null ? null : { id, name: typeNames[lang][id] }
+}
+
 export function kinds({ lang }: { lang: Lang }) {
   return buildingKindValues.map((key) => ({
     key,

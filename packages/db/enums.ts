@@ -87,6 +87,11 @@ const regions = db
     []
   >('select key from region order by id')
   .all()
+const dlcs = db
+  .query<{ key: string }, []>(
+    'select distinct key from dlc where key is not null order by key',
+  )
+  .all()
 const langNames = langs.map((l) => `  '${l.code}': '${l.name}',`).join('\n')
 
 const out = [
@@ -100,6 +105,10 @@ const out = [
   block(
     'lang',
     langs.map((l) => l.code),
+  ),
+  block(
+    'dlc',
+    dlcs.map((d) => d.key),
   ),
   block(
     'region',
@@ -121,6 +130,9 @@ const columnEnums: Record<string, Record<string, string>> = {
   building: {
     kind: 'building_kind',
     type: 'building_type',
+  },
+  dlc: {
+    key: 'dlc',
   },
   effect: {
     scope: 'effect_scope',
