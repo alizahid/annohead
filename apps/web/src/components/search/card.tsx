@@ -9,7 +9,7 @@ type Props = {
   item: SearchHit
 }
 
-export function SearchItem({ item }: Props) {
+export function SearchCard({ item }: Props) {
   return (
     <Link
       className="flex gap-4 rounded-lg p-4 outline-none ring-accent-8 transition-colors hover:bg-accent-4 focus-visible:ring-2"

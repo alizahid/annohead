@@ -2,11 +2,11 @@ import { anno } from '@anno/db/client'
 import { type Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
 
-import { BuildingsPage } from '@/components/buildings/page'
+import { BuildingList } from '@/components/buildings/list'
 import { parseBuildingFilters, validateLocale } from '@/lib/validators'
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations('component.buildings.page')
+  const t = await getTranslations('component.buildings.list')
 
   return {
     title: t('meta.title'),
@@ -49,7 +49,7 @@ export default async function Page({
   ])
 
   return (
-    <BuildingsPage
+    <BuildingList
       buildings={buildings}
       dlcs={dlcs}
       filters={filters}

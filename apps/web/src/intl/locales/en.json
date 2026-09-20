@@ -36,7 +36,20 @@
       }
     },
     "buildings": {
-      "card": {
+      "filters": {
+        "dlcs": "DLC",
+        "kinds": "Type",
+        "regions": "Region",
+        "tiers": "Population tier"
+      },
+      "list": {
+        "empty": "Nothing found",
+        "meta": {
+          "title": "Annohead × Buildings"
+        },
+        "title": "Buildings"
+      },
+      "page": {
         "buffs": "Need fulfillment",
         "construction": "Construction costs",
         "effects": "Area effects",
@@ -55,19 +68,6 @@
         "outputs": "Outputs",
         "unlocked": "Unlocked by",
         "workforce": "Workforce needed"
-      },
-      "filters": {
-        "dlcs": "DLC",
-        "kinds": "Type",
-        "regions": "Region",
-        "tiers": "Population tier"
-      },
-      "page": {
-        "empty": "Nothing found",
-        "meta": {
-          "title": "Annohead × Buildings"
-        },
-        "title": "Buildings"
       }
     },
     "comments": {

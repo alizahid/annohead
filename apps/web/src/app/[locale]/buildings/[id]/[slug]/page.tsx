@@ -1,7 +1,7 @@
 import { anno } from '@anno/db/client'
 import { notFound } from 'next/navigation'
 
-import { BuildingItem } from '@/components/buildings/item'
+import { BuildingPage } from '@/components/buildings/page'
 import { getId, validateLocale } from '@/lib/validators'
 
 export default async function Page({
@@ -20,5 +20,5 @@ export default async function Page({
     notFound()
   }
 
-  return <BuildingItem building={building} />
+  return <BuildingPage building={building} />
 }

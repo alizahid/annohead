@@ -5,8 +5,8 @@ import { type SearchFilters } from '@/lib/validators'
 
 import { Empty } from '../common/empty'
 import { Pagination } from '../common/pagination'
+import { SearchCard } from './card'
 import { SearchFiltersCard } from './filters'
-import { SearchItem } from './item'
 
 type Props = {
   data: SearchResults
@@ -37,7 +37,7 @@ export function SearchPage({ data, filters }: Props) {
       {data.rows.length ? (
         <div className="flex flex-col gap-2">
           {data.rows.map((item) => (
-            <SearchItem item={item} key={item.guid} />
+            <SearchCard item={item} key={item.guid} />
           ))}
         </div>
       ) : (
