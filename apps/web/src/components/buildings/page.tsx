@@ -18,10 +18,10 @@ export function BuildingPage({ building }: Props) {
 
   return (
     <div className="flex flex-col gap-12">
-      <div className="flex flex-col items-start gap-6 lg:flex-row lg:justify-between">
-        <div className="flex gap-4 lg:flex-row lg:items-start">
+      <div className="flex flex-col gap-6 lg:flex-row lg:justify-between">
+        <div className="flex flex-col gap-4">
           {building.region?.key || building.dlc?.key ? (
-            <div className="flex flex-col gap-4">
+            <div className="flex gap-4">
               {building.region?.key ? (
                 <Icon className="size-6" icon={getIcon(building.region.key)} />
               ) : null}
@@ -32,7 +32,7 @@ export function BuildingPage({ building }: Props) {
             </div>
           ) : null}
 
-          <div className="flex flex-1 flex-col gap-2">
+          <div className="flex flex-col gap-2">
             {building.kind ? (
               <div className="text-gray-11 text-sm">{building.kind.name}</div>
             ) : null}
@@ -44,7 +44,7 @@ export function BuildingPage({ building }: Props) {
         </div>
 
         {building.icon ? (
-          <Icon className="size-32" icon={building.icon} />
+          <Icon className="size-1/2 lg:w-32" icon={building.icon} />
         ) : null}
       </div>
 

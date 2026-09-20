@@ -39,7 +39,7 @@ export function BuildingFiltersCard({ dlcs, kinds, regions, tiers }: Props) {
         <h3>{t('regions')}</h3>
 
         <CheckboxGroup
-          className="flex flex-col"
+          className="flex flex-col gap-2"
           onValueChange={async (next) => {
             await setFilters({
               page: null,
@@ -52,7 +52,7 @@ export function BuildingFiltersCard({ dlcs, kinds, regions, tiers }: Props) {
         >
           {orderBy(regions, 'id').map((item) => (
             <Checkbox.Root
-              className="flex h-8 items-center gap-2 rounded-md px-1 outline-none focus-visible:bg-accent-4 data-checked:text-accent-11"
+              className="flex h-8 items-center gap-2 rounded-md px-1 outline-none ring-accent-8 transition-colors hover:bg-accent-4 focus-visible:ring-2 data-checked:bg-accent-5"
               key={item.id}
               value={String(item.id)}
             >
@@ -70,7 +70,7 @@ export function BuildingFiltersCard({ dlcs, kinds, regions, tiers }: Props) {
         <h3>{t('tiers')}</h3>
 
         <CheckboxGroup
-          className="flex flex-col"
+          className="flex flex-col gap-2"
           onValueChange={async (next) => {
             await setFilters({
               page: null,
@@ -83,7 +83,7 @@ export function BuildingFiltersCard({ dlcs, kinds, regions, tiers }: Props) {
         >
           {orderBy(tiers, ['region', 'tier'], ['desc', 'asc']).map((item) => (
             <Checkbox.Root
-              className="flex h-8 items-center gap-2 rounded-md px-1 outline-none focus-visible:bg-accent-4 data-checked:text-accent-11"
+              className="flex h-8 items-center gap-2 rounded-md px-1 outline-none ring-accent-8 transition-colors hover:bg-accent-4 focus-visible:ring-2 data-checked:bg-accent-5"
               key={item.guid}
               value={String(item.guid)}
             >
@@ -112,7 +112,7 @@ export function BuildingFiltersCard({ dlcs, kinds, regions, tiers }: Props) {
         <h3>{t('dlcs')}</h3>
 
         <CheckboxGroup
-          className="flex flex-col"
+          className="flex flex-col gap-2"
           onValueChange={async (next) => {
             await setFilters({
               dlcs: next.map(Number),
@@ -125,7 +125,7 @@ export function BuildingFiltersCard({ dlcs, kinds, regions, tiers }: Props) {
         >
           {orderBy(dlcs, 'guid').map((item) => (
             <Checkbox.Root
-              className="flex h-8 items-center gap-2 rounded-md px-1 outline-none focus-visible:bg-accent-4 data-checked:text-accent-11"
+              className="flex h-8 items-center gap-2 rounded-md px-1 outline-none ring-accent-8 transition-colors hover:bg-accent-4 focus-visible:ring-2 data-checked:bg-accent-5"
               key={item.guid}
               value={String(item.guid)}
             >
@@ -141,7 +141,7 @@ export function BuildingFiltersCard({ dlcs, kinds, regions, tiers }: Props) {
         <h3>{t('kinds')}</h3>
 
         <CheckboxGroup
-          className="flex flex-col"
+          className="flex flex-col gap-2"
           onValueChange={async (next) => {
             await setFilters({
               kind: next as Array<BuildingKind>,
@@ -154,7 +154,7 @@ export function BuildingFiltersCard({ dlcs, kinds, regions, tiers }: Props) {
         >
           {kinds.map((item) => (
             <Checkbox.Root
-              className="flex h-8 items-center gap-2 rounded-md px-1 outline-none focus-visible:bg-accent-4 data-checked:text-accent-11"
+              className="flex h-8 items-center gap-2 rounded-md px-1 outline-none ring-accent-8 transition-colors hover:bg-accent-4 focus-visible:ring-2 data-checked:bg-accent-5"
               key={item.key}
               value={item.key}
             >
