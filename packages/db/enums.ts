@@ -141,6 +141,9 @@ const columnEnums: Record<string, Record<string, string>> = {
     kind: 'building_kind',
     type: 'building_type',
   },
+  condition: {
+    template: 'condition_template',
+  },
   dlc: {
     key: 'dlc',
   },
@@ -154,8 +157,14 @@ const columnEnums: Record<string, Record<string, string>> = {
     rarity: 'rarity',
     type: 'item_type',
   },
+  itemSource: {
+    kind: 'item_source_kind',
+  },
   need: {
     category: 'need_category',
+  },
+  participant: {
+    kind: 'participant_kind',
   },
   product: {
     storageLevel: 'storage_level',

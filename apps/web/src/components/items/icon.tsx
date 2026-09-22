@@ -28,7 +28,9 @@ export function ItemIcon({ className, icon, rarity }: Props) {
         }}
       />
 
-      {icon ? <Icon className="absolute bottom-1" icon={icon} /> : null}
+      {icon ? (
+        <Icon className="absolute bottom-1 size-full" icon={icon} />
+      ) : null}
     </div>
   )
 }

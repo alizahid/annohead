@@ -14,13 +14,16 @@ import {
   attributeValues,
   buildingKindValues,
   buildingTypeValues,
+  conditionTemplateValues,
   dlcValues,
   effectScopeValues,
+  itemSourceKindValues,
   itemTypeValues,
   needCategoryValues,
   nicheValues,
   nodeTypeValues,
   optionCategoryValues,
+  participantKindValues,
   questCategoryValues,
   rarityValues,
   regionValues,
@@ -40,6 +43,42 @@ export const dlc = sqliteTable('dlc', {
   guid: integer().primaryKey(),
   icon: text(),
   key: text({ enum: dlcValues }),
+  nameText: integer('name_text'),
+})
+
+export const patron = sqliteTable('patron', {
+  guid: integer().primaryKey(),
+  icon: text(),
+  name: text(),
+  nameText: integer('name_text'),
+})
+
+export const participant = sqliteTable('participant', {
+  guid: integer().primaryKey(),
+  icon: text(),
+  kind: text({ enum: participantKindValues }),
+  name: text(),
+  nameText: integer('name_text'),
+})
+
+export const festival = sqliteTable('festival', {
+  guid: integer().primaryKey(),
+  icon: text(),
+  name: text(),
+  nameText: integer('name_text'),
+})
+
+export const assetPool = sqliteTable('asset_pool', {
+  guid: integer().primaryKey(),
+  icon: text(),
+  name: text(),
+  nameText: integer('name_text'),
+})
+
+export const monumentEvent = sqliteTable('monument_event', {
+  guid: integer().primaryKey(),
+  icon: text(),
+  name: text(),
   nameText: integer('name_text'),
 })
 
@@ -481,13 +520,13 @@ export const itemSource = sqliteTable(
     itemGuid: integer('item_guid')
       .notNull()
       .references(() => item.guid),
+    kind: text({ enum: itemSourceKindValues }).notNull(),
     sourceGuid: integer('source_guid').notNull(),
-    sourceKind: text('source_kind'),
   },
   (table) => [
     primaryKey({
-      columns: [table.itemGuid, table.sourceGuid],
-      name: 'item_source_item_guid_source_guid_pk',
+      columns: [table.itemGuid, table.kind, table.sourceGuid],
+      name: 'item_source_item_guid_kind_source_guid_pk',
     }),
   ],
 )
@@ -569,7 +608,7 @@ export const condition = sqliteTable('condition', {
   ownerId: integer('owner_id'),
   ownerKind: text('owner_kind'),
   parentId: integer('parent_id'),
-  template: text(),
+  template: text({ enum: conditionTemplateValues }).notNull(),
 })
 
 export const conditionParam = sqliteTable(

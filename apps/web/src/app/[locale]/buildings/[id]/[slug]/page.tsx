@@ -11,10 +11,8 @@ export async function generateMetadata({
 }: PageProps<'/[locale]/buildings/[id]/[slug]'>): Promise<Metadata> {
   const { locale, id } = await params
 
-  const guid = getId(id)
-
   const building = await anno.buildings.get({
-    id: guid,
+    id: getId(id),
     lang: validateLocale(locale),
   })
 
@@ -37,10 +35,8 @@ export default async function Page({
 }: PageProps<'/[locale]/buildings/[id]/[slug]'>) {
   const { locale, id } = await params
 
-  const guid = getId(id)
-
   const building = await anno.buildings.get({
-    id: guid,
+    id: getId(id),
     lang: validateLocale(locale),
   })
 

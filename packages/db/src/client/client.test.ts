@@ -621,3 +621,132 @@ test('search tolerates typos, word order, case and diacritics', async () => {
   expect(all.total).toBeGreaterThan(1000)
   expect(all.rows).toHaveLength(5)
 })
+
+test.each([
+  { lang: 'en', names: ['Productivity', 'Required area', 'Workforce needed'] },
+  {
+    lang: 'de',
+    names: ['Produktivität', 'Benötigte Fläche', 'Benötigte Arbeitskraft'],
+  },
+] as const)(
+  'item modifiers and boosts are named in $lang',
+  async ({ lang, names }) => {
+    const item = await anno.items.get({ id: 160_051, lang })
+    expect(item?.modifiers.map((m) => m.name)).toEqual([...names])
+    expect(item?.boost?.modifiers.map((m) => m.name)).toEqual([...names])
+    expect(item?.modifiers.map((m) => m.value)).toEqual([40, -25, 25])
+    expect(item?.modifiers.every((m) => m.isPercent)).toBe(true)
+  },
+)
+
+test.each([
+  { lang: 'en', name: 'Worship Cernunnos' },
+  { lang: 'de', name: 'Cernunnos verehren' },
+] as const)(
+  'item boost condition resolves its patron in $lang',
+  async ({ lang, name }) => {
+    const item = await anno.items.get({ id: 160_051, lang })
+    expect(item?.boost?.hint).toBeTruthy()
+    expect(item?.boost?.conditions).toEqual([
+      {
+        guid: 50_242,
+        icon: expect.stringContaining('cernunnos'),
+        kind: 'patron',
+        name,
+        type: 'ConditionReligion',
+        value: null,
+      },
+    ])
+    expect(item?.sources.map((s) => s.kind)).toEqual(['visitor'])
+  },
+)
+
+test('a condition listing several assets yields one entry each', async () => {
+  const amyntas = await anno.items.get({ id: 106_956, lang: 'en' })
+  expect(
+    amyntas?.boost?.conditions.map((c) => [c.type, c.kind, c.name]),
+  ).toEqual([
+    ['ConditionMonumentEventActive', 'event', 'The Great Naumachia is running'],
+    [
+      'ConditionMonumentEventActive',
+      'event',
+      'Grand Gladiator Games is running',
+    ],
+    [
+      'ConditionMonumentEventActive',
+      'event',
+      'Local Gladiator Games is running',
+    ],
+  ])
+  const praetor = await anno.items.get({ id: 106_716, lang: 'en' })
+  expect(praetor?.boost?.conditions).toEqual([
+    {
+      guid: 38_995,
+      icon: null,
+      kind: 'pool',
+      name: 'Ships in the area',
+      type: 'ConditionObjectCount',
+      value: 1,
+    },
+  ])
+})
+
+test('item sources name the participant, festival or tech they come from', async () => {
+  const dorian = await anno.items.get({ id: 41_350, lang: 'en' })
+  expect(dorian?.boost?.conditions).toEqual([
+    {
+      guid: null,
+      icon: null,
+      kind: null,
+      name: 'Health on the island',
+      type: 'ConditionNeedAttributeCounter',
+      value: 1000,
+    },
+  ])
+  expect(dorian?.sources).toEqual([
+    expect.objectContaining({
+      guid: 31_099,
+      kind: 'defeated',
+      name: 'Defeat Dorian',
+    }),
+  ])
+  const german = await anno.items.get({ id: 41_350, lang: 'de' })
+  expect(german?.sources[0]?.name).toBe('Dorian besiegen')
+  const { rows } = await anno.items.list({ lang: 'en', perPage: 200 })
+  const kinds = new Set(rows.flatMap((r) => r.sources.map((s) => s.kind)))
+  expect(kinds).toContain('trader')
+  expect(kinds).toContain('festival')
+  const traded = rows.find((r) => r.sources.some((s) => s.kind === 'trader'))
+  expect(traded?.sources.find((s) => s.kind === 'trader')?.name).toBeTruthy()
+  const festival = rows.find((r) =>
+    r.sources.some((s) => s.kind === 'festival'),
+  )
+  expect(
+    festival?.sources.find((s) => s.kind === 'festival')?.name,
+  ).toBeTruthy()
+})
+
+test.each([
+  {
+    id: 107_337,
+    name: 'Emperor relation: Rebellion, Rebellion pending',
+    type: 'ConditionEmperorRelation',
+  },
+  {
+    id: 144_878,
+    name: 'Money balance',
+    type: 'ConditionPlayerCounter',
+  },
+  {
+    id: 42_046,
+    name: 'Alliance with Tarragon',
+    type: 'ConditionDiplomacyState',
+  },
+] as const)(
+  'condition name describes the checked state for $id',
+  async ({ id, type, name }) => {
+    const item = await anno.items.get({ id, lang: 'en' })
+    expect(item?.boost?.conditions[0]?.type).toBe(type)
+    expect(item?.boost?.conditions[0]?.name).toBe(name)
+  },
+)

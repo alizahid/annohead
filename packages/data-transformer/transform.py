@@ -12,6 +12,12 @@ from collections import defaultdict
 
 GUID = re.compile(r"^\d{4,}$")
 DLC_PATH = re.compile(r"/(c?dlc)(\d+)/", re.IGNORECASE)
+PARTICIPANTS = {
+    "Participant 3rdParty": "Trader",
+    "Participant 3rdParty Pirate": "Pirate",
+    "Participant 2ndParty (Rival)": "Rival",
+    "Participant 3rdParty Emperor": "Emperor",
+}
 REGIONS = {"Roman": (1, "Latium"), "Celtic": (2, "Albion"), "Egyptian": (3, "Delta")}
 BUILDING_KIND = [  # (template regex, kind); first match wins
     (r"^Production|^SlotFactory|^Slot_?Marsh|^Slot$", "Production"),
@@ -139,11 +145,15 @@ class T:
         if a is None or a["guid"] in seen:
             return set()
         seen.add(a["guid"])
-        if a["template"] != "AssetPool":
-            return {a["guid"]}
         out = set()
-        for it in self.items(D(a["v"].get("AssetPool")).get("AssetList")):
-            out |= self.flatten_pool(it.get("Asset"), seen)
+        if a["template"] == "AssetPool":
+            for it in self.items(D(a["v"].get("AssetPool")).get("AssetList")):
+                out |= self.flatten_pool(it.get("Asset"), seen)
+        elif a["template"] == "RewardPool":
+            for it in self.items(D(a["v"].get("RewardPool")).get("ItemsPool")):
+                out |= self.flatten_pool(it.get("ItemLink"), seen)
+        else:
+            out.add(a["guid"])
         return out
 
     def items(self, x):
@@ -166,8 +176,13 @@ class T:
         """Store a PreCondition/TriggerCondition tree as condition rows; returns root condition id."""
         if not isinstance(node, dict):
             return None
-        tpl = node.get("Template")
         vals = D(node.get("Values")) or node
+        # a node without Template still names its kind by the block it carries (ConditionAlwaysTrue: null)
+        tpl = self.enum(
+            "condition_template",
+            node.get("Template")
+            or next((k for k in vals if k.startswith("Condition") and k != "Condition"), "ConditionAlwaysTrue"),
+        )
         negate = (
             1
             if D(vals.get("ConditionPropsNegatable")).get("NegateCondition") == "1"
@@ -175,12 +190,15 @@ class T:
         )
         cid = len(self.conditions) + 1
         self.conditions.append((cid, owner_kind, owner_id, tpl, negate))
-        body = (
-            vals.get(tpl)
-            if tpl and isinstance(vals.get(tpl), dict)
-            else {k: v for k, v in vals.items() if k != "Condition"}
-        )
-        for k, v in self.walk_leaves(body or {}):
+        # the template's own block is stored unprefixed; sibling blocks (ObjectFilter …) keep their name
+        body = {
+            k: v
+            for k, v in vals.items()
+            if k not in ("Condition", "SubConditions") and not k.startswith("ConditionProps")
+        }
+        if tpl and isinstance(body.get(tpl), dict):
+            body.update(body.pop(tpl))
+        for k, v in self.walk_leaves(body):
             self.db.execute("insert into condition_param values(?,?,?)", (cid, k, v))
         for sub in self.items((vals.get("SubConditions"))):
             sc = sub.get("SubCondition") if isinstance(sub, dict) else None
@@ -246,6 +264,31 @@ class T:
                         a["v"]["Standard"].get("ID"),
                         self.text(a["text_id"]),
                         self.icon(a["icon"]),
+                    ),
+                )
+        for tpl, table in (
+            ("Patron", "patron"),
+            ("Festival", "festival"),
+            ("AssetPool", "asset_pool"),  # only pools the game names, e.g. "Ships"
+            ("MonumentEvent", "monument_event"),
+        ):
+            for a in self.by_template(tpl):
+                if tpl == "AssetPool" and not a["text_id"]:
+                    continue
+                self.db.execute(
+                    f"insert into {table} values(?,?,?,?)",
+                    (a["guid"], a["name"], self.text(a["text_id"]), self.icon(a["icon"])),
+                )
+        for tpl, kind in PARTICIPANTS.items():
+            for a in self.by_template(tpl):
+                self.db.execute(
+                    "insert into participant values(?,?,?,?,?)",
+                    (
+                        a["guid"],
+                        a["name"],
+                        self.text(a["text_id"]),
+                        self.icon(a["icon"]),
+                        self.enum("participant_kind", kind),
                     ),
                 )
         for a in self.by_template("PopulationLevel"):
@@ -670,15 +713,43 @@ class T:
                     "insert into item_boost_condition values(?,?)",
                     (a["guid"], self.condition("item", a["guid"], bc["Condition"])),
                 )
-            for f, path in self.refs_to[a["guid"]]:
-                src = self.assets[f]
-                if src["template"] in ("RewardPool", "HallOfFameItem") or src[
-                    "template"
-                ].startswith("Participant"):
-                    self.db.execute(
-                        "insert or ignore into item_source values(?,?,?)",
-                        (a["guid"], src["template"], f),
-                    )
+
+    # ---- item sources --------------------------------------------------------------------------------------
+    def sources(self):
+        """Where an item can be obtained: traders, contracts, ship drops, defeated rivals, visitors, festivals, techs, quests."""
+        item_guids = {g for (g,) in self.db.execute("select guid from item")}
+
+        def add(kind, source, pool):
+            for g in self.flatten_pool(pool) & item_guids:
+                self.db.execute(
+                    "insert or ignore into item_source values(?,?,?)",
+                    (g, self.enum("item_source_kind", kind), source),
+                )
+
+        for a in self.by_template(*PARTICIPANTS):
+            p, v = D(a["v"].get("Participant")), a["v"]
+            add("trader", a["guid"], D(v.get("Trader")).get("OfferedItems"))
+            for r in self.items(D(v.get("ContractProvider")).get("ItemRewards")):
+                add("contract", a["guid"], r.get("ItemRewardPool"))
+            add("shipDrop", a["guid"], p.get("ShipDropRewardPool"))
+            add("defeated", a["guid"], p.get("ItemGainedWhenDefeated"))
+        for a in self.by_template("Festival"):
+            add("festival", a["guid"], D(a["v"].get("Festival")).get("ItemRewardPool"))
+        for a in self.by_template("VisitorsFeature"):
+            for p in self.items(D(a["v"].get("VisitorsConfig")).get("VisitorPools")):
+                add("visitor", a["guid"], p.get("Pool"))
+        for a in self.by_template("Tech"):
+            for it in self.items(D(D(a["v"].get("Tech")).get("Rewards")).get("Items")):
+                add("tech", a["guid"], it.get("ItemAsset"))
+        # rewards of quest nodes; nodes outside a quest are attributed to their storyline
+        for quest, story, g in self.db.execute(
+            """select distinct n.quest_guid, n.storyline_guid, r.asset_guid from quest_reward r
+               join quest_node n on n.guid=r.node_guid where r.kind in ('goods', 'item')"""
+        ).fetchall():
+            if quest:
+                add("quest", quest, g)
+            elif story:
+                add("storyline", story, g)
 
     # ---- techs & unlocks -----------------------------------------------------------------------------------
     def techs(self):
@@ -1103,6 +1174,11 @@ def dict_get(o, path):
 SCHEMA = """
 create table region(id integer primary key, key text, name text);
 create table dlc(guid integer primary key, key text, name_text integer, icon text);
+create table patron(guid integer primary key, name text, name_text integer, icon text);
+create table participant(guid integer primary key, name text, name_text integer, icon text, kind text);
+create table festival(guid integer primary key, name text, name_text integer, icon text);
+create table asset_pool(guid integer primary key, name text, name_text integer, icon text);
+create table monument_event(guid integer primary key, name text, name_text integer, icon text);
 create table population_level(guid integer primary key, name_text integer, icon text, tier int, region_id int references region(id), workforce_product_guid int);
 create table attribute(id integer primary key, key text unique);
 create table enum_value(name text, value text, primary key(name,value));
@@ -1147,7 +1223,7 @@ create table item(guid integer primary key, name text, name_text integer, descri
   allocation text, trade_price real, effect_guid int references effect(guid), boost_hint_text integer, dlc_guid int references dlc(guid));
 create table item_boost_buff(item_guid int references item(guid), buff_guid int references buff(guid));
 create table item_boost_condition(item_guid int references item(guid), condition_id int);
-create table item_source(item_guid int references item(guid), source_kind text, source_guid int, primary key(item_guid,source_guid)) without rowid;
+create table item_source(item_guid int references item(guid), kind text, source_guid int, primary key(item_guid,kind,source_guid)) without rowid;
 
 create table tech(guid integer primary key, name text, name_text integer, description_text integer, icon text, knowledge_needed real, is_gate int, grid_x int, grid_y int);
 create table tech_unlock(tech_guid int references tech(guid), asset_guid int, primary key(tech_guid,asset_guid));
@@ -1155,7 +1231,7 @@ create table tech_effect(tech_guid int references tech(guid), effect_guid int);
 create table tech_resource(tech_guid int references tech(guid), product_guid int, amount real);
 create table tech_requirement(tech_guid int references tech(guid), condition_id int);
 create table unlock(asset_guid int, source_kind text, source_guid int, condition_id int, primary key(asset_guid,source_guid));
-create table condition(id integer primary key, owner_kind text, owner_id int, template text, negate int, parent_id int);
+create table condition(id integer primary key, owner_kind text, owner_id int, template text not null, negate int, parent_id int);
 create table condition_param(condition_id int references condition(id), key text, value text);
 
 create table storyline(guid integer primary key, name text, system text);
@@ -1219,6 +1295,7 @@ if __name__ == "__main__":
         t.techs,
         t.phases,
         t.quests,
+        t.sources,
         t.finish,
     ):
         step()

@@ -27,6 +27,40 @@ export const buildingTypeValues = [
 ] as const
 export type BuildingType = (typeof buildingTypeValues)[number]
 
+export const conditionTemplateValues = [
+  'ConditionActiveEmperor',
+  'ConditionActiveSession',
+  'ConditionAlwaysFalse',
+  'ConditionAlwaysTrue',
+  'ConditionAreaOwnedByHuman',
+  'ConditionCityStatus',
+  'ConditionCompareVariable',
+  'ConditionDiplomacyState',
+  'ConditionDominantPatron',
+  'ConditionEmperorRelation',
+  'ConditionFestivalActive',
+  'ConditionInStorage',
+  'ConditionIsCampaign',
+  'ConditionIsDLCActive',
+  'ConditionIsDiscovered',
+  'ConditionIsParticipantInGame',
+  'ConditionIsProducible',
+  'ConditionItemUsed',
+  'ConditionMonumentEventActive',
+  'ConditionNeedAttributeCounter',
+  'ConditionObjectCount',
+  'ConditionPlayerCounter',
+  'ConditionRaceOutcome',
+  'ConditionReligion',
+  'ConditionTechResearched',
+  'ConditionTimer',
+  'ConditionTradeRouteCount',
+  'ConditionUnlocked',
+  'ConditionVolcanoPhaseActive',
+  'ConditionWarState',
+] as const
+export type ConditionTemplate = (typeof conditionTemplateValues)[number]
+
 export const effectScopeValues = [
   'Area',
   'AreasInMeta',
@@ -41,6 +75,19 @@ export const effectScopeValues = [
   'StreetDistance',
 ] as const
 export type EffectScope = (typeof effectScopeValues)[number]
+
+export const itemSourceKindValues = [
+  'contract',
+  'defeated',
+  'festival',
+  'quest',
+  'shipDrop',
+  'storyline',
+  'tech',
+  'trader',
+  'visitor',
+] as const
+export type ItemSourceKind = (typeof itemSourceKindValues)[number]
 
 export const itemTypeValues = [
   'Captains',
@@ -96,6 +143,14 @@ export type NodeType = (typeof nodeTypeValues)[number]
 
 export const optionCategoryValues = ['None', 'Rebellion'] as const
 export type OptionCategory = (typeof optionCategoryValues)[number]
+
+export const participantKindValues = [
+  'Emperor',
+  'Pirate',
+  'Rival',
+  'Trader',
+] as const
+export type ParticipantKind = (typeof participantKindValues)[number]
 
 export const questCategoryValues = [
   'Campaign',

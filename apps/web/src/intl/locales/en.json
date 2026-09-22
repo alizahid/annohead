@@ -106,6 +106,23 @@
       "list": {
         "empty": "Nothing found",
         "title": "Items"
+      },
+      "page": {
+        "boost": {
+          "conditions": "Conditions",
+          "modifiers": "Modifiers",
+          "title": "Boost"
+        },
+        "details": {
+          "modifiers": "Modifiers",
+          "sources": "Sources",
+          "targets": "Targets"
+        },
+        "other": {
+          "allocation": "Allocation",
+          "title": "Other",
+          "tradePrice": "Trade price"
+        }
       }
     },
     "layouts": {
@@ -166,16 +183,20 @@
   "page": {
     "building": {
       "fallback": "Building",
-      "title": "Annohead × Buildings × {name}"
+      "title": "{name} × Buildings × Annohead "
     },
     "buildings": {
-      "title": "Annohead × Buildings"
+      "title": "Buildings × Annohead"
+    },
+    "item": {
+      "fallback": "Item",
+      "title": "{name} × Items × Annohead "
     },
     "items": {
-      "title": "Annohead × Items"
+      "title": "Items × Annohead"
     },
     "search": {
-      "title": "Annohead × Search"
+      "title": "Search × Annohead"
     }
   }
 }

@@ -21,19 +21,32 @@ import {
   type Rarity,
 } from '../enums'
 import {
+  assetPool,
   attribute,
   buff,
   buffModifier,
   building,
+  condition,
+  conditionParam,
   dlc,
   effect,
   effectBuff,
   effectTargetPool,
+  festival,
   item,
   itemBoostBuff,
+  itemBoostCondition,
   itemSource,
+  monumentEvent,
+  participant,
+  patron,
   poolMember,
+  populationLevel,
+  product,
+  quest,
+  tech,
 } from '../schema'
+import { conditionLabel } from './condition-labels'
 import {
   allocations,
   nicheLabel,
@@ -43,16 +56,19 @@ import {
   typeLabel,
   types,
 } from './item-labels'
+import { modifierName } from './modifier-labels'
 import {
   categoryIn,
   type Get,
   groupBy,
+  langId,
   localized,
   modifierColumns,
   on,
   type Page,
   paginate,
 } from './shared'
+import { sourceLabel } from './source-labels'
 export type ItemFilter = {
   lang: Lang
   search?: string
@@ -124,7 +140,8 @@ function itemWhere(
 
 async function itemDetails(guids: Array<number>, lang: Lang) {
   const bName = localized('b_name')
-  const [targets, modifiers, boosts, sources] = await Promise.all([
+  const sName = localized('s_name')
+  const [targets, modifiers, boosts, sources, conditions] = await Promise.all([
     db
       .selectDistinct({
         guid: building.guid,
@@ -166,18 +183,154 @@ async function itemDetails(guids: Array<number>, lang: Lang) {
     db
       .select({
         guid: itemSource.sourceGuid,
+        icon: sql<
+          string | null
+        >`coalesce(${participant.icon}, ${festival.icon}, ${tech.icon}, ${quest.icon})`,
         itemGuid: itemSource.itemGuid,
-        kind: itemSource.sourceKind,
+        kind: itemSource.kind,
+        name: sName.value,
       })
       .from(itemSource)
+      .leftJoin(participant, eq(participant.guid, itemSource.sourceGuid))
+      .leftJoin(festival, eq(festival.guid, itemSource.sourceGuid))
+      .leftJoin(tech, eq(tech.guid, itemSource.sourceGuid))
+      .leftJoin(quest, eq(quest.guid, itemSource.sourceGuid))
+      .leftJoin(
+        sName,
+        and(
+          eq(
+            sName.lineId,
+            sql`coalesce(${participant.nameText}, ${festival.nameText}, ${tech.nameText}, ${quest.nameText})`,
+          ),
+          eq(sName.langId, langId(lang)),
+        ),
+      )
       .where(inArray(itemSource.itemGuid, guids)),
+    boostConditions(guids, lang),
   ])
   return {
     boosts: groupBy(boosts, 'itemGuid'),
+    conditions: groupBy(conditions, 'itemGuid'),
     modifiers: groupBy(modifiers, 'itemGuid'),
     sources: groupBy(sources, 'itemGuid'),
     targets: groupBy(targets, 'itemGuid'),
   }
+}
+
+/** Names of game assets a condition parameter may point at, by guid. */
+async function assetNames(guids: Array<number>, lang: Lang) {
+  if (!guids.length) {
+    return []
+  }
+  const tables = [
+    ['patron', patron],
+    ['product', product],
+    ['participant', participant],
+    ['item', item],
+    ['building', building],
+    ['tier', populationLevel],
+    ['pool', assetPool],
+    ['event', monumentEvent],
+  ] as const
+  const aName = localized('a_name')
+  const rows = await Promise.all(
+    tables.map(([kind, table]) =>
+      db
+        .select({
+          guid: table.guid,
+          icon: table.icon,
+          kind: sql<(typeof tables)[number][0]>`${kind}`,
+          name: aName.value,
+        })
+        .from(table)
+        .leftJoin(aName, on(aName, table.nameText, lang))
+        .where(inArray(table.guid, guids)),
+    ),
+  )
+  return rows.flat()
+}
+
+/** Parameters that say which variant of a template a condition checks (which statistic, attribute, state …). */
+const VARIANT_KEYS = [
+  'PlayerCounter',
+  'NeedAttributeType',
+  'DesiredState',
+  'AllowedSpecialStates',
+  'AllowedZones',
+  'WarStates',
+  'VariableToCheck',
+  'ItemType',
+]
+
+/** The precondition for an item's boost (`ItemWithBoost.BoostCondition`); one flat node per item. */
+async function boostConditions(guids: Array<number>, lang: Lang) {
+  const rows = await db
+    .select({
+      id: condition.id,
+      itemGuid: itemBoostCondition.itemGuid,
+      type: condition.template,
+    })
+    .from(itemBoostCondition)
+    .innerJoin(condition, eq(condition.id, itemBoostCondition.conditionId))
+    .where(inArray(itemBoostCondition.itemGuid, guids))
+  const params = groupBy(
+    rows.length
+      ? await db
+          .select()
+          .from(conditionParam)
+          .where(
+            inArray(
+              conditionParam.conditionId,
+              rows.map((row) => row.id),
+            ),
+          )
+      : [],
+    'conditionId',
+  )
+  const assets = await assetNames(
+    [
+      ...new Set(
+        rows.flatMap((row) => params(row.id).map((p) => Number(p.value))),
+      ),
+    ].filter((guid) => Number.isInteger(guid) && guid > 0),
+    lang,
+  )
+  // one entry per referenced asset (a condition may list several, e.g. any of three games); one null entry without
+  return rows.flatMap(({ id, ...row }) => {
+    const values = params(id).map((p) => p.value)
+    /** variant of the template, e.g. `MoneyBalance` for a player counter or `Rebellion;RebellionPending` for emperor relation */
+    const variant =
+      params(id).find((p) => p.key !== null && VARIANT_KEYS.includes(p.key))
+        ?.value ?? null
+    /** threshold of counter conditions: how many ships, how much health, how many trade routes */
+    const value =
+      Number(
+        params(id).find(
+          (p) => p.key?.endsWith('Amount') || p.key?.endsWith('Count'),
+        )?.value,
+      ) || null
+    const matched = assets
+      .filter((a) => values.includes(String(a.guid)))
+      .sort(
+        (a, b) =>
+          values.indexOf(String(a.guid)) - values.indexOf(String(b.guid)),
+      )
+    const comparison =
+      params(id).find((p) => p.key?.startsWith('ComparisonOp'))?.value ?? null
+    return (matched.length ? matched : [null]).map((asset) => ({
+      ...row,
+      /** the game asset the condition refers to, e.g. the patron to worship; null for pure counters */
+      guid: asset?.guid ?? null,
+      icon: asset?.icon ?? null,
+      kind: asset?.kind ?? null,
+      /** ready-to-render requirement text, e.g. "Worship Cernunnos"; pair with `value` for thresholds */
+      name: conditionLabel(
+        { comparison, name: asset?.name ?? null, type: row.type, variant },
+        lang,
+      ),
+      value,
+    }))
+  })
 }
 
 /** Specialists, captains and quest items with effect targets, modifiers, boosts and sources. */
@@ -203,7 +356,6 @@ async function queryItems(f: ItemFilter & Page, id?: number) {
     db
       .select({
         allocation: item.allocation,
-        boostHint: hintT.value,
         description: descT.value,
         dlc: {
           guid: dlc.guid,
@@ -213,6 +365,7 @@ async function queryItems(f: ItemFilter & Page, id?: number) {
         },
         effectScope: effect.scope,
         guid: item.guid,
+        hint: hintT.value,
         icon: item.icon,
         name: nameT.value,
         niche: item.niche,
@@ -238,14 +391,32 @@ async function queryItems(f: ItemFilter & Page, id?: number) {
   )
   return {
     pages: Math.ceil(total / limit),
-    rows: rows.map((r) => ({
+    rows: rows.map(({ hint, ...r }) => ({
       ...r,
-      boosts: d.boosts(r.guid),
+      /** stronger modifiers that replace `modifiers` while every one of `conditions` holds; null without a boost */
+      boost: d.boosts(r.guid).length
+        ? {
+            conditions: d.conditions(r.guid).map(({ itemGuid, ...c }) => c),
+            hint,
+            modifiers: d.boosts(r.guid).map((m) => ({
+              ...m,
+              name: modifierName(m.path, m.attribute, f.lang),
+            })),
+          }
+        : null,
       dlc: r.dlc?.guid ? r.dlc : null,
-      modifiers: d.modifiers(r.guid),
+      modifiers: d.modifiers(r.guid).map((m) => ({
+        ...m,
+        name: modifierName(m.path, m.attribute, f.lang),
+      })),
       niche: nicheLabel(r.niche, f.lang),
       rarity: rarityLabel(r.rarity, f.lang),
-      sources: d.sources(r.guid),
+      /** where the item can be obtained: traders, contracts, ship drops, visitors, festivals, techs, quests */
+      sources: d.sources(r.guid).map(({ itemGuid, name, ...source }) => ({
+        ...source,
+        /** ready-to-render origin, e.g. "Sold by Julia" or "Defeat Dorian" */
+        name: sourceLabel(source.kind, name, f.lang),
+      })),
       targets: d.targets(r.guid),
       type: typeLabel(r.type, f.lang),
     })),
