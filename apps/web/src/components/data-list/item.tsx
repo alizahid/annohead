@@ -28,7 +28,12 @@ export function Item({ code, name, icon, tier, value }: Props) {
       </div>
 
       {value ? (
-        <div className={cn('text-sm tabular-nums', code && 'font-code')}>
+        <div
+          className={cn(
+            'grow-0 truncate text-sm tabular-nums',
+            code && 'font-code',
+          )}
+        >
           {typeof value === 'number' ? f.number(value) : null}
 
           {typeof value === 'string' ? value : null}

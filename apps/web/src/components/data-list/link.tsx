@@ -29,7 +29,7 @@ export function Link({ id, name, type, icon, value }: Props) {
       </div>
 
       {value ? (
-        <div className="text-sm tabular-nums">
+        <div className="grow-0 truncate text-sm tabular-nums">
           {typeof value === 'number' ? f.number(value) : null}
 
           {typeof value === 'string' ? value : null}
