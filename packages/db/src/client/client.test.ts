@@ -505,6 +505,22 @@ test('search ranks name matches, dedupes variants, filters by type and paginates
   ).toBe(0)
 })
 
+test('search includes item rarity and null for other entity types', async () => {
+  const items = await anno.search({
+    lang: 'en',
+    query: 'Dorian',
+    type: ['item'],
+  })
+  expect(items.rows.find((row) => row.guid === 41_350)?.rarity).toBe('Unique')
+  const buildings = await anno.search({
+    lang: 'en',
+    query: 'Bakery',
+    type: ['building'],
+  })
+  expect(buildings.rows.length).toBeGreaterThan(0)
+  expect(buildings.rows.every((row) => row.rarity === null)).toBe(true)
+})
+
 test('search tolerates typos, word order, case and diacritics', async () => {
   const first = async (query: string, lang: 'en' | 'de' = 'en') =>
     (
