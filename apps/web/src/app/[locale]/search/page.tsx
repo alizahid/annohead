@@ -6,10 +6,10 @@ import { SearchPage } from '@/components/search/page'
 import { parseSearchFilters, validateLocale } from '@/lib/validators'
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations('component.search.page')
+  const t = await getTranslations('page.search')
 
   return {
-    title: t('meta.title'),
+    title: t('title'),
   }
 }
 

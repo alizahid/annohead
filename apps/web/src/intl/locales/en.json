@@ -44,9 +44,6 @@
       },
       "list": {
         "empty": "Nothing found",
-        "meta": {
-          "title": "Annohead × Buildings"
-        },
         "title": "Buildings"
       },
       "page": {
@@ -129,9 +126,6 @@
       },
       "page": {
         "empty": "Nothing found",
-        "meta": {
-          "title": "Annohead × Search"
-        },
         "results": "{total, plural, =0 {No results} =1 {1 result} other {# results}}",
         "title": "Search"
       }
@@ -153,6 +147,18 @@
         "USERNAME_TOO_SHORT": "Username too short (min {min, plural, =0 {} =1 {1 characer} other {# characters}})",
         "USER_NOT_FOUND": "User not found"
       }
+    }
+  },
+  "page": {
+    "building": {
+      "fallback": "Building",
+      "title": "Annohead × Buildings × {name}"
+    },
+    "buildings": {
+      "title": "Annohead × Buildings"
+    },
+    "search": {
+      "title": "Annohead × Search"
     }
   }
 }

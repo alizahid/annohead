@@ -6,10 +6,10 @@ import { BuildingList } from '@/components/buildings/list'
 import { parseBuildingFilters, validateLocale } from '@/lib/validators'
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations('component.buildings.list')
+  const t = await getTranslations('page.buildings')
 
   return {
-    title: t('meta.title'),
+    title: t('title'),
   }
 }
 
