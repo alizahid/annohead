@@ -1,6 +1,9 @@
 const icons = {
   AdditionalNeedAttributes: '/img/anno/icon_2d_mark_question_0.png',
   Aqueduct: '/img/anno/icon_2d_aqueduct_0.png',
+  'allocation.None': '/img/anno/icon_2d_no_allocation_0.png',
+  'allocation.Ship': '/img/anno/icon_2d_item_ship_0.png',
+  'allocation.Villa': '/img/anno/icon_2d_item_villa_0.png',
   Belief: '/img/anno/icon_2d_devotion_0.png',
   building: '/img/anno/icon_2d_category_house.png',
   Celtic: '/img/anno/icon_2d_region_wetlands.png',
@@ -20,6 +23,16 @@ const icons = {
   Military: '/img/anno/icon_2d_category_military_buildings_0.png',
   Money: '/img/anno/icon_2d_income_0.png',
   Monument: '/img/anno/icon_2d_colloseum_0.png',
+  'niche.Agriculture': '/img/anno/niche_agriculture_0.png',
+  'niche.Culture': '/img/anno/niche_culture_0.png',
+  'niche.Diplomacy': '/img/anno/niche_diplomacy_0.png',
+  'niche.Economy': '/img/anno/niche_economy_0.png',
+  'niche.Finance': '/img/anno/niche_finance_0.png',
+  'niche.Military': '/img/anno/niche_military_0.png',
+  'niche.Nautics': '/img/anno/niche_nautics_0.png',
+  'niche.None': '/img/anno/niche_none_0.png',
+  'niche.Religion': '/img/anno/niche_religion_0.png',
+  'niche.Research': '/img/anno/niche_research_0.png',
   notFound: '/img/anno/icon_3d_sideques_roman_ruins_0.png',
   Population: '/img/anno/icon_2d_population_0.png',
   Prestige: '/img/anno/icon_2d_prestige_0.png',
@@ -36,6 +49,8 @@ const icons = {
   tier2: '/img/anno/icon_roman_numerals_2_0.png',
   tier3: '/img/anno/icon_roman_numerals_3_0.png',
   tier4: '/img/anno/icon_roman_numerals_4_0.png',
+  'type.Captains': '/img/anno/icon_2d_socket_item_0.png',
+  'type.Specialist': '/img/anno/icon_2d_item_none_0.png',
 } as const
 
 export function getIcon(name: keyof typeof icons) {

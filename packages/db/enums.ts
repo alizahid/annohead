@@ -92,6 +92,12 @@ const dlcs = db
     'select distinct key from dlc where key is not null order by key',
   )
   .all()
+// in-game building categories (Amenity, Pit, Quarry …) keyed by English text
+const buildingCategories = db
+  .query<{ value: string }, []>(
+    "select distinct t.value from building b join translation t on t.line_id = b.category_text join lang l on l.id = t.lang_id where l.code = 'english' order by t.value",
+  )
+  .all()
 const langNames = langs.map((l) => `  '${l.code}': '${l.name}',`).join('\n')
 
 const out = [
@@ -113,6 +119,10 @@ const out = [
   block(
     'region',
     regions.map((r) => r.key),
+  ),
+  block(
+    'building_category',
+    buildingCategories.map((c) => c.value),
   ),
   `/** ISO code -> name of the game's texts file / lang table row */\nexport const langNames = {\n${langNames}\n} as const satisfies Record<Lang, string>\n`,
 ]

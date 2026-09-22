@@ -329,11 +329,19 @@ class T:
             names.add(f"{match[1].upper()}{int(match[2])}")
         if len(names) != 1:
             return None
-        name = names.pop()
+        return self.dlc_by_name(names.pop())
+
+    def dlc_by_name(self, name):
+        """guid of the UplayProduct asset named e.g. DLC1 / CDLC2."""
         for guid, in self.db.execute("select guid from dlc"):
             if self.assets[guid]["name"] == name:
                 return guid
         return None
+
+    def item_dlc(self, it):
+        """Items name their DLC outright: Item.Origin is BaseRelease, DLC01, DLC02 …"""
+        match = re.fullmatch(r"(C?DLC)0*(\d+)", str(it.get("Origin", "")))
+        return self.dlc_by_name(f"{match[1]}{match[2]}") if match else None
 
     def buildings(self):
         for a in self.assets.values():
@@ -630,7 +638,7 @@ class T:
                 )
             boost = D(a["v"].get("ItemWithBoost"))
             self.db.execute(
-                "insert into item values(?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                "insert into item values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                 (
                     a["guid"],
                     a["name"],
@@ -645,6 +653,7 @@ class T:
                     self.num(it.get("TradePrice")),
                     eff_guid,
                     self.text(boost.get("BoostHint")),
+                    self.item_dlc(it),
                 ),
             )
             for b in self.items(boost.get("BoostBuffs")):
@@ -1135,7 +1144,7 @@ create table buff_functional_effect(buff_guid int references buff(guid), effect_
 create table buff_provided_need(buff_guid int references buff(guid), need_guid int references need(guid), primary key(buff_guid,need_guid));
 
 create table item(guid integer primary key, name text, name_text integer, description_text integer, icon text, template text, rarity text, niche text, type text,
-  allocation text, trade_price real, effect_guid int references effect(guid), boost_hint_text integer);
+  allocation text, trade_price real, effect_guid int references effect(guid), boost_hint_text integer, dlc_guid int references dlc(guid));
 create table item_boost_buff(item_guid int references item(guid), buff_guid int references buff(guid));
 create table item_boost_condition(item_guid int references item(guid), condition_id int);
 create table item_source(item_guid int references item(guid), source_kind text, source_guid int, primary key(item_guid,source_guid)) without rowid;

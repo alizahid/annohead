@@ -179,6 +179,49 @@ export type Dlc = (typeof dlcValues)[number]
 export const regionValues = ['Roman', 'Celtic', 'Egyptian'] as const
 export type Region = (typeof regionValues)[number]
 
+export const buildingCategoryValues = [
+  'Amenity',
+  'Arable Farm',
+  'Armoury',
+  'Artisanal Studio',
+  'Barterer',
+  'Celtic Residence',
+  'City Watch',
+  'Clothier',
+  'Defensive Building',
+  'Emperor Representative',
+  'Extractor',
+  'Fishery',
+  'Forest Camp',
+  'Free Trader',
+  'Gatherer',
+  'Harbour Building',
+  'Hunting Cabin',
+  'Infrastructure Building',
+  'Kitchen',
+  'Livestock Farm',
+  'Marvel',
+  'Mine',
+  'Monument— Marvel',
+  'Ornamental Road',
+  'Pit',
+  'Plantation',
+  'Public Service',
+  'Quarry',
+  'Recruitment Building',
+  'Refinery',
+  'Road',
+  'Roman Residence',
+  'Romano-Celtic Residence',
+  'Shrine',
+  'Smelter',
+  'Specialist Building',
+  'Upholsterer',
+  'Victualler',
+  'Workshop',
+] as const
+export type BuildingCategory = (typeof buildingCategoryValues)[number]
+
 /** ISO code -> name of the game's texts file / lang table row */
 export const langNames = {
   de: 'german',

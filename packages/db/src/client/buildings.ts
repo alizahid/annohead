@@ -1,7 +1,12 @@
-import { and, asc, count, eq, exists, inArray, like } from 'drizzle-orm'
+import { and, asc, count, eq, exists, inArray, like, sql } from 'drizzle-orm'
 
 import { db } from '../db'
-import { type BuildingKind, type BuildingType, type Lang } from '../enums'
+import {
+  type BuildingCategory,
+  type BuildingKind,
+  type BuildingType,
+  type Lang,
+} from '../enums'
 import {
   attribute,
   buff,
@@ -30,6 +35,7 @@ import {
 import { attributeName } from './attribute-labels'
 import { kindLabel, kinds, typeLabel, types } from './building-labels'
 import {
+  categoryIn,
   type Get,
   groupBy,
   localized,
@@ -45,6 +51,7 @@ export type BuildingFilter = {
   search?: string
   kind?: Array<BuildingKind>
   type?: Array<BuildingType>
+  category?: Array<BuildingCategory>
   regionId?: Array<number>
   /** DLC guids */
   dlc?: Array<number>
@@ -57,6 +64,7 @@ function buildingWhere(f: BuildingFilter, nameT: ReturnType<typeof localized>) {
     f.search ? like(nameT.value, `%${f.search}%`) : undefined,
     f.kind?.length ? inArray(building.kind, f.kind) : undefined,
     f.type?.length ? inArray(building.type, f.type) : undefined,
+    f.category?.length ? categoryIn(f.category) : undefined,
     f.regionId?.length ? inArray(building.regionId, f.regionId) : undefined,
     f.dlc?.length ? inArray(building.dlcGuid, f.dlc) : undefined,
     f.workforce?.length
@@ -394,7 +402,23 @@ async function list(f: BuildingFilter & Page) {
   return await queryBuildings(f)
 }
 
+/** distinct in-game building categories (Amenity, Pit, Quarry …) keyed by English name */
+async function categories({ lang }: { lang: Lang }) {
+  const catEn = localized('category_en')
+  const catT = localized('category')
+  return await db
+    .selectDistinct({
+      key: sql<BuildingCategory>`${catEn.value}`,
+      name: catT.value,
+    })
+    .from(building)
+    .innerJoin(catEn, on(catEn, building.categoryText, 'en'))
+    .innerJoin(catT, on(catT, building.categoryText, lang))
+    .orderBy(asc(catT.value))
+}
+
 export const buildings = {
+  categories,
   get,
   kinds,
   list,

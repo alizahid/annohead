@@ -1,8 +1,16 @@
-import { and, eq, sql } from 'drizzle-orm'
+import { and, eq, exists, inArray, sql } from 'drizzle-orm'
 import { alias, type SQLiteColumn } from 'drizzle-orm/sqlite-core'
 
-import { type Lang, langNames } from '../enums'
-import { attribute, buff, buffModifier, region, translation } from '../schema'
+import { db } from '../db'
+import { type BuildingCategory, type Lang, langNames } from '../enums'
+import {
+  attribute,
+  buff,
+  buffModifier,
+  building,
+  region,
+  translation,
+} from '../schema'
 
 export type Page = {
   page?: number
@@ -27,6 +35,20 @@ export function on(
   lang: Lang,
 ) {
   return and(eq(t.lineId, lineId), eq(t.langId, langId(lang)))
+}
+/** `building.category_text` is one of `keys` (English category names, see `buildings.categories`). */
+export function categoryIn(keys: Array<BuildingCategory>) {
+  const catEn = localized('category_en')
+  return exists(
+    db
+      .select({
+        one: sql`1`,
+      })
+      .from(catEn)
+      .where(
+        and(on(catEn, building.categoryText, 'en'), inArray(catEn.value, keys)),
+      ),
+  )
 }
 
 /** `region` columns for a nested select; `key` is typed by the generated enum */

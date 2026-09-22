@@ -14,6 +14,7 @@ import { db } from '../db'
 import {
   type Allocation,
   type Attribute,
+  type BuildingCategory,
   type ItemType,
   type Lang,
   type Niche,
@@ -24,6 +25,7 @@ import {
   buff,
   buffModifier,
   building,
+  dlc,
   effect,
   effectBuff,
   effectTargetPool,
@@ -33,6 +35,16 @@ import {
   poolMember,
 } from '../schema'
 import {
+  allocations,
+  nicheLabel,
+  niches,
+  rarities,
+  rarityLabel,
+  typeLabel,
+  types,
+} from './item-labels'
+import {
+  categoryIn,
   type Get,
   groupBy,
   localized,
@@ -43,16 +55,17 @@ import {
 } from './shared'
 export type ItemFilter = {
   lang: Lang
-  guid?: number
   search?: string
-  rarity?: Array<Rarity>
-  niche?: Array<Niche>
-  type?: ItemType
-  allocation?: Allocation
-  /** building guid the item's effect targets */
-  targetBuilding?: number
-  /** attribute key (Money, Knowledge …) the item's effect modifies */
-  attribute?: Attribute
+  rarities?: Array<Rarity>
+  niches?: Array<Niche>
+  types?: Array<ItemType>
+  allocations?: Array<Allocation>
+  /** DLC guids */
+  dlcs?: Array<number>
+  /** building categories (see `buildings.categories`) the item's effect targets */
+  categories?: Array<BuildingCategory>
+  /** attribute keys (Money, Knowledge …) the item's effect modifies */
+  attributes?: Array<Attribute>
 }
 
 function itemWhere(
@@ -60,13 +73,13 @@ function itemWhere(
   nameT: ReturnType<typeof localized>,
 ): SQL | undefined {
   return and(
-    f.guid ? eq(item.guid, f.guid) : undefined,
     f.search ? like(nameT.value, `%${f.search}%`) : undefined,
-    f.rarity?.length ? inArray(item.rarity, f.rarity) : undefined,
-    f.niche?.length ? inArray(item.niche, f.niche) : undefined,
-    f.type ? eq(item.type, f.type) : undefined,
-    f.allocation ? eq(item.allocation, f.allocation) : undefined,
-    f.targetBuilding
+    f.rarities?.length ? inArray(item.rarity, f.rarities) : undefined,
+    f.niches?.length ? inArray(item.niche, f.niches) : undefined,
+    f.types?.length ? inArray(item.type, f.types) : undefined,
+    f.allocations?.length ? inArray(item.allocation, f.allocations) : undefined,
+    f.dlcs?.length ? inArray(item.dlcGuid, f.dlcs) : undefined,
+    f.categories?.length
       ? exists(
           db
             .select({
@@ -77,15 +90,16 @@ function itemWhere(
               poolMember,
               eq(poolMember.poolGuid, effectTargetPool.poolGuid),
             )
+            .innerJoin(building, eq(building.guid, poolMember.assetGuid))
             .where(
               and(
                 eq(effectTargetPool.effectGuid, item.effectGuid),
-                eq(poolMember.assetGuid, f.targetBuilding),
+                categoryIn(f.categories),
               ),
             ),
         )
       : undefined,
-    f.attribute
+    f.attributes?.length
       ? exists(
           db
             .select({
@@ -100,7 +114,7 @@ function itemWhere(
             .where(
               and(
                 eq(effectBuff.effectGuid, item.effectGuid),
-                eq(attribute.key, f.attribute),
+                inArray(attribute.key, f.attributes),
               ),
             ),
         )
@@ -167,11 +181,15 @@ async function itemDetails(guids: Array<number>, lang: Lang) {
 }
 
 /** Specialists, captains and quest items with effect targets, modifiers, boosts and sources. */
-async function list(f: ItemFilter & Page) {
+async function queryItems(f: ItemFilter & Page, id?: number) {
   const nameT = localized('name')
   const descT = localized('desc')
   const hintT = localized('hint')
-  const where = itemWhere(f, nameT)
+  const dlcT = localized('dlc_name')
+  const where = and(
+    itemWhere(f, nameT),
+    id === undefined ? undefined : eq(item.guid, id),
+  )
   const { limit, offset } = paginate(f)
 
   const [[{ total }], rows] = await Promise.all([
@@ -187,6 +205,12 @@ async function list(f: ItemFilter & Page) {
         allocation: item.allocation,
         boostHint: hintT.value,
         description: descT.value,
+        dlc: {
+          guid: dlc.guid,
+          icon: dlc.icon,
+          key: dlc.key,
+          name: dlcT.value,
+        },
         effectScope: effect.scope,
         guid: item.guid,
         icon: item.icon,
@@ -201,6 +225,8 @@ async function list(f: ItemFilter & Page) {
       .leftJoin(descT, on(descT, item.descriptionText, f.lang))
       .leftJoin(hintT, on(hintT, item.boostHintText, f.lang))
       .leftJoin(effect, eq(effect.guid, item.effectGuid))
+      .leftJoin(dlc, eq(dlc.guid, item.dlcGuid))
+      .leftJoin(dlcT, on(dlcT, dlc.nameText, f.lang))
       .where(where)
       .orderBy(asc(nameT.value), asc(item.guid))
       .limit(limit)
@@ -215,9 +241,13 @@ async function list(f: ItemFilter & Page) {
     rows: rows.map((r) => ({
       ...r,
       boosts: d.boosts(r.guid),
+      dlc: r.dlc?.guid ? r.dlc : null,
       modifiers: d.modifiers(r.guid),
+      niche: nicheLabel(r.niche, f.lang),
+      rarity: rarityLabel(r.rarity, f.lang),
       sources: d.sources(r.guid),
       targets: d.targets(r.guid),
+      type: typeLabel(r.type, f.lang),
     })),
     total,
   }
@@ -226,31 +256,42 @@ async function list(f: ItemFilter & Page) {
 async function get({ id, lang }: Get) {
   return (
     (
-      await list({
-        guid: id,
-        lang,
-      })
+      await queryItems(
+        {
+          lang,
+          perPage: 1,
+        },
+        id,
+      )
     ).rows[0] ?? null
   )
 }
 
-function listSpecialists(f: Omit<ItemFilter, 'type'> & Page) {
+async function list(f: ItemFilter & Page) {
+  return await queryItems(f)
+}
+
+function listSpecialists(f: Omit<ItemFilter, 'types'> & Page) {
   return list({
     ...f,
-    type: 'Specialist',
+    types: ['Specialist'],
   })
 }
 
-function listCaptains(f: Omit<ItemFilter, 'type'> & Page) {
+function listCaptains(f: Omit<ItemFilter, 'types'> & Page) {
   return list({
     ...f,
-    type: 'Captains',
+    types: ['Captains'],
   })
 }
 
 export const items = {
+  allocations,
   get,
   list,
+  niches,
+  rarities,
+  types,
 }
 export const specialists = {
   get,

@@ -52,12 +52,12 @@ const typeNames: Record<Lang, Record<BuildingType, string>> = {
   },
 }
 
-export function kindLabel(id: BuildingKind | null, lang: Lang) {
-  return id === null ? null : { id, name: kindNames[lang][id] }
+export function kindLabel(key: BuildingKind | null, lang: Lang) {
+  return key === null ? null : { key, name: kindNames[lang][key] }
 }
 
-export function typeLabel(id: BuildingType | null, lang: Lang) {
-  return id === null ? null : { id, name: typeNames[lang][id] }
+export function typeLabel(key: BuildingType | null, lang: Lang) {
+  return key === null ? null : { key, name: typeNames[lang][key] }
 }
 
 export function kinds({ lang }: { lang: Lang }) {

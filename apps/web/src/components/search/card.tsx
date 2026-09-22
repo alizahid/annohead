@@ -5,6 +5,7 @@ import { getIcon } from '@/lib/icons'
 import { getUrl } from '@/lib/url'
 
 import { Icon } from '../common/icon'
+import { ItemIcon } from '../items/icon'
 
 type Props = {
   item: SearchHit
@@ -17,7 +18,9 @@ export function SearchCard({ item }: Props) {
       href={getUrl(item.type, item.guid, item.name)}
     >
       <aside className="relative flex size-16">
-        {item.icon ? (
+        {item.type === 'item' ? (
+          <ItemIcon className="size-16" icon={item.icon} rarity={item.rarity} />
+        ) : item.icon ? (
           <Icon className="size-16" icon={item.icon} />
         ) : (
           <Icon className="size-16" icon={getIcon(item.type)} />

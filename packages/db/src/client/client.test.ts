@@ -6,7 +6,7 @@ test('specialists paginate and join effects', async () => {
   const { rows, total } = await anno.specialists.list({
     lang: 'en',
     perPage: 5,
-    rarity: ['Legendary'],
+    rarities: ['Legendary'],
   })
   expect(total).toBeGreaterThan(50)
   expect(rows).toHaveLength(5)
@@ -14,27 +14,27 @@ test('specialists paginate and join effects', async () => {
     lang: 'en',
     page: 2,
     perPage: 5,
-    rarity: ['Legendary'],
+    rarities: ['Legendary'],
   })
   expect(second.rows.map((r) => r.guid)).not.toContain(rows[0]?.guid)
 })
 
-test('specialist filter by target building and attribute', async () => {
-  const [bakery] = (
+test('specialist filter by target building category and attribute', async () => {
+  const kitchens = (
     await anno.buildings.list({
+      category: ['Kitchen'],
       lang: 'en',
-      perPage: 1,
-      search: 'Bakery',
+      perPage: 100,
     })
-  ).rows
+  ).rows.map((b) => b.guid)
   const { rows } = await anno.specialists.list({
-    attribute: 'Health',
+    attributes: ['Health'],
+    categories: ['Kitchen'],
     lang: 'en',
-    targetBuilding: bakery?.guid,
   })
   expect(rows.length).toBeGreaterThan(0)
   for (const r of rows) {
-    expect(r.targets.map((t) => t.guid)).toContain(bakery?.guid)
+    expect(r.targets.some((t) => kitchens.includes(t.guid))).toBe(true)
     expect(r.modifiers.map((m) => m.attribute)).toContain('Health')
   }
 })
@@ -133,8 +133,8 @@ test.each([
   'building kind and type have localized names in $lang',
   async ({ lang, kindName, typeName }) => {
     const building = await anno.buildings.get({ id: 145_229, lang })
-    expect(building?.kind).toEqual({ id: 'Production', name: kindName })
-    expect(building?.type).toEqual({ id: 'Factory', name: typeName })
+    expect(building?.kind).toEqual({ key: 'Production', name: kindName })
+    expect(building?.type).toEqual({ key: 'Factory', name: typeName })
     const listed = await anno.buildings.list({
       dlc: [67_902],
       kind: ['Production'],
@@ -147,7 +147,7 @@ test.each([
     )
     expect(
       listed.rows.every(
-        (row) => row.kind?.id === 'Production' && row.type?.id === 'Factory',
+        (row) => row.kind?.key === 'Production' && row.type?.key === 'Factory',
       ),
     ).toBe(true)
   },
@@ -225,7 +225,7 @@ test('buildings carry effects and buffs', async () => {
     },
   ])
   const kind: 'Production' | undefined =
-    rows[0]?.kind?.id === 'Production' ? rows[0].kind.id : undefined
+    rows[0]?.kind?.key === 'Production' ? rows[0].kind.key : undefined
   expect(kind).toBe('Production')
 })
 
@@ -503,6 +503,77 @@ test('search ranks name matches, dedupes variants, filters by type and paginates
       })
     ).total,
   ).toBe(0)
+})
+
+test('item rarities and niches are localized filter options', () => {
+  const rarities = anno.items.rarities({ lang: 'en' })
+  expect(rarities.map((r) => r.key)).toEqual([
+    'Common',
+    'Uncommon',
+    'Rare',
+    'Epic',
+    'Legendary',
+    'Mythic',
+    'Unique',
+    'Quest',
+  ])
+  const niches = anno.items.niches({ lang: 'de' })
+  expect(niches.map((n) => n.key)).not.toContain('None')
+  expect(niches.find((n) => n.key === 'Nautics')?.name).toBe('Seefahrt')
+  expect(anno.items.allocations({ lang: 'en' }).map((a) => a.key)).toEqual([
+    'None',
+    'Ship',
+    'Villa',
+  ])
+  expect(
+    anno.items.types({ lang: 'de' }).find((t) => t.key === 'Captains')?.name,
+  ).toBe('Kapitäne')
+})
+
+test('item rarity, niche and type are localized label objects', async () => {
+  const dorian = await anno.items.get({ id: 41_350, lang: 'de' })
+  expect(dorian?.rarity).toEqual({ key: 'Unique', name: 'Einzigartig' })
+  expect(dorian?.niche?.key).toBeTruthy()
+  expect(dorian?.type).toEqual({ key: 'Specialist', name: 'Spezialisten' })
+})
+
+test('items filter by DLC and carry localized DLC details', async () => {
+  const { rows, total } = await anno.items.list({
+    dlcs: [67_903],
+    lang: 'de',
+    perPage: 100,
+  })
+  expect(total).toBe(33)
+  expect(rows.every((r) => r.dlc?.guid === 67_903)).toBe(true)
+  expect(rows[0]?.dlc?.name).toBeTruthy()
+  const both = await anno.items.list({
+    dlcs: [67_902, 67_903],
+    lang: 'en',
+  })
+  expect(both.total).toBe(85)
+  const base = await anno.items.get({ id: 41_350, lang: 'en' })
+  expect(base?.dlc).toBeNull()
+})
+
+test('items filter by target building category', async () => {
+  const categories = await anno.buildings.categories({ lang: 'de' })
+  expect(categories.find((c) => c.key === 'Pit')?.name).toBe('Grube')
+  const { rows, total } = await anno.items.list({
+    categories: ['Pit'],
+    lang: 'en',
+  })
+  expect(total).toBeGreaterThan(0)
+  const pitBuildings = await anno.buildings.list({
+    category: ['Pit'],
+    lang: 'en',
+    perPage: 50,
+  })
+  expect(pitBuildings.total).toBe(5)
+  expect(pitBuildings.rows.every((b) => b.category === 'Pit')).toBe(true)
+  const pits = pitBuildings.rows.map((b) => b.guid)
+  for (const r of rows) {
+    expect(r.targets.some((t) => pits.includes(t.guid))).toBe(true)
+  }
 })
 
 test('search includes item rarity and null for other entity types', async () => {

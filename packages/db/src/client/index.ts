@@ -23,6 +23,9 @@ export type { TechFilter } from './techs'
 
 export type Buildings = Awaited<ReturnType<typeof buildings.list>>
 export type Building = Awaited<ReturnType<typeof buildings.get>>
+export type BuildingCategories = Awaited<
+  ReturnType<typeof buildings.categories>
+>
 export type BuildingKinds = Awaited<ReturnType<typeof buildings.kinds>>
 export type BuildingTypes = Awaited<ReturnType<typeof buildings.types>>
 export type Captains = Awaited<ReturnType<typeof captains.list>>
@@ -32,6 +35,10 @@ export type Chain = Awaited<ReturnType<typeof chains.get>>
 export type Dlcs = Awaited<ReturnType<typeof dlc.list>>
 export type Items = Awaited<ReturnType<typeof items.list>>
 export type Item = Awaited<ReturnType<typeof items.get>>
+export type ItemAllocations = Awaited<ReturnType<typeof items.allocations>>
+export type ItemNiches = Awaited<ReturnType<typeof items.niches>>
+export type ItemRarities = Awaited<ReturnType<typeof items.rarities>>
+export type ItemTypes = Awaited<ReturnType<typeof items.types>>
 export type PopulationTiers = Awaited<ReturnType<typeof populationTiers.list>>
 export type Products = Awaited<ReturnType<typeof products.list>>
 export type Product = Awaited<ReturnType<typeof products.get>>

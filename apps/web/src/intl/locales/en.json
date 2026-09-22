@@ -94,6 +94,20 @@
         "title": "Comments"
       }
     },
+    "items": {
+      "filters": {
+        "allocations": "Allocation",
+        "categories": "Category",
+        "dlcs": "DLC",
+        "niches": "Niche",
+        "rarities": "Rarity",
+        "types": "Type"
+      },
+      "list": {
+        "empty": "Nothing found",
+        "title": "Items"
+      }
+    },
     "layouts": {
       "main": {
         "footer": {
@@ -156,6 +170,9 @@
     },
     "buildings": {
       "title": "Annohead × Buildings"
+    },
+    "items": {
+      "title": "Annohead × Items"
     },
     "search": {
       "title": "Annohead × Search"

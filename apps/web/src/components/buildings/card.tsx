@@ -24,19 +24,19 @@ export function BuildingCard({ building }: Props) {
         {building.kind ? (
           <div className="text-gray-11 text-sm">{building.kind.name}</div>
         ) : null}
-
-        {building.region?.key || building.dlc?.key ? (
-          <div className="pointer-events-none absolute top-4 right-4 flex gap-2">
-            {building.region?.key ? (
-              <Icon className="size-6" icon={getIcon(building.region.key)} />
-            ) : null}
-
-            {building.dlc?.key ? (
-              <Icon className="size-6" icon={getIcon(building.dlc.key)} />
-            ) : null}
-          </div>
-        ) : null}
       </div>
+
+      {building.region?.key || building.dlc?.key ? (
+        <div className="pointer-events-none absolute top-4 right-4 flex gap-2">
+          {building.region?.key ? (
+            <Icon className="size-6" icon={getIcon(building.region.key)} />
+          ) : null}
+
+          {building.dlc?.key ? (
+            <Icon className="size-6" icon={getIcon(building.dlc.key)} />
+          ) : null}
+        </div>
+      ) : null}
     </NavLink>
   )
 }
