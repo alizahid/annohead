@@ -17,7 +17,7 @@ export function SearchCard({ item }: Props) {
       className="flex gap-4 rounded-lg p-4 outline-none ring-accent-8 transition-colors hover:bg-accent-4 focus-visible:ring-2"
       href={getUrl(item.type, item.guid, item.name)}
     >
-      <aside className="relative flex size-16">
+      <aside className="relative flex size-16 shrink-0">
         {item.type === 'item' ? (
           <ItemIcon className="size-16" icon={item.icon} rarity={item.rarity} />
         ) : item.icon ? (
@@ -33,7 +33,7 @@ export function SearchCard({ item }: Props) {
         ) : null}
       </aside>
 
-      <div className="flex flex-1 flex-col gap-1">
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className="flex gap-2">
           <div className="text-pretty font-bold">{item.name}</div>
 
