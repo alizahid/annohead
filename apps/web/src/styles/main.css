@@ -88,7 +88,7 @@
 }
 
 body {
-  @apply bg-gray-2 cursor-default isolate selection:bg-accent-9/25 text-gray-12 antialiased font-text relative;
+  @apply bg-gray-1 cursor-default isolate selection:bg-accent-9/25 text-gray-12 antialiased font-text relative;
 }
 
 h1,

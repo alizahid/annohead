@@ -48,13 +48,17 @@ export function Navigation({ className }: Props) {
   ] as const
 
   return (
-    <nav className={cn('flex gap-4 overflow-x-scroll text-nowrap', className)}>
+    <nav
+      className={cn(
+        'flex h-10 items-center gap-4 overflow-x-scroll text-nowrap lg:overflow-x-visible',
+        className,
+      )}
+    >
       {sections.map((section) => (
         <NavLink
           className={cn(
-            'rounded-lg p-2 font-medium text-md leading-none outline-none focus-visible:bg-accent-4',
-            path.startsWith(section.href) &&
-              'bg-accent-9 font-bold text-accent-contrast',
+            'rounded-sm font-medium leading-tight outline-none ring-accent-8 ring-offset-4 ring-offset-gray-1 focus-visible:ring-2',
+            path.startsWith(section.href) && 'text-accent-11',
           )}
           href={section.href}
           key={section.key}

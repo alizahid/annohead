@@ -3,14 +3,14 @@ import {
   AuthLoading,
   Unauthenticated,
 } from '@convex-dev/auth/react'
-import { UserCircleDashedIcon } from '@phosphor-icons/react/dist/ssr'
+import {
+  UserCircleDashedIcon,
+  UserCircleIcon,
+} from '@phosphor-icons/react/dist/ssr'
 import { cn } from 'cn'
 
 import { Spinner } from '@/components/common/spinner'
 import { NavLink } from '@/intl/nav'
-import { getIcon } from '@/lib/icons'
-
-import { Icon } from '../common/icon'
 
 type Props = {
   className?: string
@@ -30,7 +30,7 @@ export function AuthProfile({ className }: Props) {
 
       <Authenticated>
         <NavLink className="outline-none" href="/auth/profile">
-          <Icon className="size-6" icon={getIcon('ui.profile')} />
+          <UserCircleIcon className="size-6" />
         </NavLink>
       </Authenticated>
 
