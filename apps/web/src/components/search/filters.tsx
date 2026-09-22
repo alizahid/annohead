@@ -3,7 +3,6 @@
 import { type SearchType, SearchTypes } from '@anno/db/search'
 import { Checkbox } from '@base-ui/react/checkbox'
 import { CheckboxGroup } from '@base-ui/react/checkbox-group'
-import { CheckIcon } from '@phosphor-icons/react/dist/ssr'
 import { isEqual, sortBy } from 'lodash'
 import { useTranslations } from 'next-intl'
 import { useQueryStates } from 'nuqs'
@@ -20,7 +19,7 @@ export function SearchFiltersCard() {
 
   return (
     <CheckboxGroup
-      className="flex flex-col gap-2 lg:-mx-4 lg:flex-row lg:gap-0"
+      className="flex flex-col gap-2 lg:flex-row"
       onValueChange={async (next) => {
         await setFilters({
           page: null,
@@ -34,23 +33,18 @@ export function SearchFiltersCard() {
       value={filters.type ?? SearchTypes.map(String)}
     >
       {SearchTypes.map((item) => (
-        <label
-          className="flex items-center gap-2 font-bold text-sm lg:p-4 lg:text-base"
-          htmlFor={`search-type-${item}`}
+        <Checkbox.Root
+          className="flex h-10 items-center gap-2 rounded-md px-2 outline-none ring-accent-8 transition-colors hover:bg-accent-4 focus-visible:ring-2 data-checked:bg-accent-5"
           key={item}
+          value={item}
         >
-          <Checkbox.Root
-            className="flex size-4 shrink-0 items-center justify-center rounded-sm border border-gray-12 data-checked:bg-gray-12"
-            id={`search-type-${item}`}
-            value={item}
-          >
-            <Checkbox.Indicator className="flex data-unchecked:hidden">
-              <CheckIcon className="size-3 text-gray-1" weight="bold" />
-            </Checkbox.Indicator>
-          </Checkbox.Root>
+          <Checkbox.Indicator
+            className="flex size-6 items-center justify-center rounded-full border border-gray-12 data-checked:border-0 data-checked:bg-gray-12"
+            keepMounted
+          />
 
-          {t(item)}
-        </label>
+          <span className="font-bold">{t(item)}</span>
+        </Checkbox.Root>
       ))}
     </CheckboxGroup>
   )
