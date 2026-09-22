@@ -57,7 +57,7 @@ export function Navigation({ className }: Props) {
       {sections.map((section) => (
         <NavLink
           className={cn(
-            'rounded-sm font-medium leading-tight outline-none ring-accent-8 ring-offset-4 ring-offset-gray-1 focus-visible:ring-2',
+            'rounded-sm font-medium leading-tight outline-none ring-accent-8 ring-offset-4 ring-offset-gray-1 transition-colors hover:text-accent-9 focus-visible:ring-2',
             path.startsWith(section.href) && 'text-accent-11',
           )}
           href={section.href}
