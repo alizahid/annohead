@@ -29,11 +29,17 @@ export function BuildingCard({ building }: Props) {
       {building.region?.key || building.dlc?.key ? (
         <div className="pointer-events-none absolute top-4 right-4 flex gap-2">
           {building.region?.key ? (
-            <Icon className="size-6" icon={getIcon(building.region.key)} />
+            <Icon
+              className="size-6"
+              icon={getIcon(`region.${building.region.key}`)}
+            />
           ) : null}
 
           {building.dlc?.key ? (
-            <Icon className="size-6" icon={getIcon(building.dlc.key)} />
+            <Icon
+              className="size-6"
+              icon={getIcon(`dlc.${building.dlc.key}`)}
+            />
           ) : null}
         </div>
       ) : null}

@@ -30,7 +30,7 @@ export function AuthProfile({ className }: Props) {
 
       <Authenticated>
         <NavLink className="outline-none" href="/auth/profile">
-          <Icon className="size-6" icon={getIcon('profile')} />
+          <Icon className="size-6" icon={getIcon('ui.profile')} />
         </NavLink>
       </Authenticated>
 

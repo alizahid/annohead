@@ -57,7 +57,7 @@ export function BuildingFiltersCard({ dlcs, kinds, regions, tiers }: Props) {
               value={String(item.id)}
             >
               {item.key ? (
-                <Icon className="size-6" icon={getIcon(item.key)} />
+                <Icon className="size-6" icon={getIcon(`region.${item.key}`)} />
               ) : null}
 
               <span className="font-bold text-sm">{item.name}</span>
@@ -97,11 +97,14 @@ export function BuildingFiltersCard({ dlcs, kinds, regions, tiers }: Props) {
               <span className="font-bold text-sm">{item.name}</span>
 
               {item.region ? (
-                <Icon className="size-6" icon={getIcon(item.region)} />
+                <Icon
+                  className="size-6"
+                  icon={getIcon(`region.${item.region}`)}
+                />
               ) : null}
 
               {item.tier ? (
-                <Icon className="size-6" icon={getIcon(`tier${item.tier}`)} />
+                <Icon className="size-6" icon={getIcon(`tier.${item.tier}`)} />
               ) : null}
             </Checkbox.Root>
           ))}
@@ -158,7 +161,7 @@ export function BuildingFiltersCard({ dlcs, kinds, regions, tiers }: Props) {
               key={item.key}
               value={item.key}
             >
-              <Icon className="size-6" icon={getIcon(item.key)} />
+              <Icon className="size-6" icon={getIcon(`kind.${item.key}`)} />
 
               <span className="font-bold text-sm">{item.name}</span>
             </Checkbox.Root>

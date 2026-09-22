@@ -23,11 +23,17 @@ export function BuildingPage({ building }: Props) {
           {building.region?.key || building.dlc?.key ? (
             <div className="flex gap-4">
               {building.region?.key ? (
-                <Icon className="size-6" icon={getIcon(building.region.key)} />
+                <Icon
+                  className="size-6"
+                  icon={getIcon(`region.${building.region.key}`)}
+                />
               ) : null}
 
               {building.dlc?.key ? (
-                <Icon className="size-6" icon={getIcon(building.dlc.key)} />
+                <Icon
+                  className="size-6"
+                  icon={getIcon(`dlc.${building.dlc.key}`)}
+                />
               ) : null}
             </div>
           ) : null}
@@ -130,7 +136,11 @@ export function BuildingPage({ building }: Props) {
             <DataList.Root title={t('details.effects')}>
               {building.effects.map((item) => (
                 <DataList.Item
-                  icon={item.attribute ? getIcon(item.attribute) : null}
+                  icon={
+                    item.attribute
+                      ? getIcon(`attribute.${item.attribute}`)
+                      : null
+                  }
                   key={`${item.buildingGuid}:${item.attribute}`}
                   name={item.name}
                   value={
@@ -153,7 +163,11 @@ export function BuildingPage({ building }: Props) {
             <DataList.Root title={t('details.buffs')}>
               {building.buffs.map((item) => (
                 <DataList.Item
-                  icon={item.attribute ? getIcon(item.attribute) : undefined}
+                  icon={
+                    item.attribute
+                      ? getIcon(`attribute.${item.attribute}`)
+                      : undefined
+                  }
                   key={`${item.buildingGuid}:${item.attribute}`}
                   name={item.name}
                   value={

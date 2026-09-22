@@ -36,7 +36,7 @@ export function ItemCard({ item }: Props) {
           ) : null}
 
           {item.dlc?.key ? (
-            <Icon className="size-6" icon={getIcon(item.dlc.key)} />
+            <Icon className="size-6" icon={getIcon(`dlc.${item.dlc.key}`)} />
           ) : null}
         </div>
       ) : null}

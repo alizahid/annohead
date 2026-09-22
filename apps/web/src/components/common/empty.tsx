@@ -11,7 +11,7 @@ type Props = {
 export function Empty({ children }: Props) {
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-4">
-      <Icon className="size-32" icon={getIcon('notFound')} size={256} />
+      <Icon className="size-32" icon={getIcon('ui.notFound')} size={256} />
 
       <p className="font-bold">{children}</p>
     </div>

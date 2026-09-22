@@ -23,12 +23,12 @@ export function SearchCard({ item }: Props) {
         ) : item.icon ? (
           <Icon className="size-16" icon={item.icon} />
         ) : (
-          <Icon className="size-16" icon={getIcon(item.type)} />
+          <Icon className="size-16" icon={getIcon(`ui.${item.type}`)} />
         )}
 
         {item.icon ? (
           <div className="absolute right-0 bottom-0 flex rounded-full bg-accent-2 p-1">
-            <Icon className="size-4" icon={getIcon(item.type)} />
+            <Icon className="size-4" icon={getIcon(`ui.${item.type}`)} />
           </div>
         ) : null}
       </aside>
@@ -40,7 +40,11 @@ export function SearchCard({ item }: Props) {
           {item.type === 'building' || item.type === 'chain' ? (
             <div className="flex gap-2">
               {item.regions.map((region) => (
-                <Icon className="size-6" icon={getIcon(region)} key={region} />
+                <Icon
+                  className="size-6"
+                  icon={getIcon(`region.${region}`)}
+                  key={region}
+                />
               ))}
             </div>
           ) : null}

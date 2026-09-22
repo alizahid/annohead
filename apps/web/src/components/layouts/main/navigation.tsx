@@ -62,7 +62,7 @@ export function Navigation({ className }: Props) {
         >
           <Icon
             className="size-6 invert dark:invert-0"
-            icon={getIcon(section.icon)}
+            icon={getIcon(`ui.${section.icon}`)}
           />
         </Tooltip>
       ))}
