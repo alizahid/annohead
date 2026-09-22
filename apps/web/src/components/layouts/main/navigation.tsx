@@ -1,16 +1,17 @@
+'use client'
+
 import { cn } from 'cn'
 import { useTranslations } from 'next-intl'
 
-import { Icon } from '@/components/common/icon'
-import { Tooltip } from '@/components/common/tooltip'
-import { NavLink } from '@/intl/nav'
-import { getIcon } from '@/lib/icons'
+import { NavLink, usePathname } from '@/intl/nav'
 
 type Props = {
   className?: string
 }
 
 export function Navigation({ className }: Props) {
+  const path = usePathname()
+
   const t = useTranslations('component.layouts.main.nav')
 
   const sections = [
@@ -47,24 +48,19 @@ export function Navigation({ className }: Props) {
   ] as const
 
   return (
-    <nav className={cn('flex gap-2', className)}>
+    <nav className={cn('flex gap-4 overflow-x-scroll text-nowrap', className)}>
       {sections.map((section) => (
-        <Tooltip
-          content={t(section.key)}
+        <NavLink
+          className={cn(
+            'rounded-lg p-2 font-medium text-md leading-none outline-none focus-visible:bg-accent-4',
+            path.startsWith(section.href) &&
+              'bg-accent-9 font-bold text-accent-contrast',
+          )}
+          href={section.href}
           key={section.key}
-          offset={8}
-          render={
-            <NavLink
-              className="flex size-10 items-center justify-center gap-4 rounded-sm outline-none ring-accent-8 focus-visible:ring-2"
-              href={section.href}
-            />
-          }
         >
-          <Icon
-            className="size-6 invert dark:invert-0"
-            icon={getIcon(`ui.${section.icon}`)}
-          />
-        </Tooltip>
+          {t(section.key)}
+        </NavLink>
       ))}
     </nav>
   )
