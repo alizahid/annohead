@@ -1,17 +1,19 @@
 import { cn } from 'cn'
 import { useFormatter } from 'next-intl'
+import { type ReactNode } from 'react'
 
 import { Icon } from '../common/icon'
 
 type Props = {
   code?: boolean
+  description?: string | null
   icon?: string | null
   name: string | null
   tier?: boolean
-  value?: string | number | null
+  value?: ReactNode | string | number | null
 }
 
-export function Item({ code, name, icon, tier, value }: Props) {
+export function Item({ code, description, name, icon, tier, value }: Props) {
   const f = useFormatter()
 
   return (
@@ -24,10 +26,16 @@ export function Item({ code, name, icon, tier, value }: Props) {
           />
         ) : null}
 
-        <div className="text-sm">{name}</div>
+        <div className="flex flex-1 flex-col gap-1">
+          <div className="text-sm">{name}</div>
+
+          {description ? (
+            <div className="text-gray-11 text-xs">{description}</div>
+          ) : null}
+        </div>
       </div>
 
-      {value ? (
+      {typeof value === 'string' || typeof value === 'number' ? (
         <div
           className={cn(
             'grow-0 truncate text-sm tabular-nums',
@@ -39,6 +47,8 @@ export function Item({ code, name, icon, tier, value }: Props) {
           {typeof value === 'string' ? value : null}
         </div>
       ) : null}
+
+      {typeof value !== 'string' && typeof value !== 'number' ? value : null}
     </div>
   )
 }

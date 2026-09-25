@@ -16,7 +16,7 @@ type Props = {
 }
 
 export function TechCard({ tech }: Props) {
-  const t = useTranslations('component.technologies.popover')
+  const t = useTranslations('component.technologies.tree')
   const f = useFormatter()
 
   return (

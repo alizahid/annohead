@@ -142,6 +142,50 @@ class T:
     def flatten_pool(self, g, seen=None):
         return set(self.pool_members(g, seen))
 
+    def insert_target(self, effect, g):
+        """Record an effect target: a pool ("Warehouses") or a single asset ("Fishing Hut").
+
+        kind is building, unit or ship by what the target holds; icon is the target's own, else its first member's.
+        When the target is one building, including its regional variants that read the same (the Roman and Celtic
+        Charcoal Burner), each variant goes to effect_target_building so it can be listed and linked on its own.
+        """
+        g = self.num(g)
+        if not hasattr(self, "_buildings"):
+            self._buildings = {b for (b,) in self.db.execute("select guid from building")}
+        members = [g, *self.pool_members(g)]
+        templates = {D(self.assets.get(m)).get("template") for m in members}
+        if any(m in self._buildings for m in members):
+            kind = "building"
+        elif "LandUnit" in templates:
+            kind = "unit"
+        elif "NavalUnit" in templates:
+            kind = "ship"
+        else:
+            kind = None
+        icon = next(
+            (i for m in members if (i := self.icon(D(self.assets.get(m)).get("icon")))),
+            None,
+        )
+        self.db.execute(
+            "insert or ignore into effect_target_pool values(?,?,?,?,?)",
+            (effect, g, self.text(D(self.assets.get(g)).get("text_id")), kind, icon),
+        )
+        found = list(dict.fromkeys(m for m in members if m in self._buildings))
+        # variants carry their own text lines, so compare what they read as
+        names = {
+            self.src.execute(
+                "select text from texts where line_id=? and lang='english'",
+                (self.assets[m]["text_id"],),
+            ).fetchone()
+            for m in found
+        }
+        if len(names) == 1:
+            for m in found:
+                self.db.execute(
+                    "insert or ignore into effect_target_building values(?,?,?)",
+                    (effect, g, m),
+                )
+
     def pool_members(self, g, seen=None):
         """Leaf assets of a pool, in the pool's own order."""
         seen = seen if seen is not None else set()
@@ -563,12 +607,18 @@ class T:
                         "insert into effect_buff values(?,?)",
                         (a["guid"], self.num(b["GUID"])),
                     )
-            for t in self.items(e.get("Targets")):
-                if self.num(t.get("GUID")):
-                    self.db.execute(
-                        "insert into effect_target_pool values(?,?)",
-                        (a["guid"], self.num(t["GUID"])),
+            # area effects name no targets; their buffs say which buildings' range they change (e.g. Markets)
+            targets = [self.num(t.get("GUID")) for t in self.items(e.get("Targets"))] or [
+                self.num(t.get("Target"))
+                for b in self.items(e.get("Buffs"))
+                for t in self.items(
+                    D(D(D(self.assets.get(self.num(b.get("GUID")))).get("v")).get("AreaBuff")).get(
+                        "RadiusEffectRangeTarget"
                     )
+                )
+            ]
+            for t in dict.fromkeys(g for g in targets if g):
+                self.insert_target(a["guid"], t)
             # who grants it: any non-effect/buff asset referencing this effect
             for f, path in self.refs_to[a["guid"]]:
                 src = self.assets[f]
@@ -696,10 +746,7 @@ class T:
                         )
                 for t in self.items(e.get("Targets")):
                     if self.num(t.get("GUID")):
-                        self.db.execute(
-                            "insert or ignore into effect_target_pool values(?,?)",
-                            (a["guid"], self.num(t["GUID"])),
-                        )
+                        self.insert_target(a["guid"], t["GUID"])
                 self.db.execute(
                     "insert or ignore into effect_source values(?,?,?)",
                     (a["guid"], a["template"], a["guid"]),
@@ -790,9 +837,12 @@ class T:
         # a category's opening gate isn't in its Techs list or linked from it; the game names it "Gate <type> Early"
         tech_by_name = {a["name"]: a["guid"] for a in self.by_template("Tech")}
 
-        buildings = {g for (g,) in self.db.execute("select guid from building")}
+        # a building's own guid, or a monument phase's (e.g. Hippodrome Phase 0) -> the building it belongs to
+        buildings = {g: g for (g,) in self.db.execute("select guid from building")}
+        buildings |= dict(self.db.execute("select guid, building_guid from building_phase"))
 
         category = {}
+        tech_dlc = {}
         for a in self.by_template("TechCategory"):
             c = D(a["v"].get("TechCategory"))
             pos = D(c.get("Position"))
@@ -813,11 +863,19 @@ class T:
             )
             for it in self.items(c.get("Techs")):
                 category[self.num(it.get("Tech"))] = a["guid"]
+            # DLC categories (DLC01, DLC02 …) own their techs, opening gate included
+            match = re.fullmatch(r"DLC0*(\d+)", str(c.get("CategoryType")))
+            if match:
+                owner = self.dlc_by_name(f"DLC{match[1]}")
+                gate = tech_by_name.get(f"Gate {c.get('CategoryType')} Early")
+                for it in self.items(c.get("Techs")):
+                    tech_dlc[self.num(it.get("Tech"))] = owner
+                tech_dlc[gate] = owner
         for a in self.by_template("Tech"):
             t = D(a["v"].get("Tech"))
             gp = D(t.get("GridPosition"))
             self.db.execute(
-                "insert into tech values(?,?,?,?,?,?,?,?,?,?,?,?)",
+                "insert into tech values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                 (
                     a["guid"],
                     a["name"],
@@ -831,6 +889,9 @@ class T:
                     category.get(a["guid"]),
                     1 if t.get("ShowConnectionToCategory") == "1" else 0,
                     self.icon(asset_icon(t.get("TechInfoImage"))),
+                    # Culture is None, Roman or Celtic
+                    self.region(t.get("Culture")),
+                    tech_dlc.get(a["guid"]),
                 ),
             )
             rw = D(t.get("Rewards"))
@@ -840,7 +901,7 @@ class T:
                 if shown:
                     # the game describes the entry with the first building in the pool (e.g. the wall in "Stone Walls")
                     building = next(
-                        (g for g in self.pool_members(shown["guid"]) if g in buildings),
+                        (buildings[g] for g in self.pool_members(shown["guid"]) if g in buildings),
                         None,
                     )
                     self.db.execute(
@@ -1305,7 +1366,8 @@ create table production_chain_node(id integer primary key, chain_guid int refere
 
 create table effect(guid integer primary key, name text, name_text integer, description_text integer, scope text, source_category text, exclude_source int);
 create table effect_buff(effect_guid int references effect(guid), buff_guid int, primary key(effect_guid,buff_guid));
-create table effect_target_pool(effect_guid int references effect(guid), pool_guid int, primary key(effect_guid,pool_guid));
+create table effect_target_pool(effect_guid int references effect(guid), pool_guid int, name_text integer, kind text, icon text, primary key(effect_guid,pool_guid));
+create table effect_target_building(effect_guid int references effect(guid), pool_guid int, building_guid int references building(guid), primary key(effect_guid,pool_guid,building_guid)) without rowid;
 create table pool_member(pool_guid int, asset_guid int, primary key(pool_guid,asset_guid)) without rowid;
 create view effect_target as select etp.effect_guid, pm.asset_guid building_guid from effect_target_pool etp join pool_member pm using(pool_guid);
 create table effect_source(effect_guid int references effect(guid), source_kind text, source_guid int, primary key(effect_guid,source_guid)) without rowid;
@@ -1322,7 +1384,8 @@ create table item_source(item_guid int references item(guid), kind text, source_
 
 create table tech_category(guid integer primary key, type text, name_text integer, description_text integer, gate_guid int, icon text, artwork text, x int, y int, sort int);
 create table tech(guid integer primary key, name text, name_text integer, description_text integer, icon text, knowledge_needed real, is_gate int, grid_x int, grid_y int,
-  category_guid int references tech_category(guid), show_connection_to_category int, image text);
+  category_guid int references tech_category(guid), show_connection_to_category int, image text,
+  region_id int references region(id), dlc_guid int references dlc(guid));
 create table tech_unlock_reward(tech_guid int references tech(guid), idx int, asset_guid int, name_text integer, description_text integer, icon text, building_guid int references building(guid), primary key(tech_guid,idx)) without rowid;
 create table tech_unlock(tech_guid int references tech(guid), asset_guid int, primary key(tech_guid,asset_guid));
 create table tech_effect(tech_guid int references tech(guid), effect_guid int);
@@ -1390,8 +1453,8 @@ if __name__ == "__main__":
         t.buildings,
         t.effects,
         t.items_,
+        t.phases,  # before techs: unlocks resolve monument phases to their building
         t.techs,
-        t.phases,
         t.quests,
         t.sources,
         t.finish,

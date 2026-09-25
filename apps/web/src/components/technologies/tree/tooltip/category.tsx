@@ -11,7 +11,7 @@ type Props = {
 }
 
 export function CategoryCard({ category }: Props) {
-  const t = useTranslations('component.technologies.popover')
+  const t = useTranslations('component.technologies.tree')
 
   return (
     <>

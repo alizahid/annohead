@@ -395,12 +395,36 @@ export const effectTargetPool = sqliteTable(
   'effect_target_pool',
   {
     effectGuid: integer('effect_guid').references(() => effect.guid),
+    /** the target's own icon, else its first member's */
+    icon: text(),
+    /** what the target holds */
+    kind: text({
+      enum: ['building', 'unit', 'ship'],
+    }),
+    /** a pool ("Warehouses") or a single asset ("Fishing Hut") */
+    nameText: integer('name_text'),
     poolGuid: integer('pool_guid'),
   },
   (table) => [
     primaryKey({
       columns: [table.effectGuid, table.poolGuid],
       name: 'effect_target_pool_effect_guid_pool_guid_pk',
+    }),
+  ],
+)
+
+/** The building a target stands for, one row per regional variant (Roman and Celtic Charcoal Burner). */
+export const effectTargetBuilding = sqliteTable(
+  'effect_target_building',
+  {
+    buildingGuid: integer('building_guid').references(() => building.guid),
+    effectGuid: integer('effect_guid').references(() => effect.guid),
+    poolGuid: integer('pool_guid'),
+  },
+  (table) => [
+    primaryKey({
+      columns: [table.effectGuid, table.poolGuid, table.buildingGuid],
+      name: 'effect_target_building_effect_guid_pool_guid_building_guid_pk',
     }),
   ],
 )
@@ -549,6 +573,7 @@ export const techCategory = sqliteTable('tech_category', {
 export const tech = sqliteTable('tech', {
   categoryGuid: integer('category_guid').references(() => techCategory.guid),
   descriptionText: integer('description_text'),
+  dlcGuid: integer('dlc_guid').references(() => dlc.guid),
   gridX: integer('grid_x'),
   gridY: integer('grid_y'),
   guid: integer().primaryKey(),
@@ -558,6 +583,7 @@ export const tech = sqliteTable('tech', {
   knowledgeNeeded: real('knowledge_needed'),
   name: text(),
   nameText: integer('name_text'),
+  regionId: integer('region_id').references(() => region.id),
   showConnectionToCategory: integer('show_connection_to_category', {
     mode: 'boolean',
   }),

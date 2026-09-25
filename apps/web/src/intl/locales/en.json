@@ -162,7 +162,20 @@
       }
     },
     "technologies": {
-      "popover": {
+      "page": {
+        "effects": {
+          "modifiers": "Modifiers",
+          "targets": "Targets",
+          "title": "Effects"
+        },
+        "other": {
+          "knowledgeNeeded": "Knowledge",
+          "title": "Other"
+        },
+        "rewards": "Rewards",
+        "unlocks": "Unlocks"
+      },
+      "tree": {
         "discovery": "Discovery",
         "effects": "Effects",
         "inspiration": "Inspiration",
@@ -211,6 +224,10 @@
     },
     "technologies": {
       "title": "Technologies × Annohead"
+    },
+    "technology": {
+      "fallback": "Technology",
+      "title": "{name} × Technologies × Annohead"
     }
   }
 }
