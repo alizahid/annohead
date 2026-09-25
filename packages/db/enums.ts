@@ -88,13 +88,21 @@ const regions = db
   >('select key from region order by id')
   .all()
 const dlcs = db
-  .query<{ key: string }, []>(
-    'select distinct key from dlc where key is not null order by key',
-  )
+  .query<
+    {
+      key: string
+    },
+    []
+  >('select distinct key from dlc where key is not null order by key')
   .all()
 // in-game building categories (Amenity, Pit, Quarry …) keyed by English text
 const buildingCategories = db
-  .query<{ value: string }, []>(
+  .query<
+    {
+      value: string
+    },
+    []
+  >(
     "select distinct t.value from building b join translation t on t.line_id = b.category_text join lang l on l.id = t.lang_id where l.code = 'english' order by t.value",
   )
   .all()

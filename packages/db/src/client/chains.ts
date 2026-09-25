@@ -73,7 +73,9 @@ function inCategory(
 ) {
   return exists(
     db
-      .select({ chainGuid: productionChainCategory.chainGuid })
+      .select({
+        chainGuid: productionChainCategory.chainGuid,
+      })
       .from(productionChainCategory)
       .where(
         and(

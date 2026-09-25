@@ -669,7 +669,10 @@ async function choiceRows(storylineGuids: Array<number>, lang: Lang) {
   ])
   const isChoice = new Set(guids)
   const reached = groupBy(
-    outcomes.map((o) => ({ ...o, key: `${o.choiceGuid}:${o.idx}` })),
+    outcomes.map((o) => ({
+      ...o,
+      key: `${o.choiceGuid}:${o.idx}`,
+    })),
     'key',
   )
   function lead(choice: number, idx: number) {
@@ -760,7 +763,16 @@ async function choiceRows(storylineGuids: Array<number>, lang: Lang) {
 
 /** One questline: its parts in order, each with its choices, what every option costs and requires, and what it leads to. */
 async function getQuestline({ id, lang }: Get) {
-  const head = (await queryQuestlines({ lang, perPage: 1 }, id)).rows[0] ?? null
+  const head =
+    (
+      await queryQuestlines(
+        {
+          lang,
+          perPage: 1,
+        },
+        id,
+      )
+    ).rows[0] ?? null
   const titleT = localized('title')
   const requestT = localized('request')
   const parts = await db
@@ -795,7 +807,10 @@ async function getQuestline({ id, lang }: Get) {
         // the game names a part's first decision after the part
         choices: choices(part.guid).map((choice) =>
           choice.headline === questText(part.name, lang)
-            ? { ...choice, headline: null }
+            ? {
+                ...choice,
+                headline: null,
+              }
             : choice,
         ),
         description: questText(part.description, lang),

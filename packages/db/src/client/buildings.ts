@@ -68,7 +68,9 @@ function buildingWhere(f: BuildingFilter) {
     f.tiers?.length
       ? exists(
           db
-            .select({ buildingGuid: buildingMaintenance.buildingGuid })
+            .select({
+              buildingGuid: buildingMaintenance.buildingGuid,
+            })
             .from(buildingMaintenance)
             .innerJoin(
               populationLevel,

@@ -59,7 +59,12 @@ const kindNames: Record<Lang, Record<ProductKind, string>> = {
 }
 
 function kindLabel(key: ProductKind | null, lang: Lang) {
-  return key === null ? null : { key, name: kindNames[lang][key] }
+  return key === null
+    ? null
+    : {
+        key,
+        name: kindNames[lang][key],
+      }
 }
 
 function kinds({ lang }: { lang: Lang }) {
@@ -76,7 +81,9 @@ const regularNeed = sql`coalesce(${residenceNeed.buffOnly}, 0) = 0`
 function producerWhere(condition: SQL) {
   return exists(
     db
-      .select({ one: sql`1` })
+      .select({
+        one: sql`1`,
+      })
       .from(factoryOutput)
       .innerJoin(building, eq(building.guid, factoryOutput.buildingGuid))
       .where(and(eq(factoryOutput.productGuid, product.guid), condition)),
@@ -97,7 +104,9 @@ async function queryProducts(f: ProductFilter & Page, id?: number) {
     f.tiers?.length
       ? exists(
           db
-            .select({ one: sql`1` })
+            .select({
+              one: sql`1`,
+            })
             .from(need)
             .innerJoin(residenceNeed, eq(residenceNeed.needGuid, need.guid))
             .innerJoin(

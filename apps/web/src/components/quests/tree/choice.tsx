@@ -5,7 +5,12 @@ import { useTranslations } from 'next-intl'
 import { DataList } from '../../data-list'
 import { QuestHandle } from './handle'
 
-export type ChoiceNode = Node<{ choice: QuestChoice }, 'choice'>
+export type ChoiceNode = Node<
+  {
+    choice: QuestChoice
+  },
+  'choice'
+>
 
 export function QuestChoiceNode({ data: { choice } }: NodeProps<ChoiceNode>) {
   const t = useTranslations('component.quests.choice')

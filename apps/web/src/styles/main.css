@@ -102,22 +102,17 @@ h6 {
   @apply font-black;
 }
 
-/* React Flow: static quest charts in the site's grays */
+/* react-flow */
+
 .react-flow {
   --xy-edge-stroke-default: var(--color-gray-7);
   --xy-edge-stroke-width-default: 2;
-  --xy-controls-button-background-color-default: var(--color-gray-3);
-  --xy-controls-button-background-color-hover-default: var(--color-gray-4);
-  --xy-controls-button-color-default: var(--color-gray-12);
-  --xy-controls-button-color-hover-default: var(--color-gray-12);
-  --xy-controls-button-border-color-default: var(--color-gray-5);
 }
 
-.react-flow .follow-up path {
-  stroke-dasharray: 6 6;
+.react-flow__controls {
+  @apply m-4 bg-gray-4 rounded-sm;
 }
 
-.react-flow .react-flow__controls {
-  overflow: hidden;
-  border-radius: var(--radius-md);
+.react-flow__controls-button {
+  @apply outline-none focus-visible:ring-2 ring-accent-8 rounded-sm;
 }

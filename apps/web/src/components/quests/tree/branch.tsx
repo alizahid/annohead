@@ -8,7 +8,12 @@ import { DataList } from '../../data-list'
 import { QuestHandle } from './handle'
 import { QuestOutcomeList } from './outcome'
 
-export type BranchNode = Node<{ option: QuestOption }, 'branch'>
+export type BranchNode = Node<
+  {
+    option: QuestOption
+  },
+  'branch'
+>
 
 export function QuestBranchNode({ data: { option } }: NodeProps<BranchNode>) {
   const t = useTranslations('component.quests.choice')

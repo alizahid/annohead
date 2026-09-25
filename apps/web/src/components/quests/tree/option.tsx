@@ -6,7 +6,12 @@ import { DataList } from '../../data-list'
 import { QuestHandle } from './handle'
 import { QuestOutcomeList } from './outcome'
 
-export type OptionNode = Node<{ option: QuestOption }, 'option'>
+export type OptionNode = Node<
+  {
+    option: QuestOption
+  },
+  'option'
+>
 
 export function QuestOptionNode({ data: { option } }: NodeProps<OptionNode>) {
   const t = useTranslations('component.quests.choice')

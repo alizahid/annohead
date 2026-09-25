@@ -240,7 +240,16 @@ async function queryTechs(f: TechFilter, id?: number) {
 }
 
 async function get({ id, lang }: Get) {
-  return (await queryTechs({ lang }, id))[0] ?? null
+  return (
+    (
+      await queryTechs(
+        {
+          lang,
+        },
+        id,
+      )
+    )[0] ?? null
+  )
 }
 
 async function list(f: TechFilter) {

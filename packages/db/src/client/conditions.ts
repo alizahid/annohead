@@ -84,7 +84,10 @@ const DEFAULT_VARIANTS: Partial<Record<ConditionTemplate, string>> = {
   ConditionPlayerCounter: 'ObjectCount',
 }
 
-type Param = { key: string | null; value: string | null }
+type Param = {
+  key: string | null
+  value: string | null
+}
 
 const SCOPE_KEY = /^(ConditionLocationFilter|CounterScope)/
 
@@ -108,7 +111,11 @@ function variableCheck(params: Array<Param>) {
  * e.g. any of three games), one null entry without. Rows keep their own fields except `id`.
  */
 export async function describeConditions<
-  T extends { id: number; type: ConditionTemplate; negate?: number | null },
+  T extends {
+    id: number
+    type: ConditionTemplate
+    negate?: number | null
+  },
 >(rows: Array<T>, lang: Lang) {
   const params = groupBy(
     rows.length

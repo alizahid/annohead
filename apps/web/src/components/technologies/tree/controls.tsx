@@ -1,63 +1,42 @@
 'use client'
 
 import { type TechCategories } from '@anno/db/client'
-import {
-  ArrowsInIcon,
-  MagnifyingGlassMinusIcon,
-  MagnifyingGlassPlusIcon,
-} from '@phosphor-icons/react'
-import { useControls } from 'react-zoom-pan-pinch'
+import { useReactFlow } from '@xyflow/react'
 
 import { Icon } from '../../common/icon'
-import { IconButton } from '../../common/icon-button'
+import { HUB_FOCUS_ZOOM } from './helpers'
 
 type Props = {
-  categories: TechCategories
+  categories: Array<
+    TechCategories[number] & {
+      x: number
+      y: number
+    }
+  >
 }
 
-export function Controls({ categories }: Props) {
-  const { fitToView, zoomIn, zoomOut, zoomToElement } = useControls()
+export function CategoryControls({ categories }: Props) {
+  const { setCenter } = useReactFlow()
 
   return (
-    <div className="pointer-events-none absolute inset-x-4 bottom-4 flex flex-wrap items-end justify-between gap-2">
-      <div className="flex flex-wrap gap-2">
-        {categories.map((category) => (
-          <IconButton
-            className="pointer-events-auto bg-gray-3 enabled:hover:bg-gray-4"
-            key={category.guid}
-            onClick={() => {
-              zoomToElement(`tech-category-${category.guid}`, 0.6)
-            }}
-          >
-            {category.icon ? (
-              <Icon className="size-7" icon={category.icon} />
-            ) : null}
-          </IconButton>
-        ))}
-      </div>
-
-      <div className="flex gap-2">
-        <IconButton
-          className="pointer-events-auto bg-gray-3 enabled:hover:bg-gray-4"
-          onClick={() => zoomOut()}
+    <div className="pointer-events-none absolute right-4 bottom-4 z-10 flex flex-wrap gap-1 rounded-sm bg-gray-4">
+      {categories.map((category) => (
+        <button
+          className="pointer-events-auto flex size-8 items-center justify-center rounded-sm outline-none ring-accent-8 focus-visible:ring-2 enabled:hover:bg-gray-5"
+          key={category.guid}
+          onClick={async () => {
+            await setCenter(category.x, category.y, {
+              duration: 300,
+              zoom: HUB_FOCUS_ZOOM,
+            })
+          }}
+          type="button"
         >
-          <MagnifyingGlassMinusIcon className="size-5 text-gray-12" />
-        </IconButton>
-
-        <IconButton
-          className="pointer-events-auto bg-gray-3 enabled:hover:bg-gray-4"
-          onClick={() => zoomIn()}
-        >
-          <MagnifyingGlassPlusIcon className="size-5 text-gray-12" />
-        </IconButton>
-
-        <IconButton
-          className="pointer-events-auto bg-gray-3 enabled:hover:bg-gray-4"
-          onClick={() => fitToView()}
-        >
-          <ArrowsInIcon className="size-5 text-gray-12" />
-        </IconButton>
-      </div>
+          {category.icon ? (
+            <Icon className="size-6" icon={category.icon} />
+          ) : null}
+        </button>
+      ))}
     </div>
   )
 }

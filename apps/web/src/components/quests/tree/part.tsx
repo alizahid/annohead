@@ -5,7 +5,13 @@ import { useFormatter, useTranslations } from 'next-intl'
 import { Icon } from '../../common/icon'
 import { QuestHandle } from './handle'
 
-export type PartNode = Node<{ index: number; part: QuestPart }, 'part'>
+export type PartNode = Node<
+  {
+    index: number
+    part: QuestPart
+  },
+  'part'
+>
 
 export function QuestPartNode({ data: { index, part } }: NodeProps<PartNode>) {
   const t = useTranslations('component.quests.page')

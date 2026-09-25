@@ -53,11 +53,21 @@ const typeNames: Record<Lang, Record<BuildingType, string>> = {
 }
 
 export function kindLabel(key: BuildingKind | null, lang: Lang) {
-  return key === null ? null : { key, name: kindNames[lang][key] }
+  return key === null
+    ? null
+    : {
+        key,
+        name: kindNames[lang][key],
+      }
 }
 
 export function typeLabel(key: BuildingType | null, lang: Lang) {
-  return key === null ? null : { key, name: typeNames[lang][key] }
+  return key === null
+    ? null
+    : {
+        key,
+        name: typeNames[lang][key],
+      }
 }
 
 export function kinds({ lang }: { lang: Lang }) {

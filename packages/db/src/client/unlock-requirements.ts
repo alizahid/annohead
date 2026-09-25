@@ -29,7 +29,9 @@ export async function unlockRequirements(guids: Array<number>, lang: Lang) {
           rows.map((row) => row.conditionId),
         ),
       ),
-    populationTiers.list({ lang }),
+    populationTiers.list({
+      lang,
+    }),
   ])
   const params = groupBy(parameters, 'conditionId')
   return rows.map(({ conditionId, negate, ...row }) => {
@@ -50,7 +52,10 @@ export async function unlockRequirements(guids: Array<number>, lang: Lang) {
       negate: Boolean(negate),
       parameters: values,
       population: tier
-        ? { ...tier, amount: Number(values.CounterAmount) }
+        ? {
+            ...tier,
+            amount: Number(values.CounterAmount),
+          }
         : null,
     }
   })

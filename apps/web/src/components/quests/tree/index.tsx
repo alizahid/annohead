@@ -29,11 +29,17 @@ const PADDING = 24
 const NODE_GAP = 24
 const RANK_GAP = 64
 const PART_GAP = 64
-const ORIGIN = { x: 0, y: 0 }
+const ORIGIN = {
+  x: 0,
+  y: 0,
+}
 
 type FlowNode = BranchNode | ChoiceNode | OptionNode | PartNode
 
-type Size = { height: number; width: number }
+type Size = {
+  height: number
+  width: number
+}
 
 function partId(guid: number) {
   return `part-${guid}`
@@ -57,7 +63,10 @@ function graph(quest: Quest) {
     const choices = new Set(part.choices.map((choice) => choice.guid))
 
     nodes.push({
-      data: { index, part },
+      data: {
+        index,
+        part,
+      },
       id: parentId,
       position: ORIGIN,
       type: 'part',
@@ -67,7 +76,9 @@ function graph(quest: Quest) {
       const source = choiceId(choice.guid)
 
       nodes.push({
-        data: { choice },
+        data: {
+          choice,
+        },
         id: source,
         parentId,
         position: ORIGIN,
@@ -76,15 +87,32 @@ function graph(quest: Quest) {
 
       for (const option of choice.options) {
         const id = optionId(choice.guid, option.idx)
-        const node = { data: { option }, id, parentId, position: ORIGIN }
+        const node = {
+          data: {
+            option,
+          },
+          id,
+          parentId,
+          position: ORIGIN,
+        }
 
         nodes.push(
           choice.kind === 'check'
-            ? { ...node, type: 'branch' }
-            : { ...node, type: 'option' },
+            ? {
+                ...node,
+                type: 'branch',
+              }
+            : {
+                ...node,
+                type: 'option',
+              },
         )
 
-        edges.push({ id: `${source}:${id}`, source, target: id })
+        edges.push({
+          id: `${source}:${id}`,
+          source,
+          target: id,
+        })
 
         if (option.next !== null && choices.has(option.next)) {
           edges.push({
@@ -113,7 +141,10 @@ function graph(quest: Quest) {
     }
   }
 
-  return { edges, nodes }
+  return {
+    edges,
+    nodes,
+  }
 }
 
 function layout(nodes: Array<FlowNode>, edges: Array<Edge>) {
@@ -121,7 +152,13 @@ function layout(nodes: Array<FlowNode>, edges: Array<Edge>) {
     height: node.measured?.height ?? 0,
     width: node.measured?.width ?? 0,
   })
-  const position = new Map<string, { x: number; y: number }>()
+  const position = new Map<
+    string,
+    {
+      x: number
+      y: number
+    }
+  >()
   const frame = new Map<string, Size>()
 
   let left = 0
@@ -168,7 +205,10 @@ function layout(nodes: Array<FlowNode>, edges: Array<Edge>) {
     const bounds = chart.graph()
     const width = Math.max(header.width, bounds.width ?? 0)
 
-    position.set(part.id, { x: left, y: 0 })
+    position.set(part.id, {
+      x: left,
+      y: 0,
+    })
     frame.set(part.id, {
       height: header.height + (members.length ? (bounds.height ?? 0) : PADDING),
       width,
@@ -209,7 +249,11 @@ function Flow({ quest }: Props) {
       requestAnimationFrame(async () => {
         await fitView({
           maxZoom: 1,
-          nodes: [{ id: partId(first.guid) }],
+          nodes: [
+            {
+              id: partId(first.guid),
+            },
+          ],
           padding: 0.05,
         })
       })

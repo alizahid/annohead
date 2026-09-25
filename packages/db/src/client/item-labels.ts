@@ -112,15 +112,30 @@ const typeNames: Record<Lang, Record<ItemType, string>> = {
 }
 
 export function rarityLabel(key: Rarity | null, lang: Lang) {
-  return key === null ? null : { key, name: rarityNames[lang][key] }
+  return key === null
+    ? null
+    : {
+        key,
+        name: rarityNames[lang][key],
+      }
 }
 
 export function nicheLabel(key: Niche | null, lang: Lang) {
-  return key === null ? null : { key, name: nicheNames[lang][key] }
+  return key === null
+    ? null
+    : {
+        key,
+        name: nicheNames[lang][key],
+      }
 }
 
 export function typeLabel(key: ItemType | null, lang: Lang) {
-  return key === null ? null : { key, name: typeNames[lang][key] }
+  return key === null
+    ? null
+    : {
+        key,
+        name: typeNames[lang][key],
+      }
 }
 
 export function allocations({ lang }: { lang: Lang }) {
