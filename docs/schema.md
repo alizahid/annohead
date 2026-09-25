@@ -79,7 +79,7 @@ Area effects exclude flat modifiers that duplicate the same building's service n
 Sub-tables:
 
 - `building_production` (FactoryBase): `inputs[] (product, amount, storage)`, `outputs[]`, `cycle_time`,
-  `base_productivity`, `transporter_range`, fertility/field requirements for farms.
+  `base_productivity`, `transporter_range`, `needs_fuel` (`NeedsFuelInput`: coal-fired), fertility/field requirements for farms.
 - `building_residence` (Residence7): `population_level`, `needs[] (need, consumption_rate, buff_only)`,
   `upgrade_thresholds`, `upgrades_to (building, cost[])`.
 - `building_public_service` (PublicService): service effect.

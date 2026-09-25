@@ -1,5 +1,11 @@
 {
   "annohead": "Annohead",
+  "common": {
+    "Celtic": "Albion",
+    "Egyptian": "Delta",
+    "Roman": "Latium",
+    "needsFuel": "Needs coal"
+  },
   "component": {
     "auth": {
       "signIn": {
@@ -62,6 +68,7 @@
           "baseProductivity": "Base productivity",
           "category": "Category",
           "cycleTime": "Cycle time",
+          "needsFuel": "Needs coal",
           "radius": "Radius",
           "streetRadius": "Street radius",
           "template": "Template",
@@ -211,6 +218,10 @@
     },
     "buildings": {
       "title": "Buildings × Annohead"
+    },
+    "chain": {
+      "fallback": "Chain",
+      "title": "{name} × Production chains × Annohead"
     },
     "item": {
       "fallback": "Item",

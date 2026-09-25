@@ -498,12 +498,13 @@ class T:
             if "FactoryBase" in v:
                 fb = D(fb)
                 self.db.execute(
-                    "insert into factory values(?,?,?,?)",
+                    "insert into factory values(?,?,?,?,?)",
                     (
                         a["guid"],
                         self.num(fb.get("CycleTime"), 30),
                         self.num(fb.get("BaseProductivity"), 100),
                         self.num(fb.get("MaxTransporterRange")),
+                        fb.get("NeedsFuelInput") == "1",
                     ),
                 )
                 for tbl, key in (
@@ -1355,7 +1356,7 @@ create table building_effect(building_guid int references building(guid), effect
 create table building_phase(guid integer primary key, building_guid int references building(guid), phase int, name_text integer, duration_seconds int);
 create table building_phase_cost(phase_guid int references building_phase(guid), product_guid int references product(guid), amount real);
 create table building_phase_maintenance(phase_guid int references building_phase(guid), product_guid int references product(guid), amount real);
-create table factory(building_guid integer primary key references building(guid), cycle_time real, base_productivity real, transporter_range int);
+create table factory(building_guid integer primary key references building(guid), cycle_time real, base_productivity real, transporter_range int, needs_fuel int not null default 0);
 create table factory_input(building_guid int references building(guid), product_guid int references product(guid), amount real, storage int);
 create table factory_output(building_guid int references building(guid), product_guid int references product(guid), amount real, storage int);
 create table residence(building_guid integer primary key references building(guid), population_level_guid int references population_level(guid), upgrade_to_guid int);

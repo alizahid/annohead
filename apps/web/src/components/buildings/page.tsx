@@ -199,6 +199,13 @@ export function BuildingPage({ building }: Props) {
           ) : null}
 
           <DataList.Root title={t('other.title')}>
+            {building.needsFuel ? (
+              <DataList.Item
+                icon={getIcon('common.coal')}
+                name={t('other.needsFuel')}
+              />
+            ) : null}
+
             {building.baseProductivity ? (
               <DataList.Item
                 name={t('other.baseProductivity')}

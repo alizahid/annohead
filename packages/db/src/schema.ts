@@ -282,6 +282,9 @@ export const factory = sqliteTable('factory', {
     .primaryKey()
     .references(() => building.guid),
   cycleTime: real('cycle_time'),
+  needsFuel: integer('needs_fuel', { mode: 'boolean' })
+    .notNull()
+    .default(false),
   transporterRange: integer('transporter_range'),
 })
 

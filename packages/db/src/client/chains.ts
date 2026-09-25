@@ -4,6 +4,8 @@ import { db } from '../db'
 import { type Lang } from '../enums'
 import {
   building,
+  dlc,
+  factory,
   productionChain,
   productionChainNode,
   region,
@@ -29,6 +31,7 @@ async function list(f: ChainFilter & Page) {
   const nameT = localized('name')
   const bName = localized('b_name')
   const nName = localized('n_name')
+  const dlcT = localized('dlc_name')
   const where = and(
     f.guid ? eq(productionChain.guid, f.guid) : undefined,
     f.search ? like(nameT.value, `%${f.search}%`) : undefined,
@@ -50,6 +53,12 @@ async function list(f: ChainFilter & Page) {
           icon: building.icon,
           name: bName.value,
         },
+        dlc: {
+          guid: dlc.guid,
+          icon: dlc.icon,
+          key: dlc.key,
+          name: dlcT.value,
+        },
         guid: productionChain.guid,
         icon: productionChain.icon,
         name: nameT.value,
@@ -60,6 +69,8 @@ async function list(f: ChainFilter & Page) {
       .leftJoin(region, eq(region.id, productionChain.regionId))
       .leftJoin(building, eq(building.guid, productionChain.buildingGuid))
       .leftJoin(bName, on(bName, building.nameText, f.lang))
+      .leftJoin(dlc, eq(dlc.guid, building.dlcGuid))
+      .leftJoin(dlcT, on(dlcT, dlc.nameText, f.lang))
       .where(where)
       .orderBy(asc(nameT.value), asc(productionChain.guid))
       .limit(limit)
@@ -73,12 +84,16 @@ async function list(f: ChainFilter & Page) {
       icon: building.icon,
       id: productionChainNode.id,
       name: nName.value,
+      needsFuel: factory.needsFuel,
       parentId: productionChainNode.parentId,
+      region: regionColumns,
       tier: productionChainNode.tier,
     })
     .from(productionChainNode)
     .innerJoin(building, eq(building.guid, productionChainNode.buildingGuid))
     .leftJoin(nName, on(nName, building.nameText, f.lang))
+    .leftJoin(region, eq(region.id, building.regionId))
+    .leftJoin(factory, eq(factory.buildingGuid, building.guid))
     .where(inArray(productionChainNode.chainGuid, guids))
     .orderBy(asc(productionChainNode.tier), asc(productionChainNode.id))
   const n = groupBy(nodes, 'chainGuid')
@@ -86,6 +101,7 @@ async function list(f: ChainFilter & Page) {
     pages: Math.ceil(total / limit),
     rows: rows.map((c) => ({
       ...c,
+      dlc: c.dlc?.guid ? c.dlc : null,
       nodes: n(c.guid),
     })),
     total,

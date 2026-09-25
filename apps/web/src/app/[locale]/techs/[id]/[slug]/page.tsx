@@ -8,7 +8,7 @@ import { getId, validateLocale } from '@/lib/validators'
 
 export async function generateMetadata({
   params,
-}: PageProps<'/[locale]/buildings/[id]/[slug]'>): Promise<Metadata> {
+}: PageProps<'/[locale]/techs/[id]/[slug]'>): Promise<Metadata> {
   const { locale, id } = await params
 
   const tech = await anno.techs.get({

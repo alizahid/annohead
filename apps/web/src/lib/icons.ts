@@ -11,6 +11,8 @@ const icons = {
   'attribute.Money': '/img/anno/icon_2d_income_0.png',
   'attribute.Population': '/img/anno/icon_2d_population_0.png',
   'attribute.Prestige': '/img/anno/icon_2d_prestige_0.png',
+  'common.coal':
+    'data/ui/fhd/base/icon_content/production_goods/icon_3d_coal_ore_goods.png',
   'dlc.DLC01_Prophecies_of_Ash': '/img/anno/icon_3d_dlc_category_volcano_0.png',
   'dlc.DLC02_The_Hippodrome':
     '/img/anno/icon_3d_dlc_category_circus_maximus_0.png',

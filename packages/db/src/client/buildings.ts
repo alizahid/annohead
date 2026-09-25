@@ -326,6 +326,7 @@ async function queryBuildings(f: BuildingFilter & Page, id?: number) {
         icon: building.icon,
         kind: building.kind,
         name: nameT.value,
+        needsFuel: factory.needsFuel,
         radius: building.radius,
         region: regionColumns,
         streetRadius: building.streetRadius,
