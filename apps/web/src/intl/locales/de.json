@@ -83,6 +83,28 @@
         }
       }
     },
+    "chains": {
+      "calculator": {
+        "baseProductivity": "Base productivity",
+        "buildings": "× {required, number, required}",
+        "count": "Number of {name}",
+        "cycleTime": "Cycle time",
+        "inputs": "Inputs",
+        "output": "Output",
+        "title": "Calculator",
+        "tons": "{tons, number, tons} tons / min"
+      },
+      "filters": {
+        "dlcs": "DLC",
+        "regions": "Region",
+        "tiers": "Population tier",
+        "types": "Type"
+      },
+      "list": {
+        "empty": "Nothing found",
+        "title": "Production chains"
+      }
+    },
     "comments": {
       "form": {
         "action": {
@@ -136,6 +158,10 @@
       "main": {
         "footer": {
           "copyright": "© {year} Annohead. All rights reserved."
+        },
+        "language": {
+          "de": "German",
+          "en": "English"
         },
         "nav": {
           "buildings": "Buildings",
@@ -222,6 +248,9 @@
     "chain": {
       "fallback": "Chain",
       "title": "{name} × Production chains × Annohead"
+    },
+    "chains": {
+      "title": "Production chains × Annohead"
     },
     "item": {
       "fallback": "Item",

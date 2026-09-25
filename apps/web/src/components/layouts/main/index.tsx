@@ -5,6 +5,7 @@ import { AuthProfile } from '@/components/auth/profile'
 import { Logo } from '@/components/common/logo'
 import { SearchBox } from '@/components/search/box'
 
+import { LanguageSelector } from './language-selector'
 import { Navigation } from './navigation'
 
 type Props = {
@@ -16,21 +17,21 @@ export function MainLayout({ children }: Props) {
 
   return (
     <div className="mx-auto flex min-h-screen max-w-7xl flex-col gap-12 p-6">
-      <div className="flex flex-col gap-4">
-        <div className="col-start-1 flex items-center gap-4">
-          <Logo className="h-8" />
+      <header className="flex flex-col gap-4">
+        <div className="flex items-center gap-4">
+          <Logo className="hidden h-8 shrink-0 md:block" />
 
           <Navigation className="flex-1" />
+
+          <LanguageSelector />
+
+          <AuthProfile />
         </div>
 
-        <header className="grid grid-cols-[1fr_2.5rem] items-center gap-4">
-          <Suspense>
-            <SearchBox className="col-span-1" />
-          </Suspense>
-
-          <AuthProfile className="col-start-2" />
-        </header>
-      </div>
+        <Suspense>
+          <SearchBox />
+        </Suspense>
+      </header>
 
       <main className="flex flex-1 flex-col">{children}</main>
 

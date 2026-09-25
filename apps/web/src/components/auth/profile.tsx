@@ -20,7 +20,7 @@ export function AuthProfile({ className }: Props) {
   return (
     <div
       className={cn(
-        'flex size-10 items-center justify-center rounded-lg outline-none ring-accent-8 focus-within:ring-2 focus-visible:ring-2',
+        'flex size-10 shrink-0 items-center justify-center rounded-lg outline-none ring-accent-8 focus-within:ring-2 focus-visible:ring-2',
         className,
       )}
     >
