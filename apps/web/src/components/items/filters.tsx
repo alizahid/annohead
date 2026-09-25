@@ -15,7 +15,6 @@ import {
 } from '@anno/db/enums'
 import { Checkbox } from '@base-ui/react/checkbox'
 import { CheckboxGroup } from '@base-ui/react/checkbox-group'
-import { orderBy } from 'lodash'
 import { useTranslations } from 'next-intl'
 import { useQueryStates } from 'nuqs'
 
@@ -63,7 +62,7 @@ export function ItemFiltersCard({
           }}
           value={filters.dlcs ? filters.dlcs.map(String) : []}
         >
-          {orderBy(dlcs, 'guid').map((item) => (
+          {dlcs.map((item) => (
             <Checkbox.Root
               className="flex h-8 items-center gap-2 rounded-md px-1 outline-none ring-accent-8 transition-colors hover:bg-accent-4 focus-visible:ring-2 data-checked:bg-accent-5"
               key={item.guid}

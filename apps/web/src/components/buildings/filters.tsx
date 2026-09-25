@@ -50,7 +50,7 @@ export function BuildingFiltersCard({ dlcs, kinds, regions, tiers }: Props) {
           }}
           value={filters.regions ? filters.regions.map(String) : []}
         >
-          {orderBy(regions, 'id').map((item) => (
+          {regions.map((item) => (
             <Checkbox.Root
               className="flex h-8 items-center gap-2 rounded-md px-1 outline-none ring-accent-8 transition-colors hover:bg-accent-4 focus-visible:ring-2 data-checked:bg-accent-5"
               key={item.id}
@@ -126,7 +126,7 @@ export function BuildingFiltersCard({ dlcs, kinds, regions, tiers }: Props) {
           }}
           value={filters.dlcs ? filters.dlcs.map(String) : []}
         >
-          {orderBy(dlcs, 'guid').map((item) => (
+          {dlcs.map((item) => (
             <Checkbox.Root
               className="flex h-8 items-center gap-2 rounded-md px-1 outline-none ring-accent-8 transition-colors hover:bg-accent-4 focus-visible:ring-2 data-checked:bg-accent-5"
               key={item.guid}

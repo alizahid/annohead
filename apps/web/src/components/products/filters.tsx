@@ -1,12 +1,13 @@
 'use client'
 
 import {
-  type ChainTypes,
   type Dlcs,
   type PopulationTiers,
+  type ProductCategories,
+  type ProductStorageLevels,
   type Regions,
 } from '@anno/db/client'
-import { type ChainType } from '@anno/db/enums'
+import { type StorageLevel, type TransportType } from '@anno/db/enums'
 import { Checkbox } from '@base-ui/react/checkbox'
 import { CheckboxGroup } from '@base-ui/react/checkbox-group'
 import { orderBy } from 'lodash'
@@ -15,23 +16,30 @@ import { useQueryStates } from 'nuqs'
 
 import { useRouter } from '@/intl/nav'
 import { getIcon } from '@/lib/icons'
-import { chainFilters } from '@/lib/validators'
+import { productFilters } from '@/lib/validators'
 
 import { Icon } from '../common/icon'
 
 type Props = {
+  categories: ProductCategories
   dlcs: Dlcs
   regions: Regions
+  storageLevels: ProductStorageLevels
   tiers: PopulationTiers
-  types: ChainTypes
 }
 
-export function ChainFiltersCard({ dlcs, regions, tiers, types }: Props) {
+export function ProductFiltersCard({
+  categories,
+  dlcs,
+  regions,
+  storageLevels,
+  tiers,
+}: Props) {
   const router = useRouter()
 
-  const t = useTranslations('component.chains.filters')
+  const t = useTranslations('component.products.filters')
 
-  const [filters, setFilters] = useQueryStates(chainFilters)
+  const [filters, setFilters] = useQueryStates(productFilters)
 
   return (
     <div className="grid gap-8 md:grid-cols-4 lg:flex lg:w-64 lg:flex-col">
@@ -141,27 +149,62 @@ export function ChainFiltersCard({ dlcs, regions, tiers, types }: Props) {
       </div>
 
       <div className="flex flex-col gap-4">
-        <h3>{t('types')}</h3>
+        <h3>{t('categories')}</h3>
+
+        <CheckboxGroup
+          className="flex flex-col gap-2"
+          onValueChange={async (next) => {
+            await setFilters({
+              category: next as Array<TransportType>,
+              page: null,
+            })
+
+            router.refresh()
+          }}
+          value={filters.category ? filters.category.map(String) : []}
+        >
+          {categories.map((item) => (
+            <Checkbox.Root
+              className="flex h-8 items-center gap-2 rounded-md px-1 outline-none ring-accent-8 transition-colors hover:bg-accent-4 focus-visible:ring-2 data-checked:bg-accent-5"
+              key={item.key}
+              value={item.key}
+            >
+              <Checkbox.Indicator
+                className="ml-0.5 flex size-5 items-center justify-center rounded-full border border-gray-12 data-checked:border-0 data-checked:bg-gray-12"
+                keepMounted
+              />
+
+              <span className="font-bold text-sm">{item.name}</span>
+            </Checkbox.Root>
+          ))}
+        </CheckboxGroup>
+      </div>
+
+      <div className="flex flex-col gap-4">
+        <h3>{t('storageLevels')}</h3>
 
         <CheckboxGroup
           className="flex flex-col gap-2"
           onValueChange={async (next) => {
             await setFilters({
               page: null,
-              type: next as Array<ChainType>,
+              storage: next as Array<StorageLevel>,
             })
 
             router.refresh()
           }}
-          value={filters.type ? filters.type.map(String) : []}
+          value={filters.storage ? filters.storage.map(String) : []}
         >
-          {types.map((item) => (
+          {storageLevels.map((item) => (
             <Checkbox.Root
               className="flex h-8 items-center gap-2 rounded-md px-1 outline-none ring-accent-8 transition-colors hover:bg-accent-4 focus-visible:ring-2 data-checked:bg-accent-5"
               key={item.key}
               value={item.key}
             >
-              <Icon className="size-6" icon={item.icon} />
+              <Checkbox.Indicator
+                className="ml-0.5 flex size-5 items-center justify-center rounded-full border border-gray-12 data-checked:border-0 data-checked:bg-gray-12"
+                keepMounted
+              />
 
               <span className="font-bold text-sm">{item.name}</span>
             </Checkbox.Root>

@@ -20,7 +20,7 @@ async function list({ lang }: DlcFilter) {
     })
     .from(dlcTable)
     .leftJoin(nameT, on(nameT, dlcTable.nameText, lang))
-    .orderBy(asc(nameT.value), asc(dlcTable.guid))
+    .orderBy(asc(dlcTable.guid))
   return rows
 }
 

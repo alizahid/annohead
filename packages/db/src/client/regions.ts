@@ -1,3 +1,5 @@
+import { asc } from 'drizzle-orm'
+
 import { db } from '../db'
 import { type Lang } from '../enums'
 import { region } from '../schema'
@@ -7,14 +9,9 @@ export type RegionFilter = {
   lang: Lang
 }
 
-async function list({ lang }: RegionFilter) {
-  const rows = await db.select(regionColumns).from(region)
-  // Region names are stored without translations; use the locale for ordering.
-  const collator = new Intl.Collator(lang)
-  rows.sort(
-    (a, b) => collator.compare(a.name ?? '', b.name ?? '') || a.id - b.id,
-  )
-  return rows
+/** oldest first */
+async function list(_: RegionFilter) {
+  return await db.select(regionColumns).from(region).orderBy(asc(region.id))
 }
 
 export const regions = {

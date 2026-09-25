@@ -379,6 +379,43 @@ test('products and techs', async () => {
       })
     )?.name,
   ).toBe(p.rows[0]?.name)
+  const meta = await anno.products.list({
+    categories: ['Raw'],
+    lang: 'en',
+    storageLevels: ['Meta'],
+  })
+  expect(meta.total).toBe(7)
+  const dlcProducts = await anno.products.list({
+    dlcs: [67_902],
+    lang: 'en',
+  })
+  expect(dlcProducts.rows.map((r) => r.name)).toEqual([
+    'Latrunculi Sets',
+    'Statuettes',
+  ])
+  expect(dlcProducts.rows.every((r) => r.dlc?.guid === 67_902)).toBe(true)
+  const wineRow = await anno.products.get({ id: 2138, lang: 'en' })
+  expect(wineRow?.dlc).toBeNull()
+  expect(wineRow?.regions.length).toBeGreaterThan(0)
+  // Wine is needed from Equites up
+  async function needsWine(tier: number) {
+    const r = await anno.products.list({ lang: 'en', tiers: [tier] })
+    return r.rows.some((row) => row.guid === 2138)
+  }
+  expect(await needsWine(1499)).toBe(false)
+  expect(await needsWine(1496)).toBe(true)
+  expect(await needsWine(1498)).toBe(true)
+  const roman = await anno.products.list({
+    lang: 'en',
+    regions: [1],
+  })
+  expect(roman.total).toBe(94)
+  expect(roman.rows.every((r) => r.regions.some((x) => x.id === 1))).toBe(true)
+  expect(anno.products.categories({ lang: 'de' })).toContainEqual({
+    key: 'Raw',
+    name: 'Rohmaterial',
+  })
+  expect(anno.products.storageLevels({ lang: 'en' })).toHaveLength(3)
   const t = await anno.techs.list({
     lang: 'en',
     search: 'Armoursmithing',
