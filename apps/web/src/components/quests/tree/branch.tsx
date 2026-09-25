@@ -27,7 +27,6 @@ export function QuestBranchNode({ data: { option } }: NodeProps<BranchNode>) {
 
       <div className="flex size-14 shrink-0 items-center justify-center">
         <div
-          aria-label={label}
           className={cn(
             'flex size-10 rotate-45 items-center justify-center rounded-md text-white',
             holds ? 'bg-green-9' : 'bg-red-9',

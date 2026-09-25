@@ -33,6 +33,8 @@ const ORIGIN = {
   x: 0,
   y: 0,
 }
+// room around the chart before panning stops, as on the tech tree
+const EXTENT_PADDING = 100
 
 type FlowNode = BranchNode | ChoiceNode | OptionNode | PartNode
 
@@ -224,6 +226,26 @@ function layout(nodes: Array<FlowNode>, edges: Array<Edge>) {
   }))
 }
 
+/** panning stops this far past the parts; members sit inside their part, so parts alone bound the chart */
+function extentOf(
+  nodes: Array<FlowNode>,
+): [[number, number], [number, number]] {
+  const parts = nodes.filter((node) => !node.parentId)
+  const left = Math.min(...parts.map((node) => node.position.x))
+  const top = Math.min(...parts.map((node) => node.position.y))
+  const right = Math.max(
+    ...parts.map((node) => node.position.x + (node.width ?? 0)),
+  )
+  const bottom = Math.max(
+    ...parts.map((node) => node.position.y + (node.height ?? 0)),
+  )
+
+  return [
+    [left - EXTENT_PADDING, top - EXTENT_PADDING],
+    [right + EXTENT_PADDING, bottom + EXTENT_PADDING],
+  ]
+}
+
 type Props = {
   quest: Quest
 }
@@ -234,6 +256,10 @@ function Flow({ quest }: Props) {
   const measured = useNodesInitialized()
   const { fitView } = useReactFlow()
   const [ready, setReady] = useState(false)
+  const extent = useMemo(
+    () => (ready ? extentOf(nodes) : undefined),
+    [ready, nodes],
+  )
 
   useEffect(() => {
     if (measured && !ready) {
@@ -266,8 +292,8 @@ function Flow({ quest }: Props) {
       edges={initial.edges}
       edgesFocusable={false}
       elementsSelectable={false}
-      maxZoom={1.5}
-      minZoom={0.05}
+      maxZoom={2}
+      minZoom={0.2}
       nodes={nodes}
       nodesConnectable={false}
       nodesDraggable={false}
@@ -277,6 +303,7 @@ function Flow({ quest }: Props) {
       proOptions={{
         hideAttribution: true,
       }}
+      translateExtent={extent}
     >
       <Controls showInteractive={false} />
     </ReactFlow>
