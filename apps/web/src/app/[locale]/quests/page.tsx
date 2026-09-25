@@ -2,11 +2,11 @@ import { anno } from '@anno/db/client'
 import { type Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
 
-import { BuildingList } from '@/components/buildings/list'
-import { parseBuildingFilters, validateLocale } from '@/lib/validators'
+import { QuestList } from '@/components/quests/list'
+import { parseQuestFilters, validateLocale } from '@/lib/validators'
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations('page.buildings')
+  const t = await getTranslations('page.quests')
 
   return {
     title: t('title'),
@@ -16,45 +16,39 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function Page({
   params,
   searchParams,
-}: PageProps<'/[locale]/buildings'>) {
+}: PageProps<'/[locale]/quests'>) {
   const { locale } = await params
 
   const lang = validateLocale(locale)
 
-  const filters = parseBuildingFilters(await searchParams)
+  const filters = parseQuestFilters(await searchParams)
 
-  const [dlcs, regions, tiers, kinds, buildings] = await Promise.all([
+  const [dlcs, regions, categories, quests] = await Promise.all([
     anno.dlc.list({
       lang,
     }),
     anno.regions.list({
       lang,
     }),
-    anno.populationTiers.list({
+    anno.quests.categories({
       lang,
     }),
-    anno.buildings.kinds({
-      lang,
-    }),
-    anno.buildings.list({
+    anno.quests.list({
+      categories: filters.categories ?? undefined,
       dlcs: filters.dlcs ?? undefined,
-      kinds: filters.kind ?? undefined,
       lang,
       page: filters.page ?? undefined,
       regions: filters.regions ?? undefined,
-      tiers: filters.tiers ?? undefined,
-      types: filters.type ?? undefined,
     }),
   ])
 
   return (
-    <BuildingList
-      buildings={buildings}
+    <QuestList
+      categories={categories}
       dlcs={dlcs}
       filters={filters}
-      kinds={kinds}
+      quests={quests}
       regions={regions}
-      tiers={tiers}
     />
   )
 }

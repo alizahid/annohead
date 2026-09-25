@@ -1,4 +1,4 @@
-import { and, asc, count, eq, exists, inArray, like } from 'drizzle-orm'
+import { and, asc, count, eq, exists, inArray } from 'drizzle-orm'
 
 import { db } from '../db'
 import { type ChainType, chainTypeValues, type Lang } from '../enums'
@@ -22,8 +22,6 @@ import {
 } from './shared'
 export type ChainFilter = {
   lang: Lang
-  guid?: number
-  search?: string
   regions?: Array<number>
   /** DLC guids (of the chain's final building) */
   dlcs?: Array<number>
@@ -87,14 +85,13 @@ function inCategory(
 }
 
 /** Production chains with their nodes as a flat parent/tier list. */
-async function list(f: ChainFilter & Page) {
+async function queryChains(f: ChainFilter & Page, id?: number) {
   const nameT = localized('name')
   const bName = localized('b_name')
   const nName = localized('n_name')
   const dlcT = localized('dlc_name')
   const where = and(
-    f.guid ? eq(productionChain.guid, f.guid) : undefined,
-    f.search ? like(nameT.value, `%${f.search}%`) : undefined,
+    id === undefined ? undefined : eq(productionChain.guid, id),
     f.regions?.length
       ? inArray(productionChain.regionId, f.regions)
       : undefined,
@@ -113,7 +110,6 @@ async function list(f: ChainFilter & Page) {
         total: count(),
       })
       .from(productionChain)
-      .leftJoin(nameT, on(nameT, productionChain.nameText, f.lang))
       .leftJoin(building, eq(building.guid, productionChain.buildingGuid))
       .where(where),
     db
@@ -186,12 +182,19 @@ async function list(f: ChainFilter & Page) {
 async function get({ id, lang }: Get) {
   return (
     (
-      await list({
-        guid: id,
-        lang,
-      })
+      await queryChains(
+        {
+          lang,
+          perPage: 1,
+        },
+        id,
+      )
     ).rows[0] ?? null
   )
+}
+
+async function list(f: ChainFilter & Page) {
+  return await queryChains(f)
 }
 
 export const chains = {

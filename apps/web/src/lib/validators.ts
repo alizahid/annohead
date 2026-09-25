@@ -8,6 +8,7 @@ import {
   itemTypeValues,
   nicheValues,
   productKindValues,
+  questCategoryValues,
   rarityValues,
 } from '@anno/db/enums'
 import { SearchTypes } from '@anno/db/search'
@@ -47,7 +48,6 @@ export const buildingFilters = {
   dlcs: parseAsArrayOf(parseAsInteger),
   kind: parseAsArrayOf(parseAsStringLiteral(buildingKindValues)),
   page: parseAsInteger,
-  query: parseAsString,
   regions: parseAsArrayOf(parseAsInteger),
   tiers: parseAsArrayOf(parseAsInteger),
   type: parseAsArrayOf(parseAsStringLiteral(buildingTypeValues)),
@@ -64,7 +64,6 @@ export const itemFilters = {
   dlcs: parseAsArrayOf(parseAsInteger),
   niches: parseAsArrayOf(parseAsStringLiteral(nicheValues)),
   page: parseAsInteger,
-  query: parseAsString,
   rarities: parseAsArrayOf(parseAsStringLiteral(rarityValues)),
   types: parseAsArrayOf(parseAsStringLiteral(itemTypeValues)),
 }
@@ -76,7 +75,6 @@ export type ItemFilters = Awaited<ReturnType<typeof parseItemFilters>>
 export const chainFilters = {
   dlcs: parseAsArrayOf(parseAsInteger),
   page: parseAsInteger,
-  query: parseAsString,
   regions: parseAsArrayOf(parseAsInteger),
   tiers: parseAsArrayOf(parseAsInteger),
   type: parseAsArrayOf(parseAsStringLiteral(chainTypeValues)),
@@ -90,7 +88,6 @@ export const productFilters = {
   dlcs: parseAsArrayOf(parseAsInteger),
   kind: parseAsArrayOf(parseAsStringLiteral(productKindValues)),
   page: parseAsInteger,
-  query: parseAsString,
   regions: parseAsArrayOf(parseAsInteger),
   tiers: parseAsArrayOf(parseAsInteger),
 }
@@ -98,3 +95,14 @@ export const productFilters = {
 export const parseProductFilters = createLoader(productFilters)
 
 export type ProductFilters = Awaited<ReturnType<typeof parseProductFilters>>
+
+export const questFilters = {
+  categories: parseAsArrayOf(parseAsStringLiteral(questCategoryValues)),
+  dlcs: parseAsArrayOf(parseAsInteger),
+  page: parseAsInteger,
+  regions: parseAsArrayOf(parseAsInteger),
+}
+
+export const parseQuestFilters = createLoader(questFilters)
+
+export type QuestFilters = Awaited<ReturnType<typeof parseQuestFilters>>

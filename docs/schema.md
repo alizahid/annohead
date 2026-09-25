@@ -165,6 +165,8 @@ TimedOutOutput`, `DecisionRoot.DecisionRootOutput[i]` (option i, label = `Decisi
   `ActionAddGoodsToItemContainer`, `ActionAddItemToMetaStorage`, `ActionUnlockAsset`, `ActionChangeReputation`,
   `ActionEffect`, `ActionTriggerParticipantMessage.RewardList`. Stored as `(node, kind, asset, amount)`.
 - `quest_entry`: the journal entry (`QuestEntry`: name, summary, category, icon) linked from objectives.
+  Region follows `QuestProvince` → `Session.Region` → `Region.RegionID`; DLC comes from a `DLC01`/`DLC02` prefix
+  in the quest's name, else its storyline's name (quests carry no DLC field).
 
 This is enough for the flowchart view: nodes, typed edges, option labels, rewards per branch.
 

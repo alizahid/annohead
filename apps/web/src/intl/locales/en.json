@@ -189,8 +189,19 @@
         "consumed": "Consumed by",
         "needed": "Needed by",
         "produced": "Produced by",
-        "wanted": "Wanted by",
-        "tons": "{tons, number, tons} tons / min"
+        "tons": "{tons, number, tons} tons / min",
+        "wanted": "Wanted by"
+      }
+    },
+    "quests": {
+      "filters": {
+        "categories": "Type",
+        "dlcs": "DLC",
+        "regions": "Region"
+      },
+      "list": {
+        "empty": "Nothing found",
+        "title": "Quests"
       }
     },
     "search": {
@@ -283,6 +294,9 @@
     },
     "products": {
       "title": "Goods × Annohead"
+    },
+    "quests": {
+      "title": "Quests × Annohead"
     },
     "search": {
       "title": "Search × Annohead"

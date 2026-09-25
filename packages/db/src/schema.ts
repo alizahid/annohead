@@ -750,10 +750,12 @@ export const quest = sqliteTable(
   'quest',
   {
     category: text({ enum: questCategoryValues }),
+    dlcGuid: integer('dlc_guid').references(() => dlc.guid),
     guid: integer().primaryKey(),
     icon: text(),
     name: text(),
     nameText: integer('name_text'),
+    regionId: integer('region_id').references(() => region.id),
     storylineGuid: integer('storyline_guid'),
     summaryText: integer('summary_text'),
   },

@@ -5,7 +5,6 @@ import {
   eq,
   exists,
   inArray,
-  like,
   type SQL,
   sql,
 } from 'drizzle-orm'
@@ -71,7 +70,6 @@ import {
 import { sourceLabel } from './source-labels'
 export type ItemFilter = {
   lang: Lang
-  search?: string
   rarities?: Array<Rarity>
   niches?: Array<Niche>
   types?: Array<ItemType>
@@ -84,12 +82,8 @@ export type ItemFilter = {
   attributes?: Array<Attribute>
 }
 
-function itemWhere(
-  f: ItemFilter,
-  nameT: ReturnType<typeof localized>,
-): SQL | undefined {
+function itemWhere(f: ItemFilter): SQL | undefined {
   return and(
-    f.search ? like(nameT.value, `%${f.search}%`) : undefined,
     f.rarities?.length ? inArray(item.rarity, f.rarities) : undefined,
     f.niches?.length ? inArray(item.niche, f.niches) : undefined,
     f.types?.length ? inArray(item.type, f.types) : undefined,
@@ -340,7 +334,7 @@ async function queryItems(f: ItemFilter & Page, id?: number) {
   const hintT = localized('hint')
   const dlcT = localized('dlc_name')
   const where = and(
-    itemWhere(f, nameT),
+    itemWhere(f),
     id === undefined ? undefined : eq(item.guid, id),
   )
   const { limit, offset } = paginate(f)
@@ -351,7 +345,6 @@ async function queryItems(f: ItemFilter & Page, id?: number) {
         total: count(),
       })
       .from(item)
-      .leftJoin(nameT, on(nameT, item.nameText, f.lang))
       .where(where),
     db
       .select({

@@ -12,6 +12,7 @@ from collections import defaultdict
 
 GUID = re.compile(r"^\d{4,}$")
 DLC_PATH = re.compile(r"/(c?dlc)(\d+)/", re.IGNORECASE)
+DLC_NAME = re.compile(r"(?<![A-Za-z])(C?DLC)0*(\d+)(?!\d)")
 PARTICIPANTS = {
     "Participant 3rdParty": "Trader",
     "Participant 3rdParty Pirate": "Pirate",
@@ -440,6 +441,20 @@ class T:
         """Items name their DLC outright: Item.Origin is BaseRelease, DLC01, DLC02 …"""
         match = re.fullmatch(r"(C?DLC)0*(\d+)", str(it.get("Origin", "")))
         return self.dlc_by_name(f"{match[1]}{match[2]}") if match else None
+
+    def name_dlc(self, name):
+        """Quest content names its DLC in the asset name: "DLC01 QL01 QuestEntry", "DLC02 Hippodrome Decision 1" …"""
+        match = DLC_NAME.search(name or "")
+        return self.dlc_by_name(f"{match[1]}{match[2]}") if match else None
+
+    def province_region(self, guid):
+        """region id of a province (Session asset), via Session.Region → Region.RegionID."""
+        session = self.assets.get(self.num(guid))
+        if not session:
+            return None
+        reg = self.assets.get(self.num(D(session["v"].get("Session")).get("Region")))
+        rid = D(reg["v"].get("Region")).get("RegionID") if reg else None
+        return REGIONS[rid][0] if rid in REGIONS else None
 
     def buildings(self):
         for a in self.assets.values():
@@ -1149,7 +1164,7 @@ class T:
         for a in self.by_template("QuestEntry"):
             q = D(a["v"].get("QuestEntry"))
             self.db.execute(
-                "insert into quest values(?,?,?,?,?,?,?)",
+                "insert into quest values(?,?,?,?,?,?,?,?,?)",
                 (
                     a["guid"],
                     a["name"],
@@ -1158,6 +1173,8 @@ class T:
                     self.enum("quest_category", q.get("Category", "Quests")),
                     self.icon(a["icon"]),
                     None,
+                    self.province_region(q.get("QuestProvince")),
+                    self.name_dlc(a["name"]),
                 ),
             )
         for g, story in node_story.items():
@@ -1238,6 +1255,13 @@ class T:
                         "update quest set storyline_guid=? where guid=? and storyline_guid is null",
                         (story, q),
                     )
+        # quests not named after their DLC inherit it from their storyline ("DLC02 QL01")
+        for guid, name in self.db.execute(
+            "select q.guid, s.name from quest q join storyline s on s.guid=q.storyline_guid where q.dlc_guid is null"
+        ).fetchall():
+            self.db.execute(
+                "update quest set dlc_guid=? where guid=?", (self.name_dlc(name), guid)
+            )
 
     def _reward(self, node, act, body):
         body = D(body)
@@ -1433,7 +1457,8 @@ create table storyline_variable(storyline_guid int references storyline(guid), n
 create table storyline_condition(storyline_guid int references storyline(guid), condition_id int);
 create table quest_pool(guid integer primary key, name text);
 create table quest_pool_storyline(pool_guid int references quest_pool(guid), storyline_guid int, weight real);
-create table quest(guid integer primary key, name text, name_text integer, summary_text integer, category text, icon text, storyline_guid int);
+create table quest(guid integer primary key, name text, name_text integer, summary_text integer, category text, icon text, storyline_guid int,
+  region_id int references region(id), dlc_guid int references dlc(guid));
 create table quest_node(guid integer primary key, storyline_guid int references storyline(guid), type text, name text, quest_guid int, headline_text integer, text_text integer, step_text integer, time_limit_ms int);
 create table quest_edge(from_guid int, to_guid int, kind text, idx int, option_index int, primary key(from_guid,to_guid,kind,idx)) without rowid;
 create table quest_option(decision_guid int references quest_node(guid), idx int, text_text integer, category text);

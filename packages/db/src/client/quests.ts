@@ -1,9 +1,15 @@
-import { and, asc, count, eq, inArray, like, type SQL, sql } from 'drizzle-orm'
+import { and, asc, count, eq, inArray, type SQL, sql } from 'drizzle-orm'
 
 import { db } from '../db'
-import { type Lang, type QuestCategory, type StorylineSystem } from '../enums'
+import {
+  type Lang,
+  type QuestCategory,
+  questCategoryValues,
+  type StorylineSystem,
+} from '../enums'
 import {
   building,
+  dlc,
   item,
   product,
   quest,
@@ -11,10 +17,19 @@ import {
   questNode,
   questOption,
   questReward,
+  region,
   storyline,
   storylineVariable,
 } from '../schema'
-import { type Get, groupBy, localized, on, type Page, paginate } from './shared'
+import {
+  type Get,
+  groupBy,
+  localized,
+  on,
+  type Page,
+  paginate,
+  regionColumns,
+} from './shared'
 
 // ---------------------------------------------------------------- rewards
 
@@ -89,7 +104,6 @@ function nodeRows(where: SQL, lang: Lang) {
 
 export type StorylineFilter = {
   lang: Lang
-  search?: string
   system?: StorylineSystem
 }
 
@@ -105,10 +119,7 @@ const storylineNodeCount = db.$count(
 /** Storylines (quest chains) with their journal quests. */
 async function listStorylines(f: StorylineFilter & Page) {
   const qName = localized('q_name')
-  const where = and(
-    f.search ? like(storyline.name, `%${f.search}%`) : undefined,
-    f.system ? eq(storyline.system, f.system) : undefined,
-  )
+  const where = and(f.system ? eq(storyline.system, f.system) : undefined)
   const { limit, offset } = paginate(f)
   const [[{ total }], rows] = await Promise.all([
     db
@@ -212,21 +223,48 @@ async function getStoryline({ id: guid, lang }: Get) {
 
 export type QuestFilter = {
   lang: Lang
-  search?: string
-  category?: QuestCategory
-  storylineGuid?: number
-  guid?: number
+  categories?: Array<QuestCategory>
+  regions?: Array<number>
+  /** DLC guids */
+  dlcs?: Array<number>
+}
+
+const categoryNames: Record<Lang, Record<QuestCategory, string>> = {
+  de: {
+    Campaign: 'Kampagne',
+    Contracts: 'Aufträge',
+    Quests: 'Quests',
+    Tutorials: 'Tutorials',
+  },
+  en: {
+    Campaign: 'Campaign',
+    Contracts: 'Contracts',
+    Quests: 'Quests',
+    Tutorials: 'Tutorials',
+  },
+}
+
+function categoryLabel(key: QuestCategory | null, lang: Lang) {
+  return key === null ? null : { key, name: categoryNames[lang][key] }
+}
+
+function categories({ lang }: { lang: Lang }) {
+  return questCategoryValues.map((key) => ({
+    key,
+    name: categoryNames[lang][key],
+  }))
 }
 
 /** Journal quests with their storyline, objective steps, decision options and rewards. */
-async function listQuests(f: QuestFilter & Page) {
+async function queryQuests(f: QuestFilter & Page, id?: number) {
   const nameT = localized('name')
   const sumT = localized('summary')
+  const dlcT = localized('dlc_name')
   const where = and(
-    f.search ? like(nameT.value, `%${f.search}%`) : undefined,
-    f.category ? eq(quest.category, f.category) : undefined,
-    f.storylineGuid ? eq(quest.storylineGuid, f.storylineGuid) : undefined,
-    f.guid ? eq(quest.guid, f.guid) : undefined,
+    id === undefined ? undefined : eq(quest.guid, id),
+    f.categories?.length ? inArray(quest.category, f.categories) : undefined,
+    f.regions?.length ? inArray(quest.regionId, f.regions) : undefined,
+    f.dlcs?.length ? inArray(quest.dlcGuid, f.dlcs) : undefined,
   )
   const { limit, offset } = paginate(f)
   const [[{ total }], rows] = await Promise.all([
@@ -235,14 +273,20 @@ async function listQuests(f: QuestFilter & Page) {
         total: count(),
       })
       .from(quest)
-      .leftJoin(nameT, on(nameT, quest.nameText, f.lang))
       .where(where),
     db
       .select({
         category: quest.category,
+        dlc: {
+          guid: dlc.guid,
+          icon: dlc.icon,
+          key: dlc.key,
+          name: dlcT.value,
+        },
         guid: quest.guid,
         icon: quest.icon,
         name: nameT.value,
+        region: regionColumns,
         storyline: {
           guid: storyline.guid,
           name: storyline.name,
@@ -254,6 +298,9 @@ async function listQuests(f: QuestFilter & Page) {
       .leftJoin(nameT, on(nameT, quest.nameText, f.lang))
       .leftJoin(sumT, on(sumT, quest.summaryText, f.lang))
       .leftJoin(storyline, eq(storyline.guid, quest.storylineGuid))
+      .leftJoin(region, eq(region.id, quest.regionId))
+      .leftJoin(dlc, eq(dlc.guid, quest.dlcGuid))
+      .leftJoin(dlcT, on(dlcT, dlc.nameText, f.lang))
       .where(where)
       .orderBy(asc(nameT.value), asc(quest.guid))
       .limit(limit)
@@ -290,24 +337,23 @@ async function listQuests(f: QuestFilter & Page) {
     pages: Math.ceil(total / limit),
     rows: rows.map((q) => ({
       ...q,
+      category: categoryLabel(q.category, f.lang),
       steps: steps(q.guid),
     })),
     total,
   }
 }
 
+function listQuests(f: QuestFilter & Page) {
+  return queryQuests(f)
+}
+
 async function getQuest({ id, lang }: Get) {
-  return (
-    (
-      await listQuests({
-        guid: id,
-        lang,
-      })
-    ).rows[0] ?? null
-  )
+  return (await queryQuests({ lang, perPage: 1 }, id)).rows[0] ?? null
 }
 
 export const quests = {
+  categories,
   get: getQuest,
   list: listQuests,
 }

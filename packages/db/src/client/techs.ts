@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, like, sql } from 'drizzle-orm'
+import { and, asc, eq, inArray, sql } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/sqlite-core'
 
 import { db } from '../db'
@@ -34,19 +34,15 @@ import {
 
 export type TechFilter = {
   lang: Lang
-  search?: string
 }
 
 /** Techs with what they unlock, their effects and the resources they grant. */
-async function queryTechs(f: TechFilter, guid?: number) {
+async function queryTechs(f: TechFilter, id?: number) {
   const nameT = localized('name')
   const descT = localized('desc')
   const pName = localized('p_name')
   const dlcT = localized('dlc_name')
-  const where = and(
-    guid ? eq(tech.guid, guid) : undefined,
-    f.search ? like(nameT.value, `%${f.search}%`) : undefined,
-  )
+  const where = id === undefined ? undefined : eq(tech.guid, id)
   const rows = await db
     .select({
       categoryGuid: tech.categoryGuid,

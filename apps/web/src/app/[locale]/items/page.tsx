@@ -49,7 +49,6 @@ export default async function Page({
         niches: filters.niches ?? undefined,
         page: filters.page ?? undefined,
         rarities: filters.rarities ?? undefined,
-        search: filters.query ?? undefined,
         types: filters.types ?? undefined,
       }),
     ],

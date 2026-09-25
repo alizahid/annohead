@@ -197,11 +197,8 @@ test.each(['en', 'de'] as const)(
 )
 
 test('buildings carry effects and buffs', async () => {
-  const { rows } = await anno.buildings.list({
-    lang: 'en',
-    search: 'Lavender',
-  })
-  const [mod] = rows.flatMap((r) => r.effects)
+  const lavender = await anno.buildings.get({ id: 2698, lang: 'en' })
+  const [mod] = lavender?.effects ?? []
   const attr: 'Happiness' | undefined =
     mod?.attribute === 'Happiness' ? mod.attribute : undefined
   expect(attr).toBe('Happiness')
@@ -225,7 +222,7 @@ test('buildings carry effects and buffs', async () => {
     },
   ])
   const kind: 'Production' | undefined =
-    rows[0]?.kind?.key === 'Production' ? rows[0].kind.key : undefined
+    lavender?.kind?.key === 'Production' ? lavender.kind.key : undefined
   expect(kind).toBe('Production')
 })
 
@@ -252,7 +249,7 @@ test('production buffs include output need fulfillment without duplicate needs',
       { attribute: 'Belief', buildingGuid: 145_229, name: 'Belief', value: 2 },
     ]),
   )
-  const listed = await anno.buildings.list({ lang: 'en', search: 'Caelator' })
+  const listed = await anno.buildings.list({ lang: 'en', perPage: 1000 })
   expect(listed.rows.find((row) => row.guid === 145_229)?.buffs).toEqual(
     caelator?.buffs ?? [],
   )
@@ -283,11 +280,8 @@ test.each([
 )
 
 test('modifier percentage flags are booleans', async () => {
-  const buildings = await anno.buildings.list({
-    lang: 'en',
-    search: 'Lavender',
-  })
-  const effects = buildings.rows.flatMap((building) => building.effects)
+  const lavender = await anno.buildings.get({ id: 2698, lang: 'en' })
+  const effects = lavender?.effects ?? []
   expect(effects.length).toBeGreaterThan(0)
   expect(effects.every((effect) => effect.isPercent === false)).toBe(true)
   const item = await anno.items.get({ id: 41_350, lang: 'en' })
@@ -350,7 +344,7 @@ test('Amphitheatre phases expose construction inputs, time, workforce and unlock
   )
   const listed = await anno.buildings.list({
     lang: 'en',
-    search: 'Amphitheatre',
+    perPage: 1000,
   })
   expect(listed.rows.find((row) => row.guid === 3621)?.phases).toEqual(
     building?.phases ?? [],
@@ -366,19 +360,10 @@ test('Hippodrome phase time uses each stage microphase count', async () => {
 })
 
 test('products and techs', async () => {
-  const p = await anno.products.list({
-    lang: 'en',
-    search: 'Bread',
-  })
-  expect(p.rows[0]?.producedBy.length).toBeGreaterThan(0)
-  expect(
-    (
-      await anno.products.get({
-        id: p.rows[0]?.guid ?? 0,
-        lang: 'en',
-      })
-    )?.name,
-  ).toBe(p.rows[0]?.name)
+  const bread = await anno.products.get({ id: 2137, lang: 'en' })
+  expect(bread?.producedBy.length).toBeGreaterThan(0)
+  const p = await anno.products.list({ lang: 'en', perPage: 1000 })
+  expect(p.rows.find((r) => r.guid === 2137)?.name).toBe(bread?.name)
   const meta = await anno.products.list({
     kinds: ['Meta'],
     lang: 'en',
@@ -423,27 +408,22 @@ test('products and techs', async () => {
     name: 'Dienstleistung',
   })
   // Barley is a good; Alder Council and workforce are not, despite the game's "Raw" transport type
-  const barley = await anno.products.list({
+  const goods = await anno.products.list({
     kinds: ['Good'],
     lang: 'en',
-    search: 'Barley',
+    perPage: 1000,
   })
-  expect(barley.rows.map((r) => r.kind)).toEqual([
-    { key: 'Good', name: 'Good' },
-  ])
-  const t = await anno.techs.list({
-    lang: 'en',
-    search: 'Armoursmithing',
+  expect(goods.rows.find((r) => r.guid === 2093)?.kind).toEqual({
+    key: 'Good',
+    name: 'Good',
   })
-  expect(t.some((r) => r.unlocks.some((u) => u.buildingGuid))).toBe(true)
-  expect(
-    (
-      await anno.techs.get({
-        id: t[0]?.guid ?? 0,
-        lang: 'en',
-      })
-    )?.guid,
-  ).toBe(t[0]?.guid)
+  expect(goods.rows.every((r) => r.kind?.key === 'Good')).toBe(true)
+  const armoursmithing = await anno.techs.get({ id: 81_220, lang: 'en' })
+  expect(armoursmithing?.unlocks.some((u) => u.buildingGuid)).toBe(true)
+  const t = await anno.techs.list({ lang: 'en' })
+  expect(t.find((r) => r.guid === 81_220)?.unlocks).toEqual(
+    armoursmithing?.unlocks ?? [],
+  )
 })
 
 test('storylines and quests', async () => {
@@ -454,7 +434,7 @@ test('storylines and quests', async () => {
   })
   expect(s.rows.some((r) => r.quests.length > 0)).toBe(true)
   const q = await anno.quests.list({
-    category: 'Campaign',
+    categories: ['Campaign'],
     lang: 'en',
     perPage: 3,
   })
@@ -478,10 +458,35 @@ test('storylines and quests', async () => {
   expect(full?.nodes.some((n) => n.rewards.length > 0)).toBe(true)
 })
 
+test('quest filters by category, region and dlc', async () => {
+  expect(anno.quests.categories({ lang: 'de' })).toContainEqual({
+    key: 'Contracts',
+    name: 'Aufträge',
+  })
+  const celtic = await anno.quests.list({
+    categories: ['Campaign'],
+    lang: 'en',
+    perPage: 100,
+    regions: [2],
+  })
+  expect(celtic.total).toBeGreaterThan(0)
+  expect(
+    celtic.rows.every(
+      (r) => r.region?.id === 2 && r.category?.key === 'Campaign',
+    ),
+  ).toBe(true)
+  const hippodrome = await anno.quests.list({
+    dlcs: [67_903],
+    lang: 'en',
+    perPage: 100,
+  })
+  expect(hippodrome.total).toBeGreaterThan(0)
+  expect(hippodrome.rows.every((r) => r.dlc?.guid === 67_903)).toBe(true)
+})
+
 test('chains join final building and nodes', async () => {
   const { rows } = await anno.chains.list({
     lang: 'en',
-    search: 'Timber',
   })
   expect(rows.length).toBeGreaterThan(0)
   const chain = await anno.chains.get({

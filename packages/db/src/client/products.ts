@@ -5,7 +5,6 @@ import {
   eq,
   exists,
   inArray,
-  like,
   type SQL,
   sql,
 } from 'drizzle-orm'
@@ -36,8 +35,6 @@ import {
 } from './shared'
 export type ProductFilter = {
   lang: Lang
-  guid?: number
-  search?: string
   regions?: Array<number>
   kinds?: Array<ProductKind>
   /** DLC guids of a producing building */
@@ -87,13 +84,12 @@ function producerWhere(condition: SQL) {
 }
 
 /** Products with the buildings that produce and consume them. */
-async function list(f: ProductFilter & Page) {
+async function queryProducts(f: ProductFilter & Page, id?: number) {
   const nameT = localized('name')
   const catT = localized('cat')
   const bName = localized('b_name')
   const where = and(
-    f.guid ? eq(product.guid, f.guid) : undefined,
-    f.search ? like(nameT.value, `%${f.search}%`) : undefined,
+    id === undefined ? undefined : eq(product.guid, id),
     f.kinds?.length ? inArray(product.kind, f.kinds) : undefined,
     f.dlcs?.length
       ? producerWhere(inArray(building.dlcGuid, f.dlcs))
@@ -140,7 +136,6 @@ async function list(f: ProductFilter & Page) {
         total: count(),
       })
       .from(product)
-      .leftJoin(nameT, on(nameT, product.nameText, f.lang))
       .where(where),
     db
       .select({
@@ -280,12 +275,19 @@ async function list(f: ProductFilter & Page) {
 async function get({ id, lang }: Get) {
   return (
     (
-      await list({
-        guid: id,
-        lang,
-      })
+      await queryProducts(
+        {
+          lang,
+          perPage: 1,
+        },
+        id,
+      )
     ).rows[0] ?? null
   )
+}
+
+async function list(f: ProductFilter & Page) {
+  return await queryProducts(f)
 }
 
 export const products = {

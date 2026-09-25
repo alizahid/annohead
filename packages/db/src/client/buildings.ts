@@ -1,4 +1,4 @@
-import { and, asc, count, eq, exists, inArray, like, sql } from 'drizzle-orm'
+import { and, asc, count, eq, exists, inArray, sql } from 'drizzle-orm'
 
 import { db } from '../db'
 import {
@@ -48,7 +48,6 @@ import {
 import { unlockRequirements } from './unlock-requirements'
 export type BuildingFilter = {
   lang: Lang
-  search?: string
   kinds?: Array<BuildingKind>
   types?: Array<BuildingType>
   categories?: Array<BuildingCategory>
@@ -59,9 +58,8 @@ export type BuildingFilter = {
   tiers?: Array<number>
 }
 
-function buildingWhere(f: BuildingFilter, nameT: ReturnType<typeof localized>) {
+function buildingWhere(f: BuildingFilter) {
   return and(
-    f.search ? like(nameT.value, `%${f.search}%`) : undefined,
     f.kinds?.length ? inArray(building.kind, f.kinds) : undefined,
     f.types?.length ? inArray(building.type, f.types) : undefined,
     f.categories?.length ? categoryIn(f.categories) : undefined,
@@ -297,7 +295,7 @@ async function queryBuildings(f: BuildingFilter & Page, id?: number) {
   const catT = localized('cat')
   const dlcT = localized('dlcName')
   const where = and(
-    buildingWhere(f, nameT),
+    buildingWhere(f),
     id === undefined ? undefined : eq(building.guid, id),
   )
   const { limit, offset } = paginate(f)
@@ -308,7 +306,6 @@ async function queryBuildings(f: BuildingFilter & Page, id?: number) {
         total: count(),
       })
       .from(building)
-      .leftJoin(nameT, on(nameT, building.nameText, f.lang))
       .where(where),
     db
       .select({
