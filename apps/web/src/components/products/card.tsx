@@ -18,7 +18,13 @@ export function ProductCard({ product }: Props) {
     >
       {product.icon ? <Icon className="size-16" icon={product.icon} /> : null}
 
-      <div className="font-bold">{product.name}</div>
+      <div className="flex flex-col">
+        <div className="font-bold">{product.name}</div>
+
+        {product.kind ? (
+          <div className="text-gray-11 text-sm">{product.kind.name}</div>
+        ) : null}
+      </div>
 
       {product.regions.length || product.dlc?.key ? (
         <div className="pointer-events-none absolute top-4 right-4 flex gap-2">

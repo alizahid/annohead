@@ -398,14 +398,19 @@ test('products and techs', async () => {
   expect(dlcProducts.rows.every((r) => r.dlc?.guid === 67_902)).toBe(true)
   const wineRow = await anno.products.get({ id: 2138, lang: 'en' })
   expect(wineRow?.dlc).toBeNull()
+  // Wine is on the Equites (Roman) and Aldermen/Nobles (Celtic) menus; Patricians still consume it
+  expect(wineRow?.neededBy.map((tier) => tier.guid)).toEqual([1497, 1502, 1504])
+  expect(wineRow?.wantedBy.map((tier) => tier.guid)).toEqual([1498])
+  expect(wineRow?.producedBy.map((b) => b.region?.id)).toEqual([1, 2])
   expect(wineRow?.regions.length).toBeGreaterThan(0)
-  // Wine is needed from Equites up
+  // Plebeians only get Wine through a buff, so they don't count
   async function needsWine(tier: number) {
     const r = await anno.products.list({ lang: 'en', tiers: [tier] })
     return r.rows.some((row) => row.guid === 2138)
   }
   expect(await needsWine(1499)).toBe(false)
-  expect(await needsWine(1496)).toBe(true)
+  expect(await needsWine(1496)).toBe(false)
+  expect(await needsWine(1497)).toBe(true)
   expect(await needsWine(1498)).toBe(true)
   const roman = await anno.products.list({
     lang: 'en',
@@ -423,7 +428,9 @@ test('products and techs', async () => {
     lang: 'en',
     search: 'Barley',
   })
-  expect(barley.rows.map((r) => r.kind)).toEqual(['Good'])
+  expect(barley.rows.map((r) => r.kind)).toEqual([
+    { key: 'Good', name: 'Good' },
+  ])
   const t = await anno.techs.list({
     lang: 'en',
     search: 'Armoursmithing',

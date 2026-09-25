@@ -184,6 +184,13 @@
       "list": {
         "empty": "Nothing found",
         "title": "Goods"
+      },
+      "page": {
+        "consumed": "Consumed by",
+        "needed": "Needed by",
+        "produced": "Produced by",
+        "wanted": "Wanted by",
+        "tons": "{tons, number, tons} tons / min"
       }
     },
     "search": {
@@ -269,6 +276,10 @@
     },
     "items": {
       "title": "Items × Annohead"
+    },
+    "product": {
+      "fallback": "Product",
+      "title": "{name} × Products × Annohead"
     },
     "products": {
       "title": "Goods × Annohead"
