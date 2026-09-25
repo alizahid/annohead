@@ -87,7 +87,6 @@
       "calculator": {
         "baseProductivity": "Base productivity",
         "buildings": "× {required, number, required}",
-        "count": "Number of {name}",
         "cycleTime": "Cycle time",
         "inputs": "Inputs",
         "output": "Output",

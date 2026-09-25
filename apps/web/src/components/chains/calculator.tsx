@@ -30,8 +30,9 @@ export function Calculator({ chain, variant = 'full' }: Props) {
   return (
     <div
       className={cn(
-        'flex flex-col gap-4',
-        variant === 'full' && 'rounded-lg bg-gray-2 p-4',
+        'flex flex-col bg-gray-2',
+        variant === 'mini' && '-m-2 gap-2 rounded-md p-2 text-sm',
+        variant === 'full' && 'gap-4 rounded-lg p-4',
       )}
     >
       {variant === 'full' ? (
@@ -39,7 +40,7 @@ export function Calculator({ chain, variant = 'full' }: Props) {
       ) : null}
 
       <NumberField.Root
-        className="flex justify-between gap-4"
+        className="flex items-start justify-between gap-4"
         id={`chain-${chain.guid}`}
         min={1}
         onClick={(event) => {
@@ -52,9 +53,7 @@ export function Calculator({ chain, variant = 'full' }: Props) {
       >
         <NumberField.ScrubArea>
           <label className="cursor-ew-resize" htmlFor={`chain-${chain.guid}`}>
-            {t('count', {
-              name: chain.name ?? 'building',
-            })}
+            {chain.name}
           </label>
 
           <NumberField.ScrubAreaCursor>
@@ -142,9 +141,9 @@ export function Calculator({ chain, variant = 'full' }: Props) {
 
       <div
         className={cn(
-          'flex gap-4',
-          variant === 'mini' && 'flex-wrap',
-          variant === 'full' && 'flex-col',
+          'flex',
+          variant === 'mini' && 'flex-wrap gap-2',
+          variant === 'full' && 'flex-col gap-4',
         )}
       >
         {chain.nodes

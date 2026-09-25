@@ -47,7 +47,7 @@ export function ChainList({
 
         <div className="flex flex-1 flex-col gap-12">
           {chains.rows.length ? (
-            <div className="grid items-start gap-4 md:grid-cols-2">
+            <div className="grid items-start gap-4 sm:grid-cols-2 md:grid-cols-3">
               {chains.rows.map((chain) => (
                 <ChainCard chain={chain} key={chain.guid} />
               ))}

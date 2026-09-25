@@ -4,6 +4,7 @@ import { type ReactNode, Suspense } from 'react'
 import { AuthProfile } from '@/components/auth/profile'
 import { Logo } from '@/components/common/logo'
 import { SearchBox } from '@/components/search/box'
+import { NavLink } from '@/intl/nav'
 
 import { LanguageSelector } from './language-selector'
 import { Navigation } from './navigation'
@@ -19,7 +20,12 @@ export function MainLayout({ children }: Props) {
     <div className="mx-auto flex min-h-screen max-w-7xl flex-col gap-12 p-6">
       <header className="flex flex-col gap-4">
         <div className="flex items-center gap-4">
-          <Logo className="hidden h-8 shrink-0 md:block" />
+          <NavLink
+            className="hidden shrink-0 rounded-lg outline-none ring-accent-8 ring-offset-4 ring-offset-gray-1 focus-visible:ring-2 md:block"
+            href="/"
+          >
+            <Logo className="h-8" />
+          </NavLink>
 
           <Navigation className="flex-1" />
 
