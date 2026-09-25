@@ -22,7 +22,7 @@ test('specialists paginate and join effects', async () => {
 test('specialist filter by target building category and attribute', async () => {
   const kitchens = (
     await anno.buildings.list({
-      category: ['Kitchen'],
+      categories: ['Kitchen'],
       lang: 'en',
       perPage: 100,
     })
@@ -41,7 +41,7 @@ test('specialist filter by target building category and attribute', async () => 
 
 test('buildings join costs, workforce and outputs', async () => {
   const { rows } = await anno.buildings.list({
-    kind: ['Production'],
+    kinds: ['Production'],
     lang: 'de',
     perPage: 10,
   })
@@ -94,7 +94,7 @@ test.each([1499, 1496])(
     const result = await anno.buildings.list({
       lang: 'en',
       perPage: 1000,
-      workforce: [tier],
+      tiers: [tier],
     })
     expect(result.rows.map((row) => row.guid)).toContain(50_972)
     expect(
@@ -110,14 +110,14 @@ test('workforce filters avoid duplicate buildings and ignore empty filters', asy
   const result = await anno.buildings.list({
     lang: 'en',
     perPage: 1000,
-    workforce: [1499, 1496],
+    tiers: [1499, 1496],
   })
   expect(result.rows.filter((row) => row.guid === 50_972)).toHaveLength(1)
   expect(result.total).toBe(result.rows.length)
   const empty = await anno.buildings.list({
     lang: 'en',
     perPage: 1,
-    workforce: [],
+    tiers: [],
   })
   const unfiltered = await anno.buildings.list({ lang: 'en', perPage: 1 })
   expect(empty).toEqual(unfiltered)
@@ -136,11 +136,11 @@ test.each([
     expect(building?.kind).toEqual({ key: 'Production', name: kindName })
     expect(building?.type).toEqual({ key: 'Factory', name: typeName })
     const listed = await anno.buildings.list({
-      dlc: [67_902],
-      kind: ['Production'],
+      dlcs: [67_902],
+      kinds: ['Production'],
       lang,
       perPage: 1000,
-      type: ['Factory'],
+      types: ['Factory'],
     })
     expect(listed.rows.find((row) => row.guid === 145_229)?.kind).toEqual(
       building?.kind ?? null,
@@ -155,13 +155,13 @@ test.each([
 
 test('buildings filter by DLC and ignore an empty DLC filter', async () => {
   const hippodrome = await anno.buildings.list({
-    dlc: [67_903],
+    dlcs: [67_903],
     lang: 'en',
   })
   expect(hippodrome.rows.map((row) => row.guid)).toContain(152_714)
   expect(hippodrome.rows.every((row) => row.dlc?.guid === 67_903)).toBe(true)
   const multiple = await anno.buildings.list({
-    dlc: [67_902, 67_903],
+    dlcs: [67_902, 67_903],
     lang: 'en',
     perPage: 100,
   })
@@ -173,7 +173,7 @@ test('buildings filter by DLC and ignore an empty DLC filter', async () => {
     perPage: 1,
   })
   const empty = await anno.buildings.list({
-    dlc: [],
+    dlcs: [],
     lang: 'en',
     perPage: 1,
   })
@@ -272,7 +272,7 @@ test.each([
       building?.effects.find((effect) => effect.attribute === 'Health')?.name,
     ).toBe(health)
     const listed = await anno.buildings.list({
-      dlc: [67_902],
+      dlcs: [67_902],
       lang,
       perPage: 1000,
     })
@@ -453,26 +453,26 @@ test('chains join final building and nodes', async () => {
 test('chains filter by type, tier, region and dlc', async () => {
   const military = await anno.chains.list({
     lang: 'en',
-    type: ['Military'],
+    types: ['Military'],
   })
   expect(military.rows.map((r) => r.guid)).toContain(3253)
   expect(military.total).toBe(4)
   // Roman Celtic Wine is on both the Aldermen and Nobles menus
   const nobles = await anno.chains.list({
     lang: 'en',
-    tier: [1504],
+    tiers: [1504],
   })
   expect(nobles.rows.map((r) => r.guid)).toContain(6668)
   const roman = await anno.chains.list({
     lang: 'en',
-    regionId: [1],
-    type: ['Material'],
+    regions: [1],
+    types: ['Material'],
   })
   expect(roman.rows.every((r) => r.region?.id === 1)).toBe(true)
   expect(
     (
       await anno.chains.list({
-        dlc: [-1],
+        dlcs: [-1],
         lang: 'en',
       })
     ).total,
@@ -509,7 +509,7 @@ test('search ranks name matches, dedupes variants, filters by type and paginates
     lang: 'en',
     perPage: 3,
     query: 'a',
-    type: ['item'],
+    types: ['item'],
   })
   expect(items.rows).toHaveLength(3)
   expect(items.rows.every((r) => r.type === 'item' && r.category)).toBe(true)
@@ -518,7 +518,7 @@ test('search ranks name matches, dedupes variants, filters by type and paginates
     page: 2,
     perPage: 3,
     query: 'a',
-    type: ['item'],
+    types: ['item'],
   })
   expect(next.total).toBe(items.total)
   expect(next.rows.map((r) => r.guid)).not.toContain(items.rows[0]?.guid)
@@ -597,7 +597,7 @@ test('items filter by target building category', async () => {
   })
   expect(total).toBeGreaterThan(0)
   const pitBuildings = await anno.buildings.list({
-    category: ['Pit'],
+    categories: ['Pit'],
     lang: 'en',
     perPage: 50,
   })
@@ -613,13 +613,13 @@ test('search includes item rarity and null for other entity types', async () => 
   const items = await anno.search({
     lang: 'en',
     query: 'Dorian',
-    type: ['item'],
+    types: ['item'],
   })
   expect(items.rows.find((row) => row.guid === 41_350)?.rarity).toBe('Unique')
   const buildings = await anno.search({
     lang: 'en',
     query: 'Bakery',
-    type: ['building'],
+    types: ['building'],
   })
   expect(buildings.rows.length).toBeGreaterThan(0)
   expect(buildings.rows.every((row) => row.rarity === null)).toBe(true)

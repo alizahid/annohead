@@ -37,14 +37,14 @@ export default async function Page({
       lang,
     }),
     anno.buildings.list({
-      dlc: filters.dlcs ?? undefined,
-      kind: filters.kind ?? undefined,
+      dlcs: filters.dlcs ?? undefined,
+      kinds: filters.kind ?? undefined,
       lang,
       page: filters.page ?? undefined,
-      regionId: filters.regions ?? undefined,
+      regions: filters.regions ?? undefined,
       search: filters.query ?? undefined,
-      type: filters.type ?? undefined,
-      workforce: filters.tiers ?? undefined,
+      tiers: filters.tiers ?? undefined,
+      types: filters.type ?? undefined,
     }),
   ])
 

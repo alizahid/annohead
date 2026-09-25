@@ -25,7 +25,7 @@ import { langId, type Page, paginate } from './shared'
 export type SearchFilter = {
   lang: Lang
   query: string
-  type?: Array<SearchType>
+  types?: Array<SearchType>
 }
 
 export type SearchHit = {
@@ -262,7 +262,7 @@ function score(row: Row, query: string, tokens: Array<string>) {
 async function search(f: SearchFilter & Page) {
   const query = fold(f.query.trim())
   const tokens = words(query)
-  const rows = await load(f.lang, f.type)
+  const rows = await load(f.lang, f.types)
   const hits: Array<{
     row: Row
     tier: number

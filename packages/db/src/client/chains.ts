@@ -24,12 +24,12 @@ export type ChainFilter = {
   lang: Lang
   guid?: number
   search?: string
-  regionId?: Array<number>
+  regions?: Array<number>
   /** DLC guids (of the chain's final building) */
-  dlc?: Array<number>
+  dlcs?: Array<number>
   /** population_level guids whose construction menu lists the chain */
-  tier?: Array<number>
-  type?: Array<ChainType>
+  tiers?: Array<number>
+  types?: Array<ChainType>
 }
 
 const typeNames: Record<Lang, Record<ChainType, string>> = {
@@ -95,15 +95,15 @@ async function list(f: ChainFilter & Page) {
   const where = and(
     f.guid ? eq(productionChain.guid, f.guid) : undefined,
     f.search ? like(nameT.value, `%${f.search}%`) : undefined,
-    f.regionId?.length
-      ? inArray(productionChain.regionId, f.regionId)
+    f.regions?.length
+      ? inArray(productionChain.regionId, f.regions)
       : undefined,
-    f.dlc?.length ? inArray(building.dlcGuid, f.dlc) : undefined,
-    f.tier?.length
-      ? inCategory(productionChainCategory.populationLevelGuid, f.tier)
+    f.dlcs?.length ? inArray(building.dlcGuid, f.dlcs) : undefined,
+    f.tiers?.length
+      ? inCategory(productionChainCategory.populationLevelGuid, f.tiers)
       : undefined,
-    f.type?.length
-      ? inCategory(productionChainCategory.type, f.type)
+    f.types?.length
+      ? inCategory(productionChainCategory.type, f.types)
       : undefined,
   )
   const { limit, offset } = paginate(f)

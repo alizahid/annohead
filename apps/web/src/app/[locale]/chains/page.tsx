@@ -37,13 +37,13 @@ export default async function Page({
       lang,
     }),
     anno.chains.list({
-      dlc: filters.dlcs ?? undefined,
+      dlcs: filters.dlcs ?? undefined,
       lang,
       page: filters.page ?? undefined,
-      regionId: filters.regions ?? undefined,
+      regions: filters.regions ?? undefined,
       search: filters.query ?? undefined,
-      tier: filters.tiers ?? undefined,
-      type: filters.type ?? undefined,
+      tiers: filters.tiers ?? undefined,
+      types: filters.type ?? undefined,
     }),
   ])
 

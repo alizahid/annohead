@@ -49,25 +49,25 @@ import { unlockRequirements } from './unlock-requirements'
 export type BuildingFilter = {
   lang: Lang
   search?: string
-  kind?: Array<BuildingKind>
-  type?: Array<BuildingType>
-  category?: Array<BuildingCategory>
-  regionId?: Array<number>
+  kinds?: Array<BuildingKind>
+  types?: Array<BuildingType>
+  categories?: Array<BuildingCategory>
+  regions?: Array<number>
   /** DLC guids */
-  dlc?: Array<number>
+  dlcs?: Array<number>
   /** workforce tier (population_level guid) */
-  workforce?: Array<number>
+  tiers?: Array<number>
 }
 
 function buildingWhere(f: BuildingFilter, nameT: ReturnType<typeof localized>) {
   return and(
     f.search ? like(nameT.value, `%${f.search}%`) : undefined,
-    f.kind?.length ? inArray(building.kind, f.kind) : undefined,
-    f.type?.length ? inArray(building.type, f.type) : undefined,
-    f.category?.length ? categoryIn(f.category) : undefined,
-    f.regionId?.length ? inArray(building.regionId, f.regionId) : undefined,
-    f.dlc?.length ? inArray(building.dlcGuid, f.dlc) : undefined,
-    f.workforce?.length
+    f.kinds?.length ? inArray(building.kind, f.kinds) : undefined,
+    f.types?.length ? inArray(building.type, f.types) : undefined,
+    f.categories?.length ? categoryIn(f.categories) : undefined,
+    f.regions?.length ? inArray(building.regionId, f.regions) : undefined,
+    f.dlcs?.length ? inArray(building.dlcGuid, f.dlcs) : undefined,
+    f.tiers?.length
       ? exists(
           db
             .select({ buildingGuid: buildingMaintenance.buildingGuid })
@@ -82,7 +82,7 @@ function buildingWhere(f: BuildingFilter, nameT: ReturnType<typeof localized>) {
             .where(
               and(
                 eq(buildingMaintenance.buildingGuid, building.guid),
-                inArray(populationLevel.guid, f.workforce),
+                inArray(populationLevel.guid, f.tiers),
               ),
             ),
         )
