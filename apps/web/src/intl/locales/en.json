@@ -172,9 +172,9 @@
         "PASSWORD_TOO_LONG": "Password too long (max {max, plural, =0 {} =1 {1 character} other {# characters}})",
         "PASSWORD_TOO_SHORT": "Password too short (min {min, plural, =0 {} =1 {1 characer} other {# characters}})",
         "RATE_LIMITED": "Rate limited. Try again after {seconds, plural, =0 {a while} =1 {1 second} other {# seconds}}",
-        "USERNAME_HAS_INVALID_CHARACTERS": "",
-        "USERNAME_HAS_SURROUNDING_WHITESPACE": "",
-        "USERNAME_TAKEN": "",
+        "USERNAME_HAS_INVALID_CHARACTERS": "Password has invalid characters",
+        "USERNAME_HAS_SURROUNDING_WHITESPACE": "Username has surrounding whitespace",
+        "USERNAME_TAKEN": "Username in use",
         "USERNAME_TOO_SHORT": "Username too short (min {min, plural, =0 {} =1 {1 characer} other {# characters}})",
         "USER_NOT_FOUND": "User not found"
       }
@@ -183,14 +183,14 @@
   "page": {
     "building": {
       "fallback": "Building",
-      "title": "{name} × Buildings × Annohead "
+      "title": "{name} × Buildings × Annohead"
     },
     "buildings": {
       "title": "Buildings × Annohead"
     },
     "item": {
       "fallback": "Item",
-      "title": "{name} × Items × Annohead "
+      "title": "{name} × Items × Annohead"
     },
     "items": {
       "title": "Items × Annohead"
