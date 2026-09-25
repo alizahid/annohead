@@ -11,13 +11,7 @@ import {
 } from 'drizzle-orm'
 
 import { db } from '../db'
-import {
-  type Lang,
-  type StorageLevel,
-  storageLevelValues,
-  type TransportType,
-  transportTypeValues,
-} from '../enums'
+import { type Lang, type ProductKind, productKindValues } from '../enums'
 import {
   building,
   dlc,
@@ -44,55 +38,32 @@ export type ProductFilter = {
   guid?: number
   search?: string
   regions?: Array<number>
-  categories?: Array<TransportType>
-  storageLevels?: Array<StorageLevel>
+  kinds?: Array<ProductKind>
   /** DLC guids of a producing building */
   dlcs?: Array<number>
   /** population_level guids whose residences need the product */
   tiers?: Array<number>
 }
 
-// matches the game's product category texts
-const categoryNames: Record<Lang, Record<TransportType, string>> = {
+const kindNames: Record<Lang, Record<ProductKind, string>> = {
   de: {
-    Intermediate: 'Zwischenprodukt',
-    Material: 'Baumaterial',
-    Needs: 'Bedürfnis',
-    Raw: 'Rohmaterial',
-  },
-  en: {
-    Intermediate: 'Intermediate Product',
-    Material: 'Construction Material',
-    Needs: 'Need',
-    Raw: 'Raw Material',
-  },
-}
-
-// Area: island-wide (workforce), Building: warehouses (goods), Meta: empire-wide (money, permits)
-const storageLevelNames: Record<Lang, Record<StorageLevel, string>> = {
-  de: {
-    Area: 'Insel',
-    Building: 'Lagerhaus',
+    Good: 'Ware',
     Meta: 'Reich',
+    Service: 'Dienstleistung',
+    Workforce: 'Arbeitskraft',
   },
   en: {
-    Area: 'Island',
-    Building: 'Warehouse',
+    Good: 'Good',
     Meta: 'Empire',
+    Service: 'Service',
+    Workforce: 'Workforce',
   },
 }
 
-function categories({ lang }: { lang: Lang }) {
-  return transportTypeValues.map((key) => ({
+function kinds({ lang }: { lang: Lang }) {
+  return productKindValues.map((key) => ({
     key,
-    name: categoryNames[lang][key],
-  }))
-}
-
-function storageLevels({ lang }: { lang: Lang }) {
-  return storageLevelValues.map((key) => ({
-    key,
-    name: storageLevelNames[lang][key],
+    name: kindNames[lang][key],
   }))
 }
 
@@ -115,9 +86,7 @@ async function list(f: ProductFilter & Page) {
   const where = and(
     f.guid ? eq(product.guid, f.guid) : undefined,
     f.search ? like(nameT.value, `%${f.search}%`) : undefined,
-    f.categories?.length
-      ? inArray(product.transportType, f.categories)
-      : undefined,
+    f.kinds?.length ? inArray(product.kind, f.kinds) : undefined,
     f.dlcs?.length
       ? producerWhere(inArray(building.dlcGuid, f.dlcs))
       : undefined,
@@ -138,9 +107,6 @@ async function list(f: ProductFilter & Page) {
               ),
             ),
         )
-      : undefined,
-    f.storageLevels?.length
-      ? inArray(product.storageLevel, f.storageLevels)
       : undefined,
     f.regions?.length
       ? exists(
@@ -173,9 +139,8 @@ async function list(f: ProductFilter & Page) {
         category: catT.value,
         guid: product.guid,
         icon: product.icon,
+        kind: product.kind,
         name: nameT.value,
-        storageLevel: product.storageLevel,
-        transportType: product.transportType,
       })
       .from(product)
       .leftJoin(nameT, on(nameT, product.nameText, f.lang))
@@ -266,8 +231,7 @@ async function get({ id, lang }: Get) {
 }
 
 export const products = {
-  categories,
   get,
+  kinds,
   list,
-  storageLevels,
 }

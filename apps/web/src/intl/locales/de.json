@@ -87,7 +87,6 @@
       "calculator": {
         "baseProductivity": "Base productivity",
         "buildings": "× {required, number, required}",
-        "count": "Number of {name}",
         "cycleTime": "Cycle time",
         "inputs": "Inputs",
         "output": "Output",
@@ -175,6 +174,18 @@
         "title": "Annohead"
       }
     },
+    "products": {
+      "filters": {
+        "dlcs": "DLC",
+        "kinds": "Type",
+        "regions": "Region",
+        "tiers": "Population tier"
+      },
+      "list": {
+        "empty": "Nothing found",
+        "title": "Goods"
+      }
+    },
     "search": {
       "box": {
         "placeholder": "Search"
@@ -258,6 +269,9 @@
     },
     "items": {
       "title": "Items × Annohead"
+    },
+    "products": {
+      "title": "Goods × Annohead"
     },
     "search": {
       "title": "Search × Annohead"

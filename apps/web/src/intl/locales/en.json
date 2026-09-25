@@ -176,10 +176,9 @@
     },
     "products": {
       "filters": {
-        "categories": "Type",
         "dlcs": "DLC",
+        "kinds": "Type",
         "regions": "Region",
-        "storageLevels": "Storage",
         "tiers": "Population tier"
       },
       "list": {

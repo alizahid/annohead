@@ -1,8 +1,7 @@
 import {
   type Dlcs,
   type PopulationTiers,
-  type ProductCategories,
-  type ProductStorageLevels,
+  type ProductKinds,
   type Products,
   type Regions,
 } from '@anno/db/client'
@@ -16,22 +15,20 @@ import { ProductCard } from './card'
 import { ProductFiltersCard } from './filters'
 
 type Props = {
-  categories: ProductCategories
   dlcs: Dlcs
   filters: ProductFilters
+  kinds: ProductKinds
   products: Products
   regions: Regions
-  storageLevels: ProductStorageLevels
   tiers: PopulationTiers
 }
 
 export function ProductList({
-  categories,
   dlcs,
   filters,
+  kinds,
   products,
   regions,
-  storageLevels,
   tiers,
 }: Props) {
   const t = useTranslations('component.products.list')
@@ -42,10 +39,9 @@ export function ProductList({
 
       <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
         <ProductFiltersCard
-          categories={categories}
           dlcs={dlcs}
+          kinds={kinds}
           regions={regions}
-          storageLevels={storageLevels}
           tiers={tiers}
         />
 

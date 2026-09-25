@@ -3,11 +3,10 @@
 import {
   type Dlcs,
   type PopulationTiers,
-  type ProductCategories,
-  type ProductStorageLevels,
+  type ProductKinds,
   type Regions,
 } from '@anno/db/client'
-import { type StorageLevel, type TransportType } from '@anno/db/enums'
+import { type ProductKind } from '@anno/db/enums'
 import { Checkbox } from '@base-ui/react/checkbox'
 import { CheckboxGroup } from '@base-ui/react/checkbox-group'
 import { orderBy } from 'lodash'
@@ -21,20 +20,13 @@ import { productFilters } from '@/lib/validators'
 import { Icon } from '../common/icon'
 
 type Props = {
-  categories: ProductCategories
+  kinds: ProductKinds
   dlcs: Dlcs
   regions: Regions
-  storageLevels: ProductStorageLevels
   tiers: PopulationTiers
 }
 
-export function ProductFiltersCard({
-  categories,
-  dlcs,
-  regions,
-  storageLevels,
-  tiers,
-}: Props) {
+export function ProductFiltersCard({ kinds, dlcs, regions, tiers }: Props) {
   const router = useRouter()
 
   const t = useTranslations('component.products.filters')
@@ -149,53 +141,21 @@ export function ProductFiltersCard({
       </div>
 
       <div className="flex flex-col gap-4">
-        <h3>{t('categories')}</h3>
+        <h3>{t('kinds')}</h3>
 
         <CheckboxGroup
           className="flex flex-col gap-2"
           onValueChange={async (next) => {
             await setFilters({
-              category: next as Array<TransportType>,
+              kind: next as Array<ProductKind>,
               page: null,
             })
 
             router.refresh()
           }}
-          value={filters.category ? filters.category.map(String) : []}
+          value={filters.kind ? filters.kind.map(String) : []}
         >
-          {categories.map((item) => (
-            <Checkbox.Root
-              className="flex h-8 items-center gap-2 rounded-md px-1 outline-none ring-accent-8 transition-colors hover:bg-accent-4 focus-visible:ring-2 data-checked:bg-accent-5"
-              key={item.key}
-              value={item.key}
-            >
-              <Checkbox.Indicator
-                className="ml-0.5 flex size-5 items-center justify-center rounded-full border border-gray-12 data-checked:border-0 data-checked:bg-gray-12"
-                keepMounted
-              />
-
-              <span className="font-bold text-sm">{item.name}</span>
-            </Checkbox.Root>
-          ))}
-        </CheckboxGroup>
-      </div>
-
-      <div className="flex flex-col gap-4">
-        <h3>{t('storageLevels')}</h3>
-
-        <CheckboxGroup
-          className="flex flex-col gap-2"
-          onValueChange={async (next) => {
-            await setFilters({
-              page: null,
-              storage: next as Array<StorageLevel>,
-            })
-
-            router.refresh()
-          }}
-          value={filters.storage ? filters.storage.map(String) : []}
-        >
-          {storageLevels.map((item) => (
+          {kinds.map((item) => (
             <Checkbox.Root
               className="flex h-8 items-center gap-2 rounded-md px-1 outline-none ring-accent-8 transition-colors hover:bg-accent-4 focus-visible:ring-2 data-checked:bg-accent-5"
               key={item.key}

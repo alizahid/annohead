@@ -25,13 +25,12 @@ import {
   nodeTypeValues,
   optionCategoryValues,
   participantKindValues,
+  productKindValues,
   questCategoryValues,
   rarityValues,
   regionValues,
   sourceCategoryValues,
-  storageLevelValues,
   storylineSystemValues,
-  transportTypeValues,
 } from './enums'
 
 export const region = sqliteTable('region', {
@@ -138,10 +137,9 @@ export const product = sqliteTable('product', {
   categoryText: integer('category_text'),
   guid: integer().primaryKey(),
   icon: text(),
+  kind: text({ enum: productKindValues }),
   name: text(),
   nameText: integer('name_text'),
-  storageLevel: text('storage_level', { enum: storageLevelValues }),
-  transportType: text('transport_type', { enum: transportTypeValues }),
 })
 
 export const productRegion = sqliteTable(

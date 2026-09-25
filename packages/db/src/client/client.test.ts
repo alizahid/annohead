@@ -380,11 +380,13 @@ test('products and techs', async () => {
     )?.name,
   ).toBe(p.rows[0]?.name)
   const meta = await anno.products.list({
-    categories: ['Raw'],
+    kinds: ['Meta'],
     lang: 'en',
-    storageLevels: ['Meta'],
   })
   expect(meta.total).toBe(7)
+  expect(
+    (await anno.products.list({ kinds: ['Workforce'], lang: 'en' })).total,
+  ).toBe(9)
   const dlcProducts = await anno.products.list({
     dlcs: [67_902],
     lang: 'en',
@@ -411,11 +413,17 @@ test('products and techs', async () => {
   })
   expect(roman.total).toBe(94)
   expect(roman.rows.every((r) => r.regions.some((x) => x.id === 1))).toBe(true)
-  expect(anno.products.categories({ lang: 'de' })).toContainEqual({
-    key: 'Raw',
-    name: 'Rohmaterial',
+  expect(anno.products.kinds({ lang: 'de' })).toContainEqual({
+    key: 'Service',
+    name: 'Dienstleistung',
   })
-  expect(anno.products.storageLevels({ lang: 'en' })).toHaveLength(3)
+  // Barley is a good; Alder Council and workforce are not, despite the game's "Raw" transport type
+  const barley = await anno.products.list({
+    kinds: ['Good'],
+    lang: 'en',
+    search: 'Barley',
+  })
+  expect(barley.rows.map((r) => r.kind)).toEqual(['Good'])
   const t = await anno.techs.list({
     lang: 'en',
     search: 'Armoursmithing',

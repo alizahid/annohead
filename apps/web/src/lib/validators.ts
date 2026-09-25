@@ -7,9 +7,8 @@ import {
   chainTypeValues,
   itemTypeValues,
   nicheValues,
+  productKindValues,
   rarityValues,
-  storageLevelValues,
-  transportTypeValues,
 } from '@anno/db/enums'
 import { SearchTypes } from '@anno/db/search'
 import { hasLocale } from 'next-intl'
@@ -88,12 +87,11 @@ export const parseChainFilters = createLoader(chainFilters)
 export type ChainFilters = Awaited<ReturnType<typeof parseChainFilters>>
 
 export const productFilters = {
-  category: parseAsArrayOf(parseAsStringLiteral(transportTypeValues)),
   dlcs: parseAsArrayOf(parseAsInteger),
+  kind: parseAsArrayOf(parseAsStringLiteral(productKindValues)),
   page: parseAsInteger,
   query: parseAsString,
   regions: parseAsArrayOf(parseAsInteger),
-  storage: parseAsArrayOf(parseAsStringLiteral(storageLevelValues)),
   tiers: parseAsArrayOf(parseAsInteger),
 }
 

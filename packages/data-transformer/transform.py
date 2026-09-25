@@ -364,8 +364,17 @@ class T:
     def products(self):
         for a in self.by_template("Product"):
             p = D(a["v"].get("Product"))
+            # TransportGoodsType is "Raw" on nearly every non-good, so classify by the game's own flags
+            if p.get("IsWorkforce") == "1":
+                kind = "Workforce"
+            elif p.get("IsAbstract") == "1":
+                kind = "Service"
+            elif p.get("StorageLevel") == "Meta":
+                kind = "Meta"
+            else:
+                kind = "Good"
             self.db.execute(
-                "insert into product values(?,?,?,?,?,?,?,?)",
+                "insert into product values(?,?,?,?,?,?,?)",
                 (
                     a["guid"],
                     a["name"],
@@ -373,8 +382,7 @@ class T:
                     self.icon(a["icon"]),
                     self.text(p.get("ProductCategory")),
                     self.num(p.get("BasePrice")),
-                    self.enum("storage_level", p.get("StorageLevel")),
-                    self.enum("transport_type", p.get("TransportGoodsType")),
+                    self.enum("product_kind", kind),
                 ),
             )
             for r in str(p.get("AssociatedRegion") or "").split(";"):
@@ -1365,7 +1373,7 @@ create table enum_value(name text, value text, primary key(name,value));
 create table lang(id integer primary key, code text);
 create table translation(line_id integer, lang_id integer references lang(id), value text, primary key(line_id,lang_id)) without rowid;
 
-create table product(guid integer primary key, name text, name_text integer, icon text, category_text integer, base_price real, storage_level text, transport_type text);
+create table product(guid integer primary key, name text, name_text integer, icon text, category_text integer, base_price real, kind text);
 create table product_region(product_guid int references product(guid), region_id int references region(id), primary key(product_guid,region_id));
 create table need(guid integer primary key, name text, name_text integer, product_guid int references product(guid), category text, description_text integer);
 create table need_attribute(need_guid int references need(guid), attribute_id int references attribute(id), value real);

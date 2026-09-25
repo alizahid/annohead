@@ -43,10 +43,7 @@ export type ItemTypes = Awaited<ReturnType<typeof items.types>>
 export type PopulationTiers = Awaited<ReturnType<typeof populationTiers.list>>
 export type Products = Awaited<ReturnType<typeof products.list>>
 export type Product = Awaited<ReturnType<typeof products.get>>
-export type ProductCategories = Awaited<ReturnType<typeof products.categories>>
-export type ProductStorageLevels = Awaited<
-  ReturnType<typeof products.storageLevels>
->
+export type ProductKinds = Awaited<ReturnType<typeof products.kinds>>
 export type Quests = Awaited<ReturnType<typeof quests.list>>
 export type Quest = Awaited<ReturnType<typeof quests.get>>
 export type Regions = Awaited<ReturnType<typeof regions.list>>

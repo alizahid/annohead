@@ -23,42 +23,36 @@ export default async function Page({
 
   const filters = parseProductFilters(await searchParams)
 
-  const [dlcs, regions, tiers, categories, storageLevels, products] =
-    await Promise.all([
-      anno.dlc.list({
-        lang,
-      }),
-      anno.regions.list({
-        lang,
-      }),
-      anno.populationTiers.list({
-        lang,
-      }),
-      anno.products.categories({
-        lang,
-      }),
-      anno.products.storageLevels({
-        lang,
-      }),
-      anno.products.list({
-        categories: filters.category ?? undefined,
-        dlcs: filters.dlcs ?? undefined,
-        lang,
-        page: filters.page ?? undefined,
-        regions: filters.regions ?? undefined,
-        storageLevels: filters.storage ?? undefined,
-        tiers: filters.tiers ?? undefined,
-      }),
-    ])
+  const [dlcs, regions, tiers, kinds, products] = await Promise.all([
+    anno.dlc.list({
+      lang,
+    }),
+    anno.regions.list({
+      lang,
+    }),
+    anno.populationTiers.list({
+      lang,
+    }),
+    anno.products.kinds({
+      lang,
+    }),
+    anno.products.list({
+      dlcs: filters.dlcs ?? undefined,
+      kinds: filters.kind ?? undefined,
+      lang,
+      page: filters.page ?? undefined,
+      regions: filters.regions ?? undefined,
+      tiers: filters.tiers ?? undefined,
+    }),
+  ])
 
   return (
     <ProductList
-      categories={categories}
       dlcs={dlcs}
       filters={filters}
+      kinds={kinds}
       products={products}
       regions={regions}
-      storageLevels={storageLevels}
       tiers={tiers}
     />
   )

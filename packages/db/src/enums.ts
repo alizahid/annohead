@@ -160,6 +160,14 @@ export const participantKindValues = [
 ] as const
 export type ParticipantKind = (typeof participantKindValues)[number]
 
+export const productKindValues = [
+  'Good',
+  'Meta',
+  'Service',
+  'Workforce',
+] as const
+export type ProductKind = (typeof productKindValues)[number]
+
 export const questCategoryValues = [
   'Campaign',
   'Contracts',
@@ -198,23 +206,12 @@ export const sourceCategoryValues = [
 ] as const
 export type SourceCategory = (typeof sourceCategoryValues)[number]
 
-export const storageLevelValues = ['Area', 'Building', 'Meta'] as const
-export type StorageLevel = (typeof storageLevelValues)[number]
-
 export const storylineSystemValues = [
   'Contracts',
   'GovernorDecisions',
   'Quests',
 ] as const
 export type StorylineSystem = (typeof storylineSystemValues)[number]
-
-export const transportTypeValues = [
-  'Intermediate',
-  'Material',
-  'Needs',
-  'Raw',
-] as const
-export type TransportType = (typeof transportTypeValues)[number]
 
 export const attributeValues = [
   'Population',
