@@ -5,6 +5,7 @@ import { useFormatter, useTranslations } from 'next-intl'
 import { getIcon } from '@/lib/icons'
 
 import { CommentList } from '../comments/list'
+import { Html } from '../common/html'
 import { Icon } from '../common/icon'
 import { DataList } from '../data-list'
 
@@ -45,7 +46,7 @@ export function BuildingPage({ building }: Props) {
 
             <h1 className="text-4xl leading-tight">{building.name}</h1>
 
-            {building.description ? <p>{building.description}</p> : null}
+            {building.description ? <Html>{building.description}</Html> : null}
           </div>
         </div>
 
