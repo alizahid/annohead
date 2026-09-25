@@ -34,6 +34,7 @@ BUILDING_KIND = [  # (template regex, kind); first match wins
     (r"Marsh|Irrigation|Canal", "Marsh"),
     (r"^Street", "Road"),
 ]
+CHAIN_TYPES = {"Materials": "Material", "Military": "Military", "Harbor": "Harbour"}
 EXCLUDED_BUILDINGS = r"^Ornamental|^PolygonObject|^Hedge|^QuestLighthouse|^DEPRECATED|^Pirate|^SimpleBuilding|^TestData"
 QUEST_TEMPLATES = {
     "StoryLine",
@@ -576,6 +577,28 @@ class T:
         self.db.execute(
             "update production_chain set region_id=(select region_id from building b where b.guid=production_chain.building_guid)"
         )
+        # the construction menu files chains under a population tier (menu icon = its workforce icon) or a type tab
+        tiers = {
+            self.assets[wf]["icon"]: pl
+            for pl, wf in self.db.execute(
+                "select guid, workforce_product_guid from population_level"
+            )
+            if wf in self.assets
+        }
+        chains = {g for (g,) in self.db.execute("select guid from production_chain")}
+        for a in self.by_template("ConstructionCategory"):
+            name = a["name"] or ""
+            tier = tiers.get(a["icon"])
+            kind = "Consumer" if tier else CHAIN_TYPES.get(name.split(" ")[-1])
+            if not kind or "Pins" in name:  # "Pins Middle Materials" duplicates the Materials tab
+                continue
+            for b in self.items(D(a["v"].get("ConstructionCategory")).get("BuildingList")):
+                g = self.num(b.get("Building"))
+                if g in chains:
+                    self.db.execute(
+                        "insert or ignore into production_chain_category values(?,?,?)",
+                        (g, self.enum("chain_type", kind), tier),
+                    )
 
     def _chain_nodes(self, chain, node, parent, tier):
         nid = self.db.execute(
@@ -1364,6 +1387,7 @@ create table residence_need(building_guid int references building(guid), need_gu
 create table residence_upgrade_cost(building_guid int references building(guid), product_guid int references product(guid), amount real);
 create table production_chain(guid integer primary key, name text, name_text integer, icon text, building_guid int references building(guid), region_id int references region(id));
 create table production_chain_node(id integer primary key, chain_guid int references production_chain(guid), parent_id int, building_guid int, tier int);
+create table production_chain_category(chain_guid int references production_chain(guid), type text, population_level_guid int references population_level(guid), unique(chain_guid, type, population_level_guid));
 
 create table effect(guid integer primary key, name text, name_text integer, description_text integer, scope text, source_category text, exclude_source int);
 create table effect_buff(effect_guid int references effect(guid), buff_guid int, primary key(effect_guid,buff_guid));
@@ -1421,6 +1445,7 @@ create index idx_factory_output_product on factory_output(product_guid);
 create index idx_residence_need_building on residence_need(building_guid);
 create index idx_residence_upgrade_cost_building on residence_upgrade_cost(building_guid);
 create index idx_production_chain_node_chain on production_chain_node(chain_guid);
+create index idx_production_chain_category_chain on production_chain_category(chain_guid);
 create index idx_buff_modifier_buff on buff_modifier(buff_guid);
 create index idx_buff_functional_effect_buff on buff_functional_effect(buff_guid);
 create index idx_item_boost_buff_item on item_boost_buff(item_guid);

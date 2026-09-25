@@ -10,7 +10,7 @@ type Props = {
   chain: Chain
 }
 
-export function ChainCard({ chain }: Props) {
+export function ProductionChain({ chain }: Props) {
   const final = chain.nodes.find((node) => !node.parentId)
 
   const tiers = Object.keys(groupBy(chain.nodes, 'tier')).length
@@ -18,16 +18,7 @@ export function ChainCard({ chain }: Props) {
   return (
     <>
       {final ? (
-        <div className="relative flex overflow-x-scroll md:justify-center">
-          <div
-            className="p-1"
-            style={{
-              width: tiers * 96 + tiers * 32 - 24,
-            }}
-          >
-            <ChainNode chain={chain} node={final} />
-          </div>
-
+        <div className="relative flex overflow-x-scroll rounded-lg bg-gray-2 lg:justify-center">
           <div className="absolute">
             {chain.nodes.map((node) =>
               node.parentId ? (
@@ -44,10 +35,18 @@ export function ChainCard({ chain }: Props) {
                   showTail={false}
                   start={`node-${node.id}`}
                   startAnchor="middle"
-                  zIndex={-1}
                 />
               ) : null,
             )}
+          </div>
+
+          <div
+            className="p-4"
+            style={{
+              width: tiers * 96 + tiers * 32,
+            }}
+          >
+            <ChainNode chain={chain} node={final} />
           </div>
         </div>
       ) : null}

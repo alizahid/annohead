@@ -1,12 +1,13 @@
-import { and, asc, count, eq, inArray, like } from 'drizzle-orm'
+import { and, asc, count, eq, exists, inArray, like } from 'drizzle-orm'
 
 import { db } from '../db'
-import { type Lang } from '../enums'
+import { type ChainType, chainTypeValues, type Lang } from '../enums'
 import {
   building,
   dlc,
   factory,
   productionChain,
+  productionChainCategory,
   productionChainNode,
   region,
 } from '../schema'
@@ -23,7 +24,66 @@ export type ChainFilter = {
   lang: Lang
   guid?: number
   search?: string
-  regionId?: number
+  regionId?: Array<number>
+  /** DLC guids (of the chain's final building) */
+  dlc?: Array<number>
+  /** population_level guids whose construction menu lists the chain */
+  tier?: Array<number>
+  type?: Array<ChainType>
+}
+
+const typeNames: Record<Lang, Record<ChainType, string>> = {
+  de: {
+    Consumer: 'Verbrauchsgüter',
+    Harbour: 'Hafen',
+    Material: 'Baumaterial',
+    Military: 'Militär',
+  },
+  en: {
+    Consumer: 'Consumer Goods',
+    Harbour: 'Harbour',
+    Material: 'Materials',
+    Military: 'Military',
+  },
+}
+
+/** Construction-menu tab icons; consumer chains live on per-tier tabs, so they borrow a need category's. */
+const typeIcons: Record<ChainType, string> = {
+  Consumer:
+    'data/ui/fhd/base/icon_content/need_categories/icon_3d_need_category_household.png',
+  Harbour:
+    'data/ui/fhd/base/icon_content/building/icon_3d_construction_category_harbour.png',
+  Material:
+    'data/ui/fhd/base/icon_content/building/icon_3d_construction_category_materials.png',
+  Military:
+    'data/ui/fhd/base/icon_content/building/icon_3d_construction_category_military.png',
+}
+
+function types({ lang }: { lang: Lang }) {
+  return chainTypeValues.map((key) => ({
+    icon: typeIcons[key],
+    key,
+    name: typeNames[lang][key],
+  }))
+}
+
+function inCategory(
+  column:
+    | typeof productionChainCategory.type
+    | typeof productionChainCategory.populationLevelGuid,
+  values: Array<ChainType> | Array<number>,
+) {
+  return exists(
+    db
+      .select({ chainGuid: productionChainCategory.chainGuid })
+      .from(productionChainCategory)
+      .where(
+        and(
+          eq(productionChainCategory.chainGuid, productionChain.guid),
+          inArray(column, values),
+        ),
+      ),
+  )
 }
 
 /** Production chains with their nodes as a flat parent/tier list. */
@@ -35,7 +95,16 @@ async function list(f: ChainFilter & Page) {
   const where = and(
     f.guid ? eq(productionChain.guid, f.guid) : undefined,
     f.search ? like(nameT.value, `%${f.search}%`) : undefined,
-    f.regionId ? eq(productionChain.regionId, f.regionId) : undefined,
+    f.regionId?.length
+      ? inArray(productionChain.regionId, f.regionId)
+      : undefined,
+    f.dlc?.length ? inArray(building.dlcGuid, f.dlc) : undefined,
+    f.tier?.length
+      ? inCategory(productionChainCategory.populationLevelGuid, f.tier)
+      : undefined,
+    f.type?.length
+      ? inCategory(productionChainCategory.type, f.type)
+      : undefined,
   )
   const { limit, offset } = paginate(f)
   const [[{ total }], rows] = await Promise.all([
@@ -45,10 +114,13 @@ async function list(f: ChainFilter & Page) {
       })
       .from(productionChain)
       .leftJoin(nameT, on(nameT, productionChain.nameText, f.lang))
+      .leftJoin(building, eq(building.guid, productionChain.buildingGuid))
       .where(where),
     db
       .select({
         building: {
+          baseProductivity: factory.baseProductivity,
+          cycleTime: factory.cycleTime,
           guid: building.guid,
           icon: building.icon,
           name: bName.value,
@@ -69,6 +141,7 @@ async function list(f: ChainFilter & Page) {
       .leftJoin(region, eq(region.id, productionChain.regionId))
       .leftJoin(building, eq(building.guid, productionChain.buildingGuid))
       .leftJoin(bName, on(bName, building.nameText, f.lang))
+      .leftJoin(factory, eq(factory.buildingGuid, building.guid))
       .leftJoin(dlc, eq(dlc.guid, building.dlcGuid))
       .leftJoin(dlcT, on(dlcT, dlc.nameText, f.lang))
       .where(where)
@@ -79,7 +152,9 @@ async function list(f: ChainFilter & Page) {
   const guids = rows.map((r) => r.guid)
   const nodes = await db
     .select({
+      baseProductivity: factory.baseProductivity,
       chainGuid: productionChainNode.chainGuid,
+      cycleTime: factory.cycleTime,
       guid: building.guid,
       icon: building.icon,
       id: productionChainNode.id,
@@ -122,4 +197,5 @@ async function get({ id, lang }: Get) {
 export const chains = {
   get,
   list,
+  types,
 }

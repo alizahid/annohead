@@ -4,6 +4,7 @@ import {
   buildingCategoryValues,
   buildingKindValues,
   buildingTypeValues,
+  chainTypeValues,
   itemTypeValues,
   nicheValues,
   rarityValues,
@@ -70,3 +71,16 @@ export const itemFilters = {
 export const parseItemFilters = createLoader(itemFilters)
 
 export type ItemFilters = Awaited<ReturnType<typeof parseItemFilters>>
+
+export const chainFilters = {
+  dlcs: parseAsArrayOf(parseAsInteger),
+  page: parseAsInteger,
+  query: parseAsString,
+  regions: parseAsArrayOf(parseAsInteger),
+  tiers: parseAsArrayOf(parseAsInteger),
+  type: parseAsArrayOf(parseAsStringLiteral(chainTypeValues)),
+}
+
+export const parseChainFilters = createLoader(chainFilters)
+
+export type ChainFilters = Awaited<ReturnType<typeof parseChainFilters>>

@@ -170,6 +170,9 @@ const columnEnums: Record<string, Record<string, string>> = {
     storageLevel: 'storage_level',
     transportType: 'transport_type',
   },
+  productionChainCategory: {
+    type: 'chain_type',
+  },
   quest: {
     category: 'quest_category',
   },

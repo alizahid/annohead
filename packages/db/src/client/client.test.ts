@@ -437,6 +437,9 @@ test('chains join final building and nodes', async () => {
     lang: 'en',
   })
   expect(chain?.building?.guid).toBe(3089)
+  expect(chain?.building?.cycleTime).toBeGreaterThan(0)
+  expect(chain?.building?.baseProductivity).toBe(100)
+  expect(chain?.nodes.every((n) => n.cycleTime !== null)).toBe(true)
   expect(chain?.nodes.length).toBeGreaterThan(1)
   expect(chain?.nodes[0]?.parentId).toBeNull()
   expect(
@@ -445,6 +448,36 @@ test('chains join final building and nodes', async () => {
       lang: 'en',
     }),
   ).toBeNull()
+})
+
+test('chains filter by type, tier, region and dlc', async () => {
+  const military = await anno.chains.list({
+    lang: 'en',
+    type: ['Military'],
+  })
+  expect(military.rows.map((r) => r.guid)).toContain(3253)
+  expect(military.total).toBe(4)
+  // Roman Celtic Wine is on both the Aldermen and Nobles menus
+  const nobles = await anno.chains.list({
+    lang: 'en',
+    tier: [1504],
+  })
+  expect(nobles.rows.map((r) => r.guid)).toContain(6668)
+  const roman = await anno.chains.list({
+    lang: 'en',
+    regionId: [1],
+    type: ['Material'],
+  })
+  expect(roman.rows.every((r) => r.region?.id === 1)).toBe(true)
+  expect(
+    (
+      await anno.chains.list({
+        dlc: [-1],
+        lang: 'en',
+      })
+    ).total,
+  ).toBe(0)
+  expect(anno.chains.types({ lang: 'en' })).toHaveLength(4)
 })
 
 test('search ranks name matches, dedupes variants, filters by type and paginates', async () => {

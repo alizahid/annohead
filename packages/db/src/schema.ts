@@ -14,6 +14,7 @@ import {
   attributeValues,
   buildingKindValues,
   buildingTypeValues,
+  chainTypeValues,
   conditionTemplateValues,
   dlcValues,
   effectScopeValues,
@@ -368,6 +369,19 @@ export const productionChainNode = sqliteTable(
     tier: integer(),
   },
   (table) => [index('idx_production_chain_node_chain').on(table.chainGuid)],
+)
+
+/** Construction-menu tab a chain is filed under; `Consumer` rows carry the tier. */
+export const productionChainCategory = sqliteTable(
+  'production_chain_category',
+  {
+    chainGuid: integer('chain_guid').references(() => productionChain.guid),
+    populationLevelGuid: integer('population_level_guid').references(
+      () => populationLevel.guid,
+    ),
+    type: text({ enum: chainTypeValues }),
+  },
+  (table) => [index('idx_production_chain_category_chain').on(table.chainGuid)],
 )
 
 export const effect = sqliteTable('effect', {

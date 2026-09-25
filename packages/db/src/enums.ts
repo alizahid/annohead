@@ -27,6 +27,14 @@ export const buildingTypeValues = [
 ] as const
 export type BuildingType = (typeof buildingTypeValues)[number]
 
+export const chainTypeValues = [
+  'Consumer',
+  'Harbour',
+  'Material',
+  'Military',
+] as const
+export type ChainType = (typeof chainTypeValues)[number]
+
 export const conditionTemplateValues = [
   'ConditionActiveEmperor',
   'ConditionActiveSession',

@@ -4,7 +4,8 @@ import { getIcon } from '@/lib/icons'
 
 import { CommentList } from '../comments/list'
 import { Icon } from '../common/icon'
-import { ChainCard } from './chain'
+import { Calculator } from './calculator'
+import { ProductionChain } from './production'
 
 type Props = {
   chain: Chain
@@ -41,7 +42,11 @@ export function ChainPage({ chain }: Props) {
         ) : null}
       </div>
 
-      <ChainCard chain={chain} />
+      <div className="grid items-start gap-6 lg:grid-cols-2">
+        <Calculator chain={chain} />
+
+        <ProductionChain chain={chain} />
+      </div>
 
       <CommentList guid={chain.guid} />
     </div>

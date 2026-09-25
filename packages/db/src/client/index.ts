@@ -32,6 +32,7 @@ export type Captains = Awaited<ReturnType<typeof captains.list>>
 export type Captain = Awaited<ReturnType<typeof captains.get>>
 export type Chains = Awaited<ReturnType<typeof chains.list>>
 export type Chain = Awaited<ReturnType<typeof chains.get>>
+export type ChainTypes = Awaited<ReturnType<typeof chains.types>>
 export type Dlcs = Awaited<ReturnType<typeof dlc.list>>
 export type Items = Awaited<ReturnType<typeof items.list>>
 export type Item = Awaited<ReturnType<typeof items.get>>
