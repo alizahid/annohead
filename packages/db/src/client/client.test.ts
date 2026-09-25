@@ -426,30 +426,15 @@ test('products and techs', async () => {
   )
 })
 
-test('storylines and quests', async () => {
+test('storylines join quests, nodes, edges and options', async () => {
   const s = await anno.storylines.list({
     lang: 'en',
     perPage: 5,
     system: 'Quests',
   })
   expect(s.rows.some((r) => r.quests.length > 0)).toBe(true)
-  const q = await anno.quests.list({
-    categories: ['Campaign'],
-    lang: 'en',
-    perPage: 3,
-  })
-  expect(q.rows[0]?.storyline?.guid).toBeTruthy()
-  expect(q.rows.some((r) => r.steps.length > 0)).toBe(true)
-  expect(
-    (
-      await anno.quests.get({
-        id: q.rows[0]?.guid ?? 0,
-        lang: 'en',
-      })
-    )?.guid,
-  ).toBe(q.rows[0]?.guid)
   const full = await anno.storylines.get({
-    id: q.rows[0]?.storyline?.guid ?? 0,
+    id: 50_865,
     lang: 'en',
   })
   expect(full?.nodes.length).toBeGreaterThan(0)
@@ -458,30 +443,61 @@ test('storylines and quests', async () => {
   expect(full?.nodes.some((n) => n.rewards.length > 0)).toBe(true)
 })
 
-test('quest filters by category, region and dlc', async () => {
-  expect(anno.quests.categories({ lang: 'de' })).toContainEqual({
-    key: 'Contracts',
-    name: 'Aufträge',
-  })
-  const celtic = await anno.quests.list({
-    categories: ['Campaign'],
-    lang: 'en',
-    perPage: 100,
-    regions: [2],
-  })
-  expect(celtic.total).toBeGreaterThan(0)
-  expect(
-    celtic.rows.every(
-      (r) => r.region?.id === 2 && r.category?.key === 'Campaign',
-    ),
-  ).toBe(true)
-  const hippodrome = await anno.quests.list({
-    dlcs: [67_903],
-    lang: 'en',
-    perPage: 100,
-  })
-  expect(hippodrome.total).toBeGreaterThan(0)
-  expect(hippodrome.rows.every((r) => r.dlc?.guid === 67_903)).toBe(true)
+test('questlines group the Mysterious Murmillo parts in order', async () => {
+  const { rows } = await anno.quests.list({ lang: 'en', perPage: 500 })
+  const murmillo = rows.find((r) => r.guid === 50_806)
+  expect(murmillo?.name).toBe('The Mysterious Murmillo')
+  expect(murmillo?.parts).toBe(9)
+  const radiant = rows.some((r) => r.name?.includes('Emperor Request'))
+  expect(radiant).toBe(false)
+  const q = await anno.quests.get({ id: 50_806, lang: 'en' })
+  expect(q?.parts[0]?.name).toBe('The Mysterious Murmillo Part I')
+  expect(q?.parts.at(-1)?.name).toBe('The Mysterious Murmillo Part VI')
+})
+
+test('questline choices carry costs, requirements and outcomes', async () => {
+  const q = await anno.quests.get({ id: 50_806, lang: 'en' })
+  const finale = q?.parts.at(-1)?.choices ?? []
+  const fate = finale.find((c) => c.guid === 50_866)
+  // adopting Favillus hands over his specialist and wins the neutral crowd
+  const adopt = fate?.options[1]
+  expect(adopt?.outcomes.find((o) => o.kind === 'goods')?.guid).toBe(50_890)
+  expect(adopt?.outcomes).toContainEqual(
+    expect.objectContaining({
+      kind: 'variable',
+      name: 'Neutral Favor',
+      value: '+1',
+    }),
+  )
+  expect(adopt?.next).toBe(50_883)
+  // the favour tally picks the reward
+  const tally = finale.find((c) => c.guid === 50_883)
+  expect(tally?.kind).toBe('check')
+  expect(tally?.requirements.map((r) => r.name)).toEqual([
+    'Patrician Favor ≥ Neutral Favor',
+  ])
+  const reward = finale.find((c) => c.guid === 144_501)
+  expect(reward?.options[0]?.requirements.map((r) => r.name)).toEqual([
+    'Mega Reward = 1',
+    'Not: Killed Favillus',
+  ])
+  const happiness = reward?.options[0]?.outcomes[0]
+  expect(happiness?.kind).toBe('effect')
+  expect(happiness?.modifiers).toEqual([
+    expect.objectContaining({ name: 'Happiness', value: 9 }),
+  ])
+  expect(happiness?.duration).toBe(43_200_000)
+  // the Hippodrome's claques cost coins
+  const hippodrome = await anno.storylines.get({ id: 154_738, lang: 'en' })
+  expect(hippodrome).not.toBeNull()
+  const standing = (
+    await anno.quests.list({ dlcs: [67_903], lang: 'en', perPage: 500 })
+  ).rows.find((r) => r.guid === 154_738)
+  const part = (await anno.quests.get({ id: standing?.guid ?? 0, lang: 'en' }))
+    ?.parts[0]
+  expect(part?.choices[0]?.options[0]?.cost).toEqual(
+    expect.objectContaining({ amount: 50_000, guid: 1_010_017 }),
+  )
 })
 
 test('chains join final building and nodes', async () => {

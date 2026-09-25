@@ -78,13 +78,13 @@ export function ItemPage({ item }: Props) {
           {item.sources.length ? (
             <DataList.Root title={t('details.sources')}>
               {item.sources.map((source) =>
-                source.kind === 'tech' || source.kind === 'quest' ? (
+                source.kind === 'tech' || source.questline ? (
                   <DataList.Link
                     icon={source.icon}
-                    id={source.guid}
+                    id={source.questline ?? source.guid}
                     key={`${source.guid}:${source.kind}`}
                     name={source.name}
-                    type={source.kind}
+                    type={source.questline ? 'quest' : 'tech'}
                   />
                 ) : (
                   <DataList.Item

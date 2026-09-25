@@ -6,7 +6,6 @@ import {
   type BuildingKind,
   type ItemType,
   type Lang,
-  type QuestCategory,
   type Rarity,
   type Region,
   regionValues,
@@ -16,10 +15,11 @@ import {
   item,
   product,
   productionChain,
-  quest,
+  questline,
   tech,
 } from '../schema'
 import { type SearchType } from '../search'
+import { questlineName } from './quests'
 import { langId, type Page, paginate } from './shared'
 
 export type SearchFilter = {
@@ -34,8 +34,8 @@ export type SearchHit = {
   icon: string | null
   name: string
   description: string | null
-  /** building kind, item type or quest category */
-  category: BuildingKind | ItemType | QuestCategory | null
+  /** building kind or item type */
+  category: BuildingKind | ItemType | null
   /** Item rarity; null for other entity types. */
   rarity: Rarity | null
   /** set for buildings and chains */
@@ -92,12 +92,10 @@ const sources: Array<Source> = [
     type: 'tech',
   },
   {
-    category: quest.category,
-    description: quest.summaryText,
-    guid: quest.guid,
-    icon: quest.icon,
-    name: quest.nameText,
-    table: quest,
+    guid: questline.guid,
+    icon: questline.icon,
+    name: questline.titleText,
+    table: questline,
     type: 'quest',
   },
   {
@@ -294,6 +292,10 @@ async function search(f: SearchFilter & Page) {
         const keys = regions?.split(',') ?? []
         return {
           ...row,
+          name:
+            row.type === 'quest'
+              ? (questlineName(row.name) ?? row.name)
+              : row.name,
           regions: regionValues.filter((r) => keys.includes(r)),
         }
       }),

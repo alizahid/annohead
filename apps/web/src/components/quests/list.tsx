@@ -1,9 +1,4 @@
-import {
-  type Dlcs,
-  type QuestCategories,
-  type Quests,
-  type Regions,
-} from '@anno/db/client'
+import { type Dlcs, type Quests, type Regions } from '@anno/db/client'
 import { useTranslations } from 'next-intl'
 
 import { type QuestFilters } from '@/lib/validators'
@@ -14,20 +9,13 @@ import { QuestCard } from './card'
 import { QuestFiltersCard } from './filters'
 
 type Props = {
-  categories: QuestCategories
   dlcs: Dlcs
   filters: QuestFilters
   quests: Quests
   regions: Regions
 }
 
-export function QuestList({
-  categories,
-  dlcs,
-  filters,
-  quests,
-  regions,
-}: Props) {
+export function QuestList({ dlcs, filters, quests, regions }: Props) {
   const t = useTranslations('component.quests.list')
 
   return (
@@ -35,11 +23,7 @@ export function QuestList({
       <h1 className="text-4xl">{t('title')}</h1>
 
       <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
-        <QuestFiltersCard
-          categories={categories}
-          dlcs={dlcs}
-          regions={regions}
-        />
+        <QuestFiltersCard dlcs={dlcs} regions={regions} />
 
         <div className="flex flex-1 flex-col gap-12">
           {quests.rows.length ? (

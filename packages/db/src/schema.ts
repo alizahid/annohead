@@ -27,10 +27,13 @@ import {
   participantKindValues,
   productKindValues,
   questCategoryValues,
+  racerAttributeValues,
   rarityValues,
   regionValues,
   sourceCategoryValues,
   storylineSystemValues,
+  subConditionOrderValues,
+  variableOperationValues,
 } from './enums'
 
 export const region = sqliteTable('region', {
@@ -384,6 +387,8 @@ export const productionChainCategory = sqliteTable(
 
 export const effect = sqliteTable('effect', {
   descriptionText: integer('description_text'),
+  /** how long a timed effect lasts; null when permanent */
+  durationMs: integer('duration_ms'),
   excludeSource: integer('exclude_source'),
   guid: integer().primaryKey(),
   name: text(),
@@ -688,7 +693,16 @@ export const condition = sqliteTable('condition', {
   ownerId: integer('owner_id'),
   ownerKind: text('owner_kind'),
   parentId: integer('parent_id'),
+  /** how the sub-conditions combine: Parallel / Linear (all of them) or MutuallyExclusive (one of them) */
+  subOrder: text('sub_order', { enum: subConditionOrderValues }),
   template: text({ enum: conditionTemplateValues }).notNull(),
+})
+
+/** Name and icon of assets a condition points at that have no table of their own (provinces, volcano phases …) */
+export const assetName = sqliteTable('asset_name', {
+  guid: integer().primaryKey(),
+  icon: text(),
+  nameText: integer('name_text'),
 })
 
 export const conditionParam = sqliteTable(
@@ -703,8 +717,14 @@ export const conditionParam = sqliteTable(
 
 export const storyline = sqliteTable('storyline', {
   guid: integer().primaryKey(),
+  /** icon of the governor request that announces it */
+  icon: text(),
   name: text(),
+  /** governor request text, e.g. "An Amphitheatre event requires attention" */
+  requestText: integer('request_text'),
   system: text({ enum: storylineSystemValues }),
+  /** player-facing name: the first decision's headline, else its journal entry */
+  titleText: integer('title_text'),
 })
 
 export const storylineVariable = sqliteTable(
@@ -765,10 +785,14 @@ export const quest = sqliteTable(
 export const questNode = sqliteTable(
   'quest_node',
   {
+    /** the condition a branching function checks (success / failure ports) */
+    conditionId: integer('condition_id').references(() => condition.id),
     guid: integer().primaryKey(),
     headlineText: integer('headline_text'),
     name: text(),
     questGuid: integer('quest_guid'),
+    /** who asks on a decision screen (an advisor, a resident …); null for the player or a runtime variable */
+    speakerGuid: integer('speaker_guid'),
     stepText: integer('step_text'),
     storylineGuid: integer('storyline_guid').references(() => storyline.guid),
     textText: integer('text_text'),
@@ -803,6 +827,11 @@ export const questOption = sqliteTable(
   'quest_option',
   {
     category: text({ enum: optionCategoryValues }),
+    /** requirement to pick the option */
+    conditionId: integer('condition_id').references(() => condition.id),
+    costAmount: real('cost_amount'),
+    /** product paid to pick the option, usually coins */
+    costGuid: integer('cost_guid'),
     decisionGuid: integer('decision_guid').references(() => questNode.guid),
     idx: integer(),
     textText: integer('text_text'),
@@ -816,10 +845,94 @@ export const questReward = sqliteTable(
     amount: real(),
     amountVariable: text('amount_variable'),
     assetGuid: integer('asset_guid'),
+    /** the racer attribute a racer upgrade raises (Speed, Stamina, Boost, Consistency) */
+    attribute: text({ enum: racerAttributeValues }),
+    /** the asset's own icon, for assets without a table of their own */
+    icon: text(),
     kind: text(),
+    /** the asset's own name, for assets without a table of their own (incidents, provinces, ships) */
+    nameText: integer('name_text'),
     nodeGuid: integer('node_guid').references(() => questNode.guid),
   },
   (table) => [index('idx_quest_reward_node').on(table.nodeGuid)],
+)
+
+/** `ActionModifyVariable`: favours, flags and counters a node changes */
+export const questVariableChange = sqliteTable(
+  'quest_variable_change',
+  {
+    nodeGuid: integer('node_guid').references(() => questNode.guid),
+    operation: text({ enum: variableOperationValues }),
+    value: text(),
+    /** set when the value is read from another variable */
+    valueVariable: text('value_variable'),
+    variable: text(),
+  },
+  (table) => [index('idx_quest_variable_change_node').on(table.nodeGuid)],
+)
+
+/** A decision with several options, or a function branching on its condition */
+export const questChoice = sqliteTable(
+  'quest_choice',
+  {
+    kind: text({ enum: ['decision', 'check'] }),
+    nodeGuid: integer('node_guid')
+      .primaryKey()
+      .references(() => questNode.guid),
+    /** order within the storyline */
+    position: integer(),
+    storylineGuid: integer('storyline_guid').references(() => storyline.guid),
+  },
+  (table) => [index('idx_quest_choice_storyline').on(table.storylineGuid)],
+)
+
+/** Nodes run when option `idx` is taken (checks: 0 when the condition holds, 1 when not), up to and including the next choice */
+export const questChoiceOutcome = sqliteTable(
+  'quest_choice_outcome',
+  {
+    choiceGuid: integer('choice_guid')
+      .notNull()
+      .references(() => questChoice.nodeGuid),
+    idx: integer().notNull(),
+    nodeGuid: integer('node_guid')
+      .notNull()
+      .references(() => questNode.guid),
+  },
+  (table) => [
+    primaryKey({
+      columns: [table.choiceGuid, table.idx, table.nodeGuid],
+      name: 'quest_choice_outcome_choice_guid_idx_node_guid_pk',
+    }),
+  ],
+)
+
+/** Narrative storylines linked by the variables they share; guid is the first part's storyline */
+export const questline = sqliteTable('questline', {
+  dlcGuid: integer('dlc_guid').references(() => dlc.guid),
+  guid: integer().primaryKey(),
+  icon: text(),
+  regionId: integer('region_id').references(() => region.id),
+  titleText: integer('title_text'),
+})
+
+export const questlineStoryline = sqliteTable(
+  'questline_storyline',
+  {
+    idx: integer(),
+    questlineGuid: integer('questline_guid')
+      .notNull()
+      .references(() => questline.guid),
+    storylineGuid: integer('storyline_guid')
+      .notNull()
+      .references(() => storyline.guid),
+  },
+  (table) => [
+    index('idx_questline_storyline_storyline').on(table.storylineGuid),
+    primaryKey({
+      columns: [table.questlineGuid, table.storylineGuid],
+      name: 'questline_storyline_questline_guid_storyline_guid_pk',
+    }),
+  ],
 )
 
 export const effectTarget = sqliteView('effect_target', {

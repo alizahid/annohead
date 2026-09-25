@@ -8,7 +8,6 @@ import {
   itemTypeValues,
   nicheValues,
   productKindValues,
-  questCategoryValues,
   rarityValues,
 } from '@anno/db/enums'
 import { SearchTypes } from '@anno/db/search'
@@ -97,7 +96,6 @@ export const parseProductFilters = createLoader(productFilters)
 export type ProductFilters = Awaited<ReturnType<typeof parseProductFilters>>
 
 export const questFilters = {
-  categories: parseAsArrayOf(parseAsStringLiteral(questCategoryValues)),
   dlcs: parseAsArrayOf(parseAsInteger),
   page: parseAsInteger,
   regions: parseAsArrayOf(parseAsInteger),

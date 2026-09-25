@@ -61,10 +61,33 @@ REWARD_ACTIONS = {
     "ActionAddGoodsToItemContainer",
     "ActionAddItemToMetaStorage",
     "ActionUnlockAsset",
+    "ActionLockAsset",
     "ActionChangeReputation",
     "ActionEffect",
     "ActionTriggerParticipantMessage",
+    "ActionStartStoryline",
+    "ActionIncreaseItemRacerAttributeLevel",
+    "ActionReplaceItem",
+    "ActionChangeBuildingRank",
+    "ActionStartIncident",
+    "ActionAddCampaignPowerStruggleReason",
 }
+# storylines that are not narrative content: cut, test or template assets, tutorials and multiplayer plumbing
+NON_STORY = re.compile(
+    r"DEPRECATED|UNUSED|NOT USED|COPYPASTE|TEMPLATE|^CUT_|\(OLD\)|Test|Multiplayer|Activation Helper|^Onboarding|PressVersion",
+    re.IGNORECASE,
+)
+# edges followed when collecting what a choice leads to; failure/timeout ports and location refs are not consequences
+OUTCOME_EDGES = {
+    "QuestComponentConnector.Output",
+    "DecisionComponent.DecisionOutputs.SuccessOutput",
+    "Function.FunctionSuccessOutput",
+    "Objective.SuccessOutput",
+    "Starter.AcceptOutput",
+    "QuestLine.StartConnector",
+}
+# ponytail: questline region from the Heartlands/Wetlands prefix of internal storyline names, when no journal entry names a province
+REGION_PREFIX = {"HL": 1, "WL": 2}
 
 
 class T:
@@ -236,8 +259,18 @@ class T:
             if D(vals.get("ConditionPropsNegatable")).get("NegateCondition") == "1"
             else 0
         )
+        # how sub-conditions combine: Parallel (all, the default), Linear (all, in order), MutuallyExclusive (one of them)
+        order = self.enum(
+            "sub_condition_order",
+            D(vals.get("Condition")).get("SubConditionCompletionOrder", "Parallel"),
+        )
         cid = len(self.conditions) + 1
-        self.conditions.append((cid, owner_kind, owner_id, tpl, negate))
+        self.conditions.append(cid)
+        # inserted right away: sub-conditions below set their parent_id, and questlines() reads the rows
+        self.db.execute(
+            "insert into condition values(?,?,?,?,?,null,?)",
+            (cid, owner_kind, owner_id, tpl, negate, order),
+        )
         # the template's own block is stored unprefixed; sibling blocks (ObjectFilter …) keep their name
         body = {
             k: v
@@ -248,36 +281,40 @@ class T:
             body.update(body.pop(tpl))
         for k, v in self.walk_leaves(body):
             self.db.execute("insert into condition_param values(?,?,?)", (cid, k, v))
-        for sub in self.items((vals.get("SubConditions"))):
+        # each sub-condition is a PreConditionList whose own SubConditions nest below it
+        for sub in self.items(vals.get("SubConditions")):
             sc = sub.get("SubCondition") if isinstance(sub, dict) else None
             if isinstance(sc, dict):
-                inner = D(D(sc.get("Values")).get("PreConditionList"))
                 child = self.condition(
                     owner_kind,
                     owner_id,
-                    inner.get("Condition") or {"Template": "ConditionAlwaysTrue"},
+                    self.with_sub_conditions(D(D(sc.get("Values")).get("PreConditionList"))),
                 )
                 if child:
                     self.db.execute(
                         "update condition set parent_id=? where id=?", (cid, child)
                     )
-                for sub2 in self.items(inner.get("SubConditions")):
-                    sc2 = (sub2 or {}).get("SubCondition")
-                    if isinstance(sc2, dict):
-                        c2 = self.condition(
-                            owner_kind,
-                            owner_id,
-                            D(
-                                D(D(sc2.get("Values")).get("PreConditionList")).get(
-                                    "Condition"
-                                )
-                            ),
-                        )
-                        if c2:
-                            self.db.execute(
-                                "update condition set parent_id=? where id=?", (cid, c2)
-                            )
         return cid
+
+    def with_sub_conditions(self, pcl):
+        """A PreConditionList's Condition with its sibling SubConditions moved inside, as condition() reads them."""
+        root = D(pcl.get("Condition")) or {"Template": "ConditionAlwaysTrue"}
+        vals = D(root.get("Values")) or root
+        tpl = root.get("Template") or next(
+            (k for k in vals if k.startswith("Condition") and k != "Condition"),
+            "ConditionAlwaysTrue",
+        )
+        subs = self.items(vals.get("SubConditions")) + self.items(pcl.get("SubConditions"))
+        return {"Template": tpl, "Values": {**vals, "SubConditions": subs}}
+
+    def precondition_list(self, owner_kind, owner_id, pcl):
+        """A PreConditionList (Condition plus sibling SubConditions) as one condition tree; None when always true."""
+        node = self.with_sub_conditions(D(pcl))
+        vals = node["Values"]
+        negated = D(vals.get("ConditionPropsNegatable")).get("NegateCondition") == "1"
+        if node["Template"] == "ConditionAlwaysTrue" and not negated and not vals["SubConditions"]:
+            return None
+        return self.condition(owner_kind, owner_id, node)
 
     def walk_leaves(self, o, path=""):
         if isinstance(o, dict):
@@ -637,7 +674,7 @@ class T:
         for a in self.by_template("Effect"):
             e = D(a["v"].get("Effect"))
             self.db.execute(
-                "insert into effect values(?,?,?,?,?,?,?)",
+                "insert into effect values(?,?,?,?,?,?,?,?)",
                 (
                     a["guid"],
                     a["name"],
@@ -646,6 +683,7 @@ class T:
                     self.enum("effect_scope", e.get("EffectScope")),
                     self.enum("source_category", e.get("SourceCategory")),
                     1 if e.get("ExcludeEffectSourceGUID") == "1" else 0,
+                    self.num(D(e.get("TimedEffect")).get("EffectDuration")),
                 ),
             )
             for b in self.items(e.get("Buffs")):
@@ -703,7 +741,7 @@ class T:
             for prop, body in a["v"].items():
                 if (
                     not prop.endswith("Upgrade")
-                    and prop not in ("RaceTrackUpgrades", "AreaBuff")
+                    and prop not in ("RaceTrackUpgrades", "AreaBuff", "AreaNeedAttributeBuff")
                     or not isinstance(body, dict)
                 ):
                     continue
@@ -736,7 +774,8 @@ class T:
                         base = path[: -len(".Value")]
                         pct = 1 if dict_get(a["v"], base + ".Percental") == "1" else 0
                         attr = re.search(
-                            r"AdditionalAttributes\.(\w+)|NeedAttributes\.(\w+)", base
+                            r"AdditionalAttributes\.(\w+)|NeedAttributes\.(\w+)|BonusAttributes\.(\w+)",
+                            base,
                         )
                         attr_id = (
                             self.attribute(next(g for g in attr.groups() if g))
@@ -747,7 +786,9 @@ class T:
                             "insert into buff_modifier values(?,?,?,?,?,?)",
                             (
                                 a["guid"],
-                                base.replace(".AmountOrPercent", ""),
+                                base.replace(".AmountOrPercent", "").replace(
+                                    ".ValueOrPercent", ""
+                                ),
                                 attr_id,
                                 self.num(val, 0),
                                 pct,
@@ -774,7 +815,7 @@ class T:
             )  # the item asset itself carries the Effect property
             if e:
                 self.db.execute(
-                    "insert or ignore into effect values(?,?,?,?,?,?,?)",
+                    "insert or ignore into effect values(?,?,?,?,?,?,?,?)",
                     (
                         a["guid"],
                         a["name"],
@@ -783,6 +824,7 @@ class T:
                         self.enum("effect_scope", e.get("EffectScope")),
                         self.enum("source_category", e.get("SourceCategory")),
                         0,
+                        self.num(D(e.get("TimedEffect")).get("EffectDuration")),
                     ),
                 )
                 for b in self.items(e.get("Buffs")):
@@ -1095,8 +1137,15 @@ class T:
         for a in self.by_template("StoryLine"):
             sl = D(a["v"].get("StoryLine"))
             self.db.execute(
-                "insert into storyline values(?,?,?)",
-                (a["guid"], a["name"], self.enum("storyline_system", sl.get("System"))),
+                "insert into storyline values(?,?,?,?,?,?)",
+                (
+                    a["guid"],
+                    a["name"],
+                    self.enum("storyline_system", sl.get("System")),
+                    None,
+                    None,
+                    None,
+                ),
             )
             vc = D(
                 D(D(sl.get("StorylineVariables")).get("Values")).get(
@@ -1120,14 +1169,12 @@ class T:
                                 var.get("StartValue"),
                             ),
                         )
-            pc = D(a["v"].get("PreConditionList"))
-            if pc.get("Condition"):
+            cid = self.precondition_list(
+                "storyline", a["guid"], a["v"].get("PreConditionList")
+            )
+            if cid:
                 self.db.execute(
-                    "insert into storyline_condition values(?,?)",
-                    (
-                        a["guid"],
-                        self.condition("storyline", a["guid"], pc["Condition"]),
-                    ),
+                    "insert into storyline_condition values(?,?)", (a["guid"], cid)
                 )
             # BFS over Component references
             queue, seen = [a["guid"]], set()
@@ -1192,8 +1239,15 @@ class T:
             cq = obj or starter
             dsc = D(D(v.get("Decision")).get("DecisionScreenConfig"))
             quest = self.num(cq.get("LinkedQuestEntry"))
+            fn = D(v.get("Function"))
+            # a function with a failure port branches on its precondition; one without only waits for it
+            branch = (
+                self.precondition_list("quest_node", g, v.get("PreConditionList"))
+                if fn.get("FunctionFailureOutput")
+                else None
+            )
             self.db.execute(
-                "insert into quest_node values(?,?,?,?,?,?,?,?,?)",
+                "insert into quest_node values(?,?,?,?,?,?,?,?,?,?,?)",
                 (
                     g,
                     story,
@@ -1206,6 +1260,8 @@ class T:
                     ),
                     self.text(cq.get("ObjectiveTextStep")),
                     self.num(D(v.get("Objective")).get("ObjectiveTimeLimit")),
+                    branch,
+                    self.speaker(dsc),
                 ),
             )
             if quest:
@@ -1216,19 +1272,37 @@ class T:
             for i, opt in enumerate(
                 self.items(D(v.get("Decision")).get("DecisionOptions"))
             ):
+                cost = D(opt.get("CostData")) if opt.get("HasCost") == "1" else {}
                 self.db.execute(
-                    "insert into quest_option values(?,?,?,?)",
+                    "insert into quest_option values(?,?,?,?,?,?,?)",
                     (
                         g,
                         i,
                         self.text(opt.get("OptionText")),
                         self.enum("option_category", opt.get("Category")),
+                        next(
+                            (
+                                self.num(p.get("GUID"))
+                                for p in self.items(cost.get("Products"))
+                            ),
+                            None,
+                        ),
+                        self.num(D(cost.get("Amount")).get("Value")),
+                        self.precondition_list(
+                            "quest_option",
+                            g,
+                            D(
+                                D(
+                                    D(opt.get("UnlockRequirement")).get("Conditions")
+                                ).get("Values")
+                            ).get("PreConditionList"),
+                        ),
                     ),
                 )
             for rw in self.items(D(v.get("Reward")).get("RewardAssets")):
                 if self.num(rw.get("Reward")):
                     self.db.execute(
-                        "insert into quest_reward values(?,?,?,?,?)",
+                        "insert into quest_reward(node_guid, kind, asset_guid, amount, amount_variable) values(?,?,?,?,?)",
                         (
                             g,
                             "item",
@@ -1237,9 +1311,14 @@ class T:
                             None,
                         ),
                     )
-            for d in self.walk_dicts(D(v.get("Sequence"))):
+            # actions run by sequences and by decision screens once shown (an option's outcome screen)
+            for d in self.walk_dicts(
+                [D(v.get("Sequence")), D(v.get("DecisionComponent"))]
+            ):
                 for act in REWARD_ACTIONS & set(d):
                     self._reward(g, act, d[act])
+                if isinstance(d.get("ActionModifyVariable"), dict):
+                    self._variable_change(g, d["ActionModifyVariable"])
         # nodes that only touch a quest via journal updates
         for g, story in node_story.items():
             for d in self.walk_dicts(self.assets[g]["v"]):
@@ -1262,6 +1341,357 @@ class T:
             self.db.execute(
                 "update quest set dlc_guid=? where guid=?", (self.name_dlc(name), guid)
             )
+        # the rewarded asset's own name and icon, for assets without a table of their own (incidents, provinces, ships)
+        for (g,) in self.db.execute(
+            "select distinct asset_guid from quest_reward where asset_guid is not null"
+        ).fetchall():
+            a = self.assets.get(g)
+            if a:
+                self.db.execute(
+                    "update quest_reward set name_text=?, icon=? where asset_guid=?",
+                    (self.text(a["text_id"]), self.icon(a["icon"]), g),
+                )
+        # amounts read from a storyline's own variable that nothing changes are constants: use the start value
+        written = {
+            (node_story.get(n), var)
+            for n, var in self.db.execute("select node_guid, variable from quest_variable_change")
+        } | {
+            (s, d["ActionSetVariable"]["VariableName"])
+            for g, s in node_story.items()
+            for d in self.walk_dicts(self.assets[g]["v"])
+            if isinstance(d.get("ActionSetVariable"), dict)
+            and d["ActionSetVariable"].get("VariableName")
+        }
+        starts = {
+            (s, name): self.num(v)
+            for s, name, v in self.db.execute(
+                "select storyline_guid, name, start_value from storyline_variable where start_value is not null"
+            )
+        }
+        for rowid, node, var in self.db.execute(
+            "select rowid, node_guid, amount_variable from quest_reward where amount_variable is not null"
+        ).fetchall():
+            key = (node_story.get(node), var)
+            if key in starts and key not in written:
+                self.db.execute(
+                    "update quest_reward set amount=?, amount_variable=null where rowid=?",
+                    (starts[key], rowid),
+                )
+        # unlocking an unnamed asset flips internal state (campaign flags, diplomacy reasons) the player never sees
+        self.db.execute(
+            "delete from quest_reward where kind in ('unlock', 'lock') and name_text is null"
+        )
+        self.storyline_titles(node_story)
+        self.choices(node_story)
+        self.questlines(node_story)
+
+    def storyline_titles(self, node_story):
+        """Player-facing name of a storyline: its first decision's headline, else its journal entry, plus the
+        governor request text and icon that announce it."""
+        by_story = defaultdict(list)
+        for g, s in node_story.items():  # BFS order from the storyline start
+            by_story[s].append(g)
+        # some headlines point at lines the game never wrote
+        written = {int(r[0]) for r in self.src.execute("select distinct line_id from texts")}
+
+        def line(tid):
+            tid = self.text(tid)
+            return tid if tid in written else None
+
+        for s, nodes in by_story.items():
+            title = request = icon = None
+            for g in nodes:
+                root = D(self.assets[g]["v"].get("DecisionRoot"))
+                if not root:
+                    continue
+                req = D(
+                    D(D(root.get("DecisionGovernorRequest")).get("Values")).get(
+                        "GovernorRequest"
+                    )
+                )
+                start = self.assets.get(self.num(root.get("DecisionRootStartComponent")))
+                screen = D(D(start["v"].get("Decision")).get("DecisionScreenConfig")) if start else {}
+                title = title or line(screen.get("Headline"))
+                request = request or line(req.get("RequestDescription"))
+                icon = icon or self.icon(D(self.assets.get(self.num(req.get("RequestIcon")))).get("icon"))
+            if not title:
+                title = next(
+                    (
+                        t
+                        for (t,) in self.db.execute(
+                            "select name_text from quest where storyline_guid=? and name_text is not null order by guid",
+                            (s,),
+                        )
+                        if t in written
+                    ),
+                    None,
+                )
+            self.db.execute(
+                "update storyline set title_text=?, request_text=?, icon=? where guid=?",
+                (title, request, icon, s),
+            )
+
+    def choices(self, node_story):
+        """Decisions offering several options and functions branching on a condition, each with the nodes that
+        run when an option is taken (or the condition holds / fails) up to the next choice or decision event."""
+        edges = defaultdict(list)
+        for f, t, kind, idx in self.db.execute(
+            "select from_guid, to_guid, kind, idx from quest_edge"
+        ):
+            edges[f].append((t, kind, idx))
+        types = dict(self.db.execute("select guid, type from quest_node"))
+        options = defaultdict(int)
+        for (g,) in self.db.execute("select decision_guid from quest_option"):
+            options[g] += 1
+        branches = {
+            g
+            for (g,) in self.db.execute(
+                "select guid from quest_node where condition_id is not null"
+            )
+        }
+        # the start screen of each decision event; its option i also continues at the event's output i
+        root_of = {}
+        for g, t in types.items():
+            if t == "DecisionRoot":
+                start = self.num(
+                    D(self.assets[g]["v"].get("DecisionRoot")).get(
+                        "DecisionRootStartComponent"
+                    )
+                )
+                if start:
+                    root_of[start] = g
+
+        start_of = {root: start for start, root in root_of.items()}
+
+        def is_choice(g):
+            return (types.get(g) == "Decision" and options[g] > 1) or g in branches
+
+        def reach(starts):
+            out, queue, seen = [], list(starts), set()
+            while queue:
+                g = queue.pop(0)
+                if (
+                    g in seen
+                    or g not in types
+                    or types[g] in ("Exit", "StateChecker", "Loop")
+                ):
+                    continue
+                seen.add(g)
+                # a decision event opens on its start screen; a start screen with one option carries on at its outputs
+                if types[g] == "DecisionRoot":
+                    start = start_of.get(g)
+                    if start:
+                        queue.append(start)
+                        if not is_choice(start):
+                            queue += [
+                                t for t, k, _ in edges[g] if k == "DecisionRoot.DecisionRootOutput.Output"
+                            ]
+                    continue
+                out.append(g)
+                # the next choice is kept as the outcome's last node ("then …") but not walked into
+                if is_choice(g):
+                    continue
+                queue += [t for t, kind, _ in edges[g] if kind in OUTCOME_EDGES]
+            return out
+
+        position = defaultdict(int)
+        for g, story in node_story.items():
+            if not is_choice(g):
+                continue
+            if g in branches:
+                kind = "check"
+                starts = [
+                    [t for t, k, _ in edges[g] if k == "Function.FunctionSuccessOutput"],
+                    [t for t, k, _ in edges[g] if k == "Function.FunctionFailureOutput"],
+                ]
+            else:
+                kind = "decision"
+                root = root_of.get(g)
+                starts = [
+                    [
+                        t
+                        for t, k, idx in edges[g]
+                        if k == "DecisionComponent.DecisionOutputs.SuccessOutput"
+                        and idx == i
+                    ]
+                    + [
+                        t
+                        for t, k, idx in edges[root] if root
+                        and k == "DecisionRoot.DecisionRootOutput.Output"
+                        and idx == i
+                    ]
+                    for i in range(options[g])
+                ]
+            self.db.execute(
+                "insert into quest_choice values(?,?,?,?)",
+                (g, story, kind, position[story]),
+            )
+            position[story] += 1
+            for i, s in enumerate(starts):
+                for n in reach(s):
+                    self.db.execute(
+                        "insert or ignore into quest_choice_outcome values(?,?,?)",
+                        (g, i, n),
+                    )
+
+    def questlines(self, node_story):
+        """Group narrative storylines into questlines: storylines are linked when one writes a global variable
+        another reads (favours, flags, "part done") or when one starts the other. Radiant storylines (random
+        requests and contracts), cut content and tutorials are left out."""
+        story_of = dict(node_story)
+        names = dict(self.db.execute("select guid, name from storyline"))
+        systems = dict(self.db.execute("select guid, system from storyline"))
+        by_story = defaultdict(list)
+        for g, s in node_story.items():
+            by_story[s].append(g)
+
+        def radiant(s):
+            return systems.get(s) == "Contracts" or any(
+                isinstance(d.get("SetVariableTo"), dict)
+                and re.search(r"Random|PoolEntry", json.dumps(d["SetVariableTo"]))
+                for g in by_story[s]
+                for d in self.walk_dicts(self.assets[g]["v"])
+            )
+
+        keep = {
+            s
+            for s in names
+            if by_story[s] and not NON_STORY.search(names[s] or "") and not radiant(s)
+        }
+        local = defaultdict(set)
+        for s, name in self.db.execute("select storyline_guid, name from storyline_variable"):
+            local[s].add(name)
+        writes, reads = defaultdict(set), defaultdict(set)
+        for node, var in self.db.execute("select node_guid, variable from quest_variable_change"):
+            if story_of.get(node) in keep and var not in local[story_of[node]]:
+                writes[var].add(story_of[node])
+        for kind, owner, var in self.db.execute(
+            """select c.owner_kind, c.owner_id, p.value from condition c join condition_param p on p.condition_id=c.id
+               where c.template='ConditionCompareVariable' and (p.key='VariableToCheck' or p.key like '%VariableName')"""
+        ):
+            s = owner if kind == "storyline" else story_of.get(owner)
+            if s in keep and var not in local[s]:
+                reads[var].add(s)
+        after = defaultdict(set)  # storyline -> storylines that come after it
+        for var, ws in writes.items():
+            for w in ws:
+                after[w] |= reads[var] - {w}
+        for node, target in self.db.execute(
+            "select node_guid, asset_guid from quest_reward where kind='storyline'"
+        ):
+            if story_of.get(node) in keep and target in keep and target != story_of[node]:
+                after[story_of[node]].add(target)
+        parent = {s: s for s in keep}
+
+        def find(x):
+            while parent[x] != x:
+                parent[x] = parent[parent[x]]
+                x = parent[x]
+            return x
+
+        for a, bs in after.items():
+            for b in bs:
+                parent[find(a)] = find(b)
+        # variables several storylines write but none reads still tie them together (the favours of a questline)
+        for ws in writes.values():
+            first, *rest = sorted(ws)
+            for b in rest:
+                parent[find(b)] = find(first)
+        groups = defaultdict(list)
+        for s in keep:
+            groups[find(s)].append(s)
+        choice_stories = {
+            s for (s,) in self.db.execute("select storyline_guid from quest_choice where kind='decision'")
+        }
+        titled = {
+            s: (t, r, i)
+            for s, t, r, i in self.db.execute("select guid, title_text, request_text, icon from storyline")
+        }
+        for members in groups.values():
+            if not choice_stories & set(members):
+                continue
+            # parts in dependency order (Kahn), ties and cycles broken by guid
+            pending = {s: {a for a in members if s in after[a]} for s in members}
+            order = []
+            while pending:
+                ready = sorted(s for s, deps in pending.items() if not deps) or [min(pending)]
+                s = ready[0]
+                order.append(s)
+                del pending[s]
+                for deps in pending.values():
+                    deps.discard(s)
+            parts = [s for s in order if s in choice_stories or titled[s][0]]
+            name = next((titled[s][0] for s in parts if titled[s][0]), None) or next(
+                (titled[s][1] for s in parts if titled[s][1]), None
+            )
+            if not name:  # prototypes and experiments the game never names
+                continue
+            first = parts[0]
+            regions = [
+                r
+                for (r,) in self.db.execute(
+                    f"select region_id from quest where region_id is not null and storyline_guid in ({','.join('?' * len(parts))})",
+                    parts,
+                )
+            ]
+            prefix = (names[first] or "").split(" ")[0]
+            self.db.execute(
+                "insert into questline values(?,?,?,?,?)",
+                (
+                    first,
+                    name,
+                    next((titled[s][2] for s in parts if titled[s][2]), None),
+                    max(set(regions), key=regions.count) if regions else REGION_PREFIX.get(prefix),
+                    next((d for d in map(self.name_dlc, (names[s] for s in parts)) if d), None)
+                    or next(
+                        (
+                            self.dlc_by_name(f"{m[1].upper()}{int(m[2])}")
+                            for m in (DLC_PATH.search(f"/{titled[s][2] or ''}") for s in parts)
+                            if m
+                        ),
+                        None,
+                    ),
+                ),
+            )
+            for i, s in enumerate(parts):
+                self.db.execute(
+                    "insert into questline_storyline values(?,?,?)", (first, s, i)
+                )
+
+    def speaker(self, screen):
+        """Who asks on a decision screen: its left portrait, else its right one; never the player, and not a
+        variable (the active emperor …), which only resolves in a running game."""
+        for side in ("LeftParticipant", "RightParticipant"):
+            g = self.num(D(screen.get(side)).get("Value"))
+            if g in self.assets and self.assets[g]["template"] != "Participant Human":
+                return g
+        return None
+
+    def _variable_change(self, node, body):
+        """ActionModifyVariable: `Modifier` defaults to Set, an unset value to 0 / false (properties.xml defaults)."""
+        mv = D(body.get("ModifierVariable"))
+        is_bool = "Bool" in json.dumps(mv)
+        value = value_variable = None
+        for k, val in self.walk_leaves(mv):
+            if k.endswith("VariableName"):
+                value_variable = val
+            elif k.endswith("Value") and not k.endswith("VariableOrValue"):
+                value = val
+        if value is None and not value_variable:
+            value = "0"
+        if is_bool and value is not None:
+            value = "true" if value == "1" else "false"  # flags read as yes / no, not 1 / 0
+        if body.get("VariableName"):
+            self.db.execute(
+                "insert into quest_variable_change values(?,?,?,?,?)",
+                (
+                    node,
+                    body["VariableName"],
+                    self.enum("variable_operation", body.get("Modifier", "Set")),
+                    value,
+                    value_variable,
+                ),
+            )
 
     def _reward(self, node, act, body):
         body = D(body)
@@ -1278,31 +1708,31 @@ class T:
             for gd in self.items(body.get("Goods")):
                 a, var = amt(gd.get("Amount"))
                 self.db.execute(
-                    "insert into quest_reward values(?,?,?,?,?)",
+                    "insert into quest_reward(node_guid, kind, asset_guid, amount, amount_variable) values(?,?,?,?,?)",
                     (node, "goods", self.num(D(gd.get("Good")).get("Value")), a, var),
                 )
         elif act == "ActionChangeReputation":
             a, var = amt(body.get("Amount"))
             self.db.execute(
-                "insert into quest_reward values(?,?,?,?,?)",
+                "insert into quest_reward(node_guid, kind, asset_guid, amount, amount_variable) values(?,?,?,?,?)",
                 (node, "reputation", None, a, var),
             )
         elif act == "ActionEffect":
             self.db.execute(
-                "insert into quest_reward values(?,?,?,?,?)",
+                "insert into quest_reward(node_guid, kind, asset_guid, amount, amount_variable) values(?,?,?,?,?)",
                 (node, "effect", self.num(body.get("EffectAsset")), None, None),
             )
         elif act == "ActionUnlockAsset":
             for it in self.items(body.get("UnlockAssets")):
                 for g in self.flatten_pool(it.get("Asset")):
                     self.db.execute(
-                        "insert into quest_reward values(?,?,?,?,?)",
+                        "insert into quest_reward(node_guid, kind, asset_guid, amount, amount_variable) values(?,?,?,?,?)",
                         (node, "unlock", g, None, None),
                     )
         elif act == "ActionAddItemToMetaStorage":
-            for it in self.items(body.get("Items")):
+            for it in self.items(body.get("Items")) or [{"Item": body.get("ItemGUID")}]:
                 self.db.execute(
-                    "insert into quest_reward values(?,?,?,?,?)",
+                    "insert into quest_reward(node_guid, kind, asset_guid, amount, amount_variable) values(?,?,?,?,?)",
                     (
                         node,
                         "item",
@@ -1315,7 +1745,7 @@ class T:
             for it in self.items(body.get("RewardList")):
                 a, var = amt(it.get("Amount"))
                 self.db.execute(
-                    "insert into quest_reward values(?,?,?,?,?)",
+                    "insert into quest_reward(node_guid, kind, asset_guid, amount, amount_variable) values(?,?,?,?,?)",
                     (
                         node,
                         "message_reward",
@@ -1324,17 +1754,77 @@ class T:
                         var,
                     ),
                 )
+        elif act == "ActionLockAsset":
+            for it in self.items(body.get("LockAssets")):
+                for g in self.flatten_pool(it.get("Asset")):
+                    self.db.execute(
+                        "insert into quest_reward(node_guid, kind, asset_guid, amount, amount_variable) values(?,?,?,?,?)",
+                        (node, "lock", g, None, None),
+                    )
+        elif act == "ActionStartStoryline":
+            if self.num(body.get("StorylineAsset")):
+                self.db.execute(
+                    "insert into quest_reward(node_guid, kind, asset_guid, amount, amount_variable) values(?,?,?,?,?)",
+                    (node, "storyline", self.num(body["StorylineAsset"]), None, None),
+                )
+        elif act == "ActionIncreaseItemRacerAttributeLevel":
+            # properties.xml defaults: Speed, one level
+            a, var = amt(body.get("IncreaseLevels") or {"Value": "1"})
+            self.db.execute(
+                "insert into quest_reward(node_guid, kind, asset_guid, amount, amount_variable, attribute) values(?,?,?,?,?,?)",
+                (
+                    node,
+                    "racer",
+                    self.num(D(body.get("ItemGuid")).get("Value")),
+                    a,
+                    var,
+                    self.enum("racer_attribute", body.get("ItemRacerAttribute", "Speed")),
+                ),
+            )
+        elif act == "ActionReplaceItem":
+            for it in self.items(body.get("ReplaceItemList")):
+                if self.num(it.get("NewItem")):
+                    self.db.execute(
+                        "insert into quest_reward(node_guid, kind, asset_guid, amount, amount_variable) values(?,?,?,?,?)",
+                        (node, "racer", self.num(it["NewItem"]), 1, None),
+                    )
+        elif act == "ActionChangeBuildingRank":
+            a, var = amt(body.get("AddXp"))
+            if a or var:
+                self.db.execute(
+                    "insert into quest_reward(node_guid, kind, asset_guid, amount, amount_variable) values(?,?,?,?,?)",
+                    (node, "xp", None, a, var),
+                )
+        elif act == "ActionStartIncident":
+            if self.num(body.get("Incident")):
+                self.db.execute(
+                    "insert into quest_reward(node_guid, kind, asset_guid, amount, amount_variable) values(?,?,?,?,?)",
+                    (node, "incident", self.num(body["Incident"]), None, None),
+                )
+        elif act == "ActionAddCampaignPowerStruggleReason":
+            self.db.execute(
+                "insert into quest_reward(node_guid, kind, asset_guid, amount, amount_variable) values(?,?,?,?,?)",
+                (node, "power", self.num(body.get("EmperorParticipant")), self.num(body.get("PowerGain")), None),
+            )
 
     # ---- finish --------------------------------------------------------------------------------------------
     def finish(self):
+        # names of assets conditions point at, and of decision speakers, that have no table of their own
+        # (provinces, volcano phases, narrative characters …)
+        for (value,) in self.db.execute(
+            "select distinct value from condition_param union select speaker_guid from quest_node where speaker_guid is not null"
+        ).fetchall():
+            a = self.assets.get(self.num(value))
+            if a and a["text_id"]:
+                self.db.execute(
+                    "insert or ignore into asset_name values(?,?,?)",
+                    (a["guid"], self.text(a["text_id"]), self.icon(a["icon"])),
+                )
         for k, v in self.attributes.items():
             self.db.execute("insert into attribute values(?,?)", (v, k))
         for name, vals in self.enums.items():
             for v in sorted(vals):
                 self.db.execute("insert into enum_value values(?,?)", (name, v))
-        self.db.executemany(
-            "insert into condition values(?,?,?,?,?,null)", self.conditions
-        )
         q = ",".join("?" * len(self.used_texts))
         langs = {}
         for lid, lang, val in self.src.execute(
@@ -1421,7 +1911,7 @@ create table production_chain(guid integer primary key, name text, name_text int
 create table production_chain_node(id integer primary key, chain_guid int references production_chain(guid), parent_id int, building_guid int, tier int);
 create table production_chain_category(chain_guid int references production_chain(guid), type text, population_level_guid int references population_level(guid), unique(chain_guid, type, population_level_guid));
 
-create table effect(guid integer primary key, name text, name_text integer, description_text integer, scope text, source_category text, exclude_source int);
+create table effect(guid integer primary key, name text, name_text integer, description_text integer, scope text, source_category text, exclude_source int, duration_ms int);
 create table effect_buff(effect_guid int references effect(guid), buff_guid int, primary key(effect_guid,buff_guid));
 create table effect_target_pool(effect_guid int references effect(guid), pool_guid int, name_text integer, kind text, icon text, primary key(effect_guid,pool_guid));
 create table effect_target_building(effect_guid int references effect(guid), pool_guid int, building_guid int references building(guid), primary key(effect_guid,pool_guid,building_guid)) without rowid;
@@ -1449,20 +1939,29 @@ create table tech_effect(tech_guid int references tech(guid), effect_guid int);
 create table tech_resource(tech_guid int references tech(guid), product_guid int, amount real);
 create table tech_requirement(tech_guid int references tech(guid), condition_id int);
 create table unlock(asset_guid int, source_kind text, source_guid int, condition_id int, primary key(asset_guid,source_guid));
-create table condition(id integer primary key, owner_kind text, owner_id int, template text not null, negate int, parent_id int);
+create table condition(id integer primary key, owner_kind text, owner_id int, template text not null, negate int, parent_id int, sub_order text);
 create table condition_param(condition_id int references condition(id), key text, value text);
+create table asset_name(guid integer primary key, name_text integer, icon text);
 
-create table storyline(guid integer primary key, name text, system text);
+create table storyline(guid integer primary key, name text, system text, title_text integer, request_text integer, icon text);
 create table storyline_variable(storyline_guid int references storyline(guid), name text, type text, start_value text);
 create table storyline_condition(storyline_guid int references storyline(guid), condition_id int);
 create table quest_pool(guid integer primary key, name text);
 create table quest_pool_storyline(pool_guid int references quest_pool(guid), storyline_guid int, weight real);
 create table quest(guid integer primary key, name text, name_text integer, summary_text integer, category text, icon text, storyline_guid int,
   region_id int references region(id), dlc_guid int references dlc(guid));
-create table quest_node(guid integer primary key, storyline_guid int references storyline(guid), type text, name text, quest_guid int, headline_text integer, text_text integer, step_text integer, time_limit_ms int);
+create table quest_node(guid integer primary key, storyline_guid int references storyline(guid), type text, name text, quest_guid int, headline_text integer, text_text integer, step_text integer, time_limit_ms int,
+  condition_id int references condition(id), speaker_guid int);
 create table quest_edge(from_guid int, to_guid int, kind text, idx int, option_index int, primary key(from_guid,to_guid,kind,idx)) without rowid;
-create table quest_option(decision_guid int references quest_node(guid), idx int, text_text integer, category text);
-create table quest_reward(node_guid int references quest_node(guid), kind text, asset_guid int, amount real, amount_variable text);
+create table quest_option(decision_guid int references quest_node(guid), idx int, text_text integer, category text,
+  cost_guid int, cost_amount real, condition_id int references condition(id));
+create table quest_variable_change(node_guid int references quest_node(guid), variable text, operation text, value text, value_variable text);
+create table quest_choice(node_guid integer primary key references quest_node(guid), storyline_guid int references storyline(guid), kind text, position int);
+create table quest_choice_outcome(choice_guid int references quest_choice(node_guid), idx int, node_guid int references quest_node(guid), primary key(choice_guid, idx, node_guid)) without rowid;
+create table questline(guid integer primary key, title_text integer, icon text, region_id int references region(id), dlc_guid int references dlc(guid));
+create table questline_storyline(questline_guid int references questline(guid), storyline_guid int references storyline(guid), idx int, primary key(questline_guid, storyline_guid)) without rowid;
+create table quest_reward(node_guid int references quest_node(guid), kind text, asset_guid int, amount real, amount_variable text,
+  name_text integer, icon text, attribute text);
 -- child tables looked up by parent (composite primary keys already cover the rest)
 create index idx_need_attribute_need on need_attribute(need_guid);
 create index idx_building_cost_building on building_cost(building_guid);
@@ -1497,6 +1996,9 @@ create index idx_quest_node_quest on quest_node(quest_guid);
 create index idx_quest_edge_to on quest_edge(to_guid);
 create index idx_quest_option_decision on quest_option(decision_guid);
 create index idx_quest_reward_node on quest_reward(node_guid);
+create index idx_quest_variable_change_node on quest_variable_change(node_guid);
+create index idx_quest_choice_storyline on quest_choice(storyline_guid);
+create index idx_questline_storyline_storyline on questline_storyline(storyline_guid);
 """
 
 if __name__ == "__main__":

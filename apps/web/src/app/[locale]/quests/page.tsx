@@ -23,18 +23,14 @@ export default async function Page({
 
   const filters = parseQuestFilters(await searchParams)
 
-  const [dlcs, regions, categories, quests] = await Promise.all([
+  const [dlcs, regions, quests] = await Promise.all([
     anno.dlc.list({
       lang,
     }),
     anno.regions.list({
       lang,
     }),
-    anno.quests.categories({
-      lang,
-    }),
     anno.quests.list({
-      categories: filters.categories ?? undefined,
       dlcs: filters.dlcs ?? undefined,
       lang,
       page: filters.page ?? undefined,
@@ -44,7 +40,6 @@ export default async function Page({
 
   return (
     <QuestList
-      categories={categories}
       dlcs={dlcs}
       filters={filters}
       quests={quests}

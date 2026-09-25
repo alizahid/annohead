@@ -170,6 +170,32 @@ TimedOutOutput`, `DecisionRoot.DecisionRootOutput[i]` (option i, label = `Decisi
 
 This is enough for the flowchart view: nodes, typed edges, option labels, rewards per branch.
 
+#### Questlines (choices and their consequences)
+
+Radiant storylines (random requests and contracts) are left out; what the site shows are the narrative ones where
+choices lead somewhere.
+
+- `quest_option` also carries the option's `cost` (product, amount) and `condition` (its `UnlockRequirement`).
+- `quest_reward` also collects the actions on decision outcome screens (`DecisionComponent.DecisionActions`), plus
+  locks, follow-up storylines, racer upgrades (`attribute`), building XP, incidents and campaign power. Each row keeps
+  the rewarded asset's own `name_text` / `icon` for assets without a table. Amounts read from a storyline variable
+  nothing writes resolve to its start value; unlocks of unnamed assets (internal flags) are dropped.
+- `quest_variable_change`: `ActionModifyVariable` (`Set` by default; flags stored as `true` / `false`).
+- `quest_node.condition`: the condition a branching `Function` checks (it has a failure port).
+- `quest_choice`: every decision with several options and every branching function (`kind` decision / check), in
+  storyline order. `quest_choice_outcome` lists the nodes option `i` runs (checks: 0 holds, 1 fails): outputs are
+  followed through sequences, waits, "continue" screens and objectives up to and including the next choice. A start
+  screen's option `i` also continues at its `DecisionRoot` output `i`.
+- `storyline`: `title` (first decision headline, else journal entry, only lines the game wrote), `request` text and
+  `icon` of the governor request that announces it.
+- `questline` → `questline_storyline(idx)`: storylines linked when one writes a global variable another reads, or
+  starts another, ordered by those dependencies. Region from journal provinces (else the HL/WL name prefix), DLC from
+  names or `/dlcNN/` icon paths. Questlines without a written title are dropped.
+- `effect.duration_ms`: `TimedEffect.EffectDuration`; null when permanent.
+- `asset_name`: name text and icon of assets conditions point at that have no table of their own (provinces,
+  volcano phases, participants' profiles …); the client falls back to it when naming a condition's subject.
+- `condition.sub_order`: how sub-conditions combine (`Parallel` / `Linear`: all, `MutuallyExclusive`: one of them).
+
 ## Decisions (2026-09-09)
 
 1. **Storylines and quests are separate tables**, Wowhead-style. `storyline` = game `StoryLine` (the chain,

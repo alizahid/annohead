@@ -13,6 +13,7 @@ const icons = {
   'attribute.Prestige': '/img/anno/icon_2d_prestige_0.png',
   'common.coal':
     'data/ui/fhd/base/icon_content/production_goods/icon_3d_coal_ore_goods.png',
+  'common.quest': 'data/ui/fhd/base/icon_content/generic/icon_2d_questlog.png',
   'dlc.DLC01_Prophecies_of_Ash': '/img/anno/icon_3d_dlc_category_volcano_0.png',
   'dlc.DLC02_The_Hippodrome':
     '/img/anno/icon_3d_dlc_category_circus_maximus_0.png',

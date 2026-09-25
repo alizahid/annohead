@@ -1,7 +1,6 @@
 'use client'
 
-import { type Dlcs, type QuestCategories, type Regions } from '@anno/db/client'
-import { type QuestCategory } from '@anno/db/enums'
+import { type Dlcs, type Regions } from '@anno/db/client'
 import { Checkbox } from '@base-ui/react/checkbox'
 import { CheckboxGroup } from '@base-ui/react/checkbox-group'
 import { useTranslations } from 'next-intl'
@@ -14,12 +13,11 @@ import { questFilters } from '@/lib/validators'
 import { Icon } from '../common/icon'
 
 type Props = {
-  categories: QuestCategories
   dlcs: Dlcs
   regions: Regions
 }
 
-export function QuestFiltersCard({ categories, dlcs, regions }: Props) {
+export function QuestFiltersCard({ dlcs, regions }: Props) {
   const router = useRouter()
 
   const t = useTranslations('component.quests.filters')
@@ -81,38 +79,6 @@ export function QuestFiltersCard({ categories, dlcs, regions }: Props) {
               value={String(item.guid)}
             >
               {item.icon ? <Icon className="size-6" icon={item.icon} /> : null}
-
-              <span className="font-bold text-sm">{item.name}</span>
-            </Checkbox.Root>
-          ))}
-        </CheckboxGroup>
-      </div>
-
-      <div className="flex flex-col gap-4">
-        <h3>{t('categories')}</h3>
-
-        <CheckboxGroup
-          className="flex flex-col gap-2"
-          onValueChange={async (next) => {
-            await setFilters({
-              categories: next as Array<QuestCategory>,
-              page: null,
-            })
-
-            router.refresh()
-          }}
-          value={filters.categories ? filters.categories.map(String) : []}
-        >
-          {categories.map((item) => (
-            <Checkbox.Root
-              className="flex h-8 items-center gap-2 rounded-md px-1 outline-none ring-accent-8 transition-colors hover:bg-accent-4 focus-visible:ring-2 data-checked:bg-accent-5"
-              key={item.key}
-              value={item.key}
-            >
-              <Checkbox.Indicator
-                className="ml-0.5 flex size-5 items-center justify-center rounded-full border border-gray-12 data-checked:border-0 data-checked:bg-gray-12"
-                keepMounted
-              />
 
               <span className="font-bold text-sm">{item.name}</span>
             </Checkbox.Root>

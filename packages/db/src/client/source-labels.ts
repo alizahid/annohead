@@ -32,5 +32,7 @@ export function sourceLabel(
   name: string | null,
   lang: Lang,
 ) {
-  return phrases[lang][kind].replace('{name}', name ?? '').trim()
+  // a storyline reward reads like a quest reward once the storyline has a title
+  const phrase = phrases[lang][kind === 'storyline' && name ? 'quest' : kind]
+  return phrase.replace('{name}', name ?? '').trim()
 }

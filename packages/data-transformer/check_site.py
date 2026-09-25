@@ -29,15 +29,15 @@ assert sorted(
         "select region_id from production_chain pc join translation t on t.line_id=pc.name_text and t.lang_id=(select id from lang where code='english') where t.value='Bread'"
     )
 ) == [(1,), (2,)]
-# famine request: decision options aligned with outputs, rewards are storyline variables
+# famine request: decision options aligned with outputs; rewards read storyline constants (start values nothing changes)
 assert q(
     "select option_index, to_guid from quest_edge where from_guid=72091 and kind='DecisionRoot.DecisionRootOutput.Output' order by 1"
 ) == [(0, 77282), (1, 81925)]
 assert q(
     "select value from quest_option qo join translation t on t.line_id=qo.text_text and t.lang_id=(select id from lang where code='english') where decision_guid=77280 and idx=1"
 ) == [("Decline",)]
-assert ("ReputationGainSuccess",) in q(
-    "select amount_variable from quest_reward where node_guid=77283"
+assert ("reputation", 10.0, None) in q(
+    "select kind, amount, amount_variable from quest_reward where node_guid=77283"
 )
 # spinner unlock: 50 Liberti
 assert ("CounterAmount", "50") in q(

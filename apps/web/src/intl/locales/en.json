@@ -194,14 +194,48 @@
       }
     },
     "quests": {
+      "choice": {
+        "check": "The game checks",
+        "cost": "Costs",
+        "decision": "Decision",
+        "fails": "Otherwise",
+        "holds": "If so",
+        "nothing": "No lasting effect",
+        "option": "Option {number}",
+        "outcomes": "Outcome",
+        "requires": "Requires"
+      },
       "filters": {
-        "categories": "Type",
         "dlcs": "DLC",
         "regions": "Region"
       },
       "list": {
         "empty": "Nothing found",
         "title": "Quests"
+      },
+      "outcome": {
+        "duration": "{hours, plural, one {# hour} other {# hours}}",
+        "effect": "Effect",
+        "incident": "Starts an incident",
+        "incidentFallback": "Incident",
+        "lock": "Locked",
+        "lockFallback": "Something",
+        "power": "Power struggle",
+        "racer": "Racer upgrade",
+        "racerFallback": "Racer",
+        "reputation": "Reputation",
+        "storyline": "Starts a follow-up",
+        "storylineFallback": "A follow-up event",
+        "unlock": "Unlocked",
+        "unlockFallback": "Something",
+        "variable": "Remembered for later",
+        "xp": "Experience"
+      },
+      "page": {
+        "empty": "Story only, no choices in this part.",
+        "part": "Part {number}",
+        "requires": "Only if: {requirements}",
+        "untitled": "Untitled"
       }
     },
     "search": {
@@ -294,6 +328,10 @@
     },
     "products": {
       "title": "Goods × Annohead"
+    },
+    "quest": {
+      "fallback": "Quest",
+      "title": "{name} × Quests × Annohead"
     },
     "quests": {
       "title": "Quests × Annohead"

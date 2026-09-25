@@ -186,6 +186,55 @@
         "title": "Goods"
       }
     },
+    "quests": {
+      "card": {
+        "summary": "{parts, plural, one {# Teil} other {# Teile}} · {choices, plural, one {# Entscheidung} other {# Entscheidungen}}"
+      },
+      "choice": {
+        "check": "Das Spiel prüft",
+        "cost": "Kosten",
+        "decision": "Entscheidung",
+        "fails": "Andernfalls",
+        "holds": "Falls ja",
+        "nothing": "Keine bleibende Wirkung",
+        "option": "Option {number}",
+        "outcomes": "Folgen",
+        "requires": "Voraussetzung"
+      },
+      "filters": {
+        "dlcs": "DLC",
+        "regions": "Region"
+      },
+      "list": {
+        "empty": "Nichts gefunden",
+        "title": "Quests"
+      },
+      "outcome": {
+        "duration": "{hours, plural, one {# Stunde} other {# Stunden}}",
+        "effect": "Effekt",
+        "incident": "Löst einen Vorfall aus",
+        "incidentFallback": "Vorfall",
+        "lock": "Gesperrt",
+        "lockFallback": "Etwas",
+        "power": "Machtkampf",
+        "racer": "Rennpferd verbessert",
+        "racerFallback": "Rennpferd",
+        "reputation": "Ansehen",
+        "storyline": "Startet eine Folgequest",
+        "storylineFallback": "Ein Folgeereignis",
+        "unlock": "Freigeschaltet",
+        "unlockFallback": "Etwas",
+        "variable": "Für später gemerkt",
+        "xp": "Erfahrung"
+      },
+      "page": {
+        "noChoices": "Nur Geschichte, keine Entscheidungen in diesem Teil.",
+        "part": "Teil {number}",
+        "requires": "Nur wenn: {requirements}",
+        "summary": "Questreihe · {parts, plural, one {# Teil} other {# Teile}} · {choices, plural, one {# Entscheidung} other {# Entscheidungen}}",
+        "untitled": "Ohne Titel"
+      }
+    },
     "search": {
       "box": {
         "placeholder": "Search"
@@ -272,6 +321,13 @@
     },
     "products": {
       "title": "Goods × Annohead"
+    },
+    "quest": {
+      "fallback": "Quest",
+      "title": "{name} × Quests × Annohead"
+    },
+    "quests": {
+      "title": "Quests × Annohead"
     },
     "search": {
       "title": "Search × Annohead"

@@ -37,6 +37,7 @@ export type ChainType = (typeof chainTypeValues)[number]
 
 export const conditionTemplateValues = [
   'ConditionActiveEmperor',
+  'ConditionActiveIncidentCount',
   'ConditionActiveSession',
   'ConditionAlwaysFalse',
   'ConditionAlwaysTrue',
@@ -51,13 +52,18 @@ export const conditionTemplateValues = [
   'ConditionIsCampaign',
   'ConditionIsDLCActive',
   'ConditionIsDiscovered',
+  'ConditionIsMaleProtagonist',
   'ConditionIsParticipantInGame',
   'ConditionIsProducible',
+  'ConditionItemRacerAttribute',
   'ConditionItemUsed',
   'ConditionMonumentEventActive',
   'ConditionNeedAttributeCounter',
+  'ConditionNeedCategoryFulfillment',
   'ConditionObjectCount',
+  'ConditionObjectPosition',
   'ConditionPlayerCounter',
+  'ConditionProductCapacityReached',
   'ConditionRaceOutcome',
   'ConditionReligion',
   'ConditionTechResearched',
@@ -176,6 +182,14 @@ export const questCategoryValues = [
 ] as const
 export type QuestCategory = (typeof questCategoryValues)[number]
 
+export const racerAttributeValues = [
+  'Boost',
+  'Consistency',
+  'Speed',
+  'Stamina',
+] as const
+export type RacerAttribute = (typeof racerAttributeValues)[number]
+
 export const rarityValues = [
   'Common',
   'Epic',
@@ -212,6 +226,21 @@ export const storylineSystemValues = [
   'Quests',
 ] as const
 export type StorylineSystem = (typeof storylineSystemValues)[number]
+
+export const subConditionOrderValues = [
+  'Linear',
+  'MutuallyExclusive',
+  'Parallel',
+] as const
+export type SubConditionOrder = (typeof subConditionOrderValues)[number]
+
+export const variableOperationValues = [
+  'Add',
+  'Multiply',
+  'Set',
+  'Subtract',
+] as const
+export type VariableOperation = (typeof variableOperationValues)[number]
 
 export const attributeValues = [
   'Population',
