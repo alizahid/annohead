@@ -290,12 +290,12 @@
         "PASSWORD_HAS_SURROUNDING_WHITESPACE": "Password has surrounding whitespace",
         "PASSWORD_TOO_COMMON": "Password is too common",
         "PASSWORD_TOO_LONG": "Password too long (max {max, plural, =0 {} =1 {1 character} other {# characters}})",
-        "PASSWORD_TOO_SHORT": "Password too short (min {min, plural, =0 {} =1 {1 characer} other {# characters}})",
+        "PASSWORD_TOO_SHORT": "Password too short (min {min, plural, =0 {} =1 {1 character} other {# characters}})",
         "RATE_LIMITED": "Rate limited. Try again after {seconds, plural, =0 {a while} =1 {1 second} other {# seconds}}",
-        "USERNAME_HAS_INVALID_CHARACTERS": "Password has invalid characters",
+        "USERNAME_HAS_INVALID_CHARACTERS": "Username has invalid characters",
         "USERNAME_HAS_SURROUNDING_WHITESPACE": "Username has surrounding whitespace",
         "USERNAME_TAKEN": "Username in use",
-        "USERNAME_TOO_SHORT": "Username too short (min {min, plural, =0 {} =1 {1 characer} other {# characters}})",
+        "USERNAME_TOO_SHORT": "Username too short (min {min, plural, =0 {} =1 {1 character} other {# characters}})",
         "USER_NOT_FOUND": "User not found"
       }
     }

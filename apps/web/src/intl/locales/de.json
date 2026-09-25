@@ -4,38 +4,38 @@
     "Celtic": "Albion",
     "Egyptian": "Delta",
     "Roman": "Latium",
-    "needsFuel": "Needs coal"
+    "needsFuel": "Benötigt Kohle"
   },
   "component": {
     "auth": {
       "signIn": {
         "action": {
-          "signUp": "New user?",
-          "submit": "Sign in"
+          "signUp": "Neu hier?",
+          "submit": "Anmelden"
         },
         "field": {
           "password": {
-            "label": "Password",
+            "label": "Passwort",
             "placeholder": "Sup3rS3cur3P@ssw0rd"
           },
           "username": {
-            "label": "Username",
+            "label": "Benutzername",
             "placeholder": "mildpanda"
           }
         }
       },
       "signUp": {
         "action": {
-          "signIn": "Already have an account?",
-          "submit": "Sign up"
+          "signIn": "Du hast schon ein Konto?",
+          "submit": "Registrieren"
         },
         "field": {
           "password": {
-            "label": "Password",
+            "label": "Passwort",
             "placeholder": "Sup3rS3cur3P@ssw0rd"
           },
           "username": {
-            "label": "Username",
+            "label": "Benutzername",
             "placeholder": "mildpanda"
           }
         }
@@ -44,132 +44,132 @@
     "buildings": {
       "filters": {
         "dlcs": "DLC",
-        "kinds": "Type",
+        "kinds": "Typ",
         "regions": "Region",
-        "tiers": "Population tier"
+        "tiers": "Bevölkerungsstufe"
       },
       "list": {
-        "empty": "Nothing found",
-        "title": "Buildings"
+        "empty": "Nichts gefunden",
+        "title": "Gebäude"
       },
       "page": {
         "details": {
-          "buffs": "Need fulfillment",
-          "construction": "Construction costs",
-          "effects": "Area effects",
-          "inputs": "Inputs",
-          "maintenance": "Maintenance",
-          "outputs": "Outputs",
+          "buffs": "Bedürfniserfüllung",
+          "construction": "Baukosten",
+          "effects": "Flächeneffekte",
+          "inputs": "Rohstoffe",
+          "maintenance": "Unterhalt",
+          "outputs": "Erzeugnisse",
           "title": "Details",
-          "unlocked": "Unlocked by",
-          "workforce": "Workforce needed"
+          "unlocked": "Freigeschaltet durch",
+          "workforce": "Benötigte Arbeitskraft"
         },
         "other": {
-          "baseProductivity": "Base productivity",
-          "category": "Category",
-          "cycleTime": "Cycle time",
-          "needsFuel": "Needs coal",
+          "baseProductivity": "Grundproduktivität",
+          "category": "Kategorie",
+          "cycleTime": "Produktionszeit",
+          "needsFuel": "Benötigt Kohle",
           "radius": "Radius",
-          "streetRadius": "Street radius",
-          "template": "Template",
-          "title": "Other",
-          "transporterRange": "Transporter range"
+          "streetRadius": "Straßenradius",
+          "template": "Vorlage",
+          "title": "Sonstiges",
+          "transporterRange": "Transportreichweite"
         },
         "phases": {
-          "duration": "Duration",
+          "duration": "Dauer",
           "phase": "Phase",
-          "title": "Phases",
-          "unlock": "Unlock requirements"
+          "title": "Bauphasen",
+          "unlock": "Freischaltbedingungen"
         }
       }
     },
     "chains": {
       "calculator": {
-        "baseProductivity": "Base productivity",
+        "baseProductivity": "Grundproduktivität",
         "buildings": "× {required, number, required}",
-        "cycleTime": "Cycle time",
-        "inputs": "Inputs",
-        "output": "Output",
-        "title": "Calculator",
-        "tons": "{tons, number, tons} tons / min"
+        "cycleTime": "Produktionszeit",
+        "inputs": "Rohstoffe",
+        "output": "Erzeugnis",
+        "title": "Rechner",
+        "tons": "{tons, number, tons} t / min"
       },
       "filters": {
         "dlcs": "DLC",
         "regions": "Region",
-        "tiers": "Population tier",
-        "types": "Type"
+        "tiers": "Bevölkerungsstufe",
+        "types": "Typ"
       },
       "list": {
-        "empty": "Nothing found",
-        "title": "Production chains"
+        "empty": "Nichts gefunden",
+        "title": "Produktionsketten"
       }
     },
     "comments": {
       "form": {
         "action": {
-          "submit": "Send"
+          "submit": "Senden"
         },
         "field": {
           "body": {
-            "placeholder": "Say something nice"
+            "placeholder": "Schreib etwas Nettes"
           }
         }
       },
       "list": {
-        "empty": "No comments yet",
-        "more": "Load more",
-        "signIn": "<link>Sign in</link> to join the conversation.",
-        "title": "Comments"
+        "empty": "Noch keine Kommentare",
+        "more": "Mehr laden",
+        "signIn": "<link>Melde dich an</link>, um mitzureden.",
+        "title": "Kommentare"
       }
     },
     "items": {
       "filters": {
-        "allocations": "Allocation",
-        "categories": "Category",
+        "allocations": "Zuordnung",
+        "categories": "Kategorie",
         "dlcs": "DLC",
-        "niches": "Niche",
-        "rarities": "Rarity",
-        "types": "Type"
+        "niches": "Nische",
+        "rarities": "Seltenheit",
+        "types": "Typ"
       },
       "list": {
-        "empty": "Nothing found",
-        "title": "Items"
+        "empty": "Nichts gefunden",
+        "title": "Gegenstände"
       },
       "page": {
         "boost": {
-          "conditions": "Conditions",
-          "modifiers": "Modifiers",
-          "title": "Boost"
+          "conditions": "Bedingungen",
+          "modifiers": "Modifikatoren",
+          "title": "Bonus"
         },
         "details": {
-          "modifiers": "Modifiers",
-          "sources": "Sources",
-          "targets": "Targets"
+          "modifiers": "Modifikatoren",
+          "sources": "Quellen",
+          "targets": "Ziele"
         },
         "other": {
-          "allocation": "Allocation",
-          "title": "Other",
-          "tradePrice": "Trade price"
+          "allocation": "Zuordnung",
+          "title": "Sonstiges",
+          "tradePrice": "Handelspreis"
         }
       }
     },
     "layouts": {
       "main": {
         "footer": {
-          "copyright": "© {year} Annohead. All rights reserved."
+          "copyright": "© {year} Annohead. Alle Rechte vorbehalten."
         },
         "language": {
-          "de": "German",
-          "en": "English"
+          "de": "Deutsch",
+          "en": "Englisch"
         },
         "nav": {
-          "buildings": "Buildings",
-          "chains": "Production chains",
-          "items": "Items",
-          "products": "Goods",
+          "buildings": "Gebäude",
+          "chains": "Produktionsketten",
+          "items": "Gegenstände",
+          "products": "Waren",
           "quests": "Quests",
-          "techs": "Technologies",
-          "title": "Database"
+          "techs": "Technologien",
+          "title": "Datenbank"
         },
         "title": "Annohead"
       }
@@ -177,19 +177,23 @@
     "products": {
       "filters": {
         "dlcs": "DLC",
-        "kinds": "Type",
+        "kinds": "Typ",
         "regions": "Region",
-        "tiers": "Population tier"
+        "tiers": "Bevölkerungsstufe"
       },
       "list": {
-        "empty": "Nothing found",
-        "title": "Goods"
+        "empty": "Nichts gefunden",
+        "title": "Waren"
+      },
+      "page": {
+        "consumed": "Verbraucht von",
+        "needed": "Benötigt von",
+        "produced": "Hergestellt von",
+        "tons": "{tons, number, tons} t / min",
+        "wanted": "Gewünscht von"
       }
     },
     "quests": {
-      "card": {
-        "summary": "{parts, plural, one {# Teil} other {# Teile}} · {choices, plural, one {# Entscheidung} other {# Entscheidungen}}"
-      },
       "choice": {
         "check": "Das Spiel prüft",
         "cost": "Kosten",
@@ -198,7 +202,7 @@
         "holds": "Falls ja",
         "nothing": "Keine bleibende Wirkung",
         "option": "Option {number}",
-        "outcomes": "Folgen",
+        "outcomes": "Ergebnis",
         "requires": "Voraussetzung"
       },
       "filters": {
@@ -212,115 +216,118 @@
       "outcome": {
         "duration": "{hours, plural, one {# Stunde} other {# Stunden}}",
         "effect": "Effekt",
-        "incident": "Löst einen Vorfall aus",
-        "incidentFallback": "Vorfall",
+        "incident": "Löst einen Zwischenfall aus",
+        "incidentFallback": "Zwischenfall",
         "lock": "Gesperrt",
         "lockFallback": "Etwas",
         "power": "Machtkampf",
-        "racer": "Rennpferd verbessert",
+        "racer": "Verbesserung des Rennpferds",
         "racerFallback": "Rennpferd",
         "reputation": "Ansehen",
-        "storyline": "Startet eine Folgequest",
+        "storyline": "Startet eine Fortsetzung",
         "storylineFallback": "Ein Folgeereignis",
         "unlock": "Freigeschaltet",
         "unlockFallback": "Etwas",
-        "variable": "Für später gemerkt",
+        "variable": "Wird für später gemerkt",
         "xp": "Erfahrung"
       },
       "page": {
-        "noChoices": "Nur Geschichte, keine Entscheidungen in diesem Teil.",
+        "empty": "Nur Geschichte, keine Entscheidungen in diesem Teil.",
         "part": "Teil {number}",
         "requires": "Nur wenn: {requirements}",
-        "summary": "Questreihe · {parts, plural, one {# Teil} other {# Teile}} · {choices, plural, one {# Entscheidung} other {# Entscheidungen}}",
         "untitled": "Ohne Titel"
       }
     },
     "search": {
       "box": {
-        "placeholder": "Search"
+        "placeholder": "Suchen"
       },
       "filters": {
-        "all": "All",
-        "building": "Buildings",
-        "chain": "Production chains",
-        "item": "Items",
-        "product": "Products",
+        "all": "Alle",
+        "building": "Gebäude",
+        "chain": "Produktionsketten",
+        "item": "Gegenstände",
+        "product": "Waren",
         "quest": "Quests",
-        "tech": "Technologies"
+        "tech": "Technologien"
       },
       "page": {
-        "empty": "Nothing found",
-        "results": "{total, plural, =0 {No results} =1 {1 result} other {# results}}",
-        "title": "Search"
+        "empty": "Nichts gefunden",
+        "results": "{total, plural, =0 {Keine Ergebnisse} =1 {1 Ergebnis} other {# Ergebnisse}}",
+        "title": "Suche"
       }
     },
     "technologies": {
       "page": {
         "effects": {
-          "modifiers": "Modifiers",
-          "targets": "Targets",
-          "title": "Effects"
+          "modifiers": "Modifikatoren",
+          "targets": "Ziele",
+          "title": "Effekte"
         },
         "other": {
-          "knowledgeNeeded": "Knowledge",
-          "title": "Other"
+          "knowledgeNeeded": "Wissen",
+          "title": "Sonstiges"
         },
-        "rewards": "Rewards",
-        "unlocks": "Unlocks"
+        "rewards": "Belohnungen",
+        "unlocks": "Schaltet frei"
       },
       "tree": {
-        "discovery": "Discovery",
-        "effects": "Effects",
+        "discovery": "Entdeckung",
+        "effects": "Effekte",
         "inspiration": "Inspiration",
-        "knowledge": "Knowledge",
-        "requirement": "Requirement",
-        "rewards": "Rewards",
-        "unlocks": "Unlocks"
+        "knowledge": "Wissen",
+        "requirement": "Voraussetzung",
+        "rewards": "Belohnungen",
+        "unlocks": "Schaltet frei"
       }
     }
   },
   "hook": {
     "auth": {
       "error": {
-        "INVALID_CREDENTIALS": "Invalid credentials",
-        "OTHER_ERROR": "Something went wrong",
-        "PASSWORD_HAS_SURROUNDING_WHITESPACE": "Password has surrounding whitespace",
-        "PASSWORD_TOO_COMMON": "Password is too common",
-        "PASSWORD_TOO_LONG": "Password too long (max {max, plural, =0 {} =1 {1 character} other {# characters}})",
-        "PASSWORD_TOO_SHORT": "Password too short (min {min, plural, =0 {} =1 {1 characer} other {# characters}})",
-        "RATE_LIMITED": "Rate limited. Try again after {seconds, plural, =0 {a while} =1 {1 second} other {# seconds}}",
-        "USERNAME_HAS_INVALID_CHARACTERS": "Password has invalid characters",
-        "USERNAME_HAS_SURROUNDING_WHITESPACE": "Username has surrounding whitespace",
-        "USERNAME_TAKEN": "Username in use",
-        "USERNAME_TOO_SHORT": "Username too short (min {min, plural, =0 {} =1 {1 characer} other {# characters}})",
-        "USER_NOT_FOUND": "User not found"
+        "INVALID_CREDENTIALS": "Ungültige Anmeldedaten",
+        "OTHER_ERROR": "Etwas ist schiefgelaufen",
+        "PASSWORD_HAS_SURROUNDING_WHITESPACE": "Das Passwort beginnt oder endet mit Leerzeichen",
+        "PASSWORD_TOO_COMMON": "Das Passwort ist zu verbreitet",
+        "PASSWORD_TOO_LONG": "Passwort zu lang (max. {max, plural, =0 {} =1 {1 Zeichen} other {# Zeichen}})",
+        "PASSWORD_TOO_SHORT": "Passwort zu kurz (min. {min, plural, =0 {} =1 {1 Zeichen} other {# Zeichen}})",
+        "RATE_LIMITED": "Zu viele Versuche. Versuche es {seconds, plural, =0 {später} =1 {in 1 Sekunde} other {in # Sekunden}} erneut",
+        "USERNAME_HAS_INVALID_CHARACTERS": "Der Benutzername enthält ungültige Zeichen",
+        "USERNAME_HAS_SURROUNDING_WHITESPACE": "Der Benutzername beginnt oder endet mit Leerzeichen",
+        "USERNAME_TAKEN": "Benutzername bereits vergeben",
+        "USERNAME_TOO_SHORT": "Benutzername zu kurz (min. {min, plural, =0 {} =1 {1 Zeichen} other {# Zeichen}})",
+        "USER_NOT_FOUND": "Benutzer nicht gefunden"
       }
     }
   },
   "page": {
     "building": {
-      "fallback": "Building",
-      "title": "{name} × Buildings × Annohead"
+      "fallback": "Gebäude",
+      "title": "{name} × Gebäude × Annohead"
     },
     "buildings": {
-      "title": "Buildings × Annohead"
+      "title": "Gebäude × Annohead"
     },
     "chain": {
-      "fallback": "Chain",
-      "title": "{name} × Production chains × Annohead"
+      "fallback": "Produktionskette",
+      "title": "{name} × Produktionsketten × Annohead"
     },
     "chains": {
-      "title": "Production chains × Annohead"
+      "title": "Produktionsketten × Annohead"
     },
     "item": {
-      "fallback": "Item",
-      "title": "{name} × Items × Annohead"
+      "fallback": "Gegenstand",
+      "title": "{name} × Gegenstände × Annohead"
     },
     "items": {
-      "title": "Items × Annohead"
+      "title": "Gegenstände × Annohead"
+    },
+    "product": {
+      "fallback": "Ware",
+      "title": "{name} × Waren × Annohead"
     },
     "products": {
-      "title": "Goods × Annohead"
+      "title": "Waren × Annohead"
     },
     "quest": {
       "fallback": "Quest",
@@ -330,14 +337,14 @@
       "title": "Quests × Annohead"
     },
     "search": {
-      "title": "Search × Annohead"
+      "title": "Suche × Annohead"
     },
     "technologies": {
-      "title": "Technologies × Annohead"
+      "title": "Technologien × Annohead"
     },
     "technology": {
-      "fallback": "Technology",
-      "title": "{name} × Technologies × Annohead"
+      "fallback": "Technologie",
+      "title": "{name} × Technologien × Annohead"
     }
   }
 }
