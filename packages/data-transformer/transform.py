@@ -140,21 +140,23 @@ class T:
         return self.attributes[key]
 
     def flatten_pool(self, g, seen=None):
+        return set(self.pool_members(g, seen))
+
+    def pool_members(self, g, seen=None):
+        """Leaf assets of a pool, in the pool's own order."""
         seen = seen if seen is not None else set()
         a = self.assets.get(int(g)) if GUID.match(str(g)) else None
         if a is None or a["guid"] in seen:
-            return set()
+            return
         seen.add(a["guid"])
-        out = set()
         if a["template"] == "AssetPool":
             for it in self.items(D(a["v"].get("AssetPool")).get("AssetList")):
-                out |= self.flatten_pool(it.get("Asset"), seen)
+                yield from self.pool_members(it.get("Asset"), seen)
         elif a["template"] == "RewardPool":
             for it in self.items(D(a["v"].get("RewardPool")).get("ItemsPool")):
-                out |= self.flatten_pool(it.get("ItemLink"), seen)
+                yield from self.pool_members(it.get("ItemLink"), seen)
         else:
-            out.add(a["guid"])
-        return out
+            yield a["guid"]
 
     def items(self, x):
         return [i for i in x if isinstance(i, dict)] if isinstance(x, list) else []
@@ -604,12 +606,34 @@ class T:
             for prop, body in a["v"].items():
                 if (
                     not prop.endswith("Upgrade")
-                    and prop != "RaceTrackUpgrades"
+                    and prop not in ("RaceTrackUpgrades", "AreaBuff")
                     or not isinstance(body, dict)
                 ):
                     continue
                 for path, val in self.walk_leaves(body, prop):
-                    if path.endswith(".Value") or path.endswith(
+                    # list entries name the good they change, e.g. AddDeltas[0].Product or GoodConsumptionUpgrade[0].ProvidedNeedProduct
+                    parent = dict_get(a["v"], path.rsplit(".", 1)[0]) if "[" in path else None
+                    product = self.num(
+                        D(parent).get("Product") or D(parent).get("ProvidedNeedProduct")
+                    )
+                    leaf = path.rsplit(".", 1)[-1]
+                    if (
+                        leaf.endswith("Percent")
+                        and leaf not in ("FertilityPercent", "AreaFertilityPercent")
+                        and self.num(val, 0)
+                    ):
+                        # a bare percentage, e.g. FactoryUpgrade.FuelDurationPercent = 20
+                        self.db.execute(
+                            "insert into buff_modifier values(?,?,?,?,?,?)",
+                            (a["guid"], re.sub(r"\[\d+\]", "", path), None, self.num(val), 1, product),
+                        )
+                    elif re.search(r"AddDeltas\[\d+\]\.Amount$", path) and self.num(val, 0):
+                        # an added amount of a good, e.g. villa workforce
+                        self.db.execute(
+                            "insert into buff_modifier values(?,?,?,?,?,?)",
+                            (a["guid"], "DistributionUpgrade.AddDeltas", None, self.num(val), 0, product),
+                        )
+                    elif path.endswith(".Value") or path.endswith(
                         "AmountOrPercent.Value"
                     ):
                         base = path[: -len(".Value")]
@@ -623,13 +647,14 @@ class T:
                             else None
                         )
                         self.db.execute(
-                            "insert into buff_modifier values(?,?,?,?,?)",
+                            "insert into buff_modifier values(?,?,?,?,?,?)",
                             (
                                 a["guid"],
                                 base.replace(".AmountOrPercent", ""),
                                 attr_id,
                                 self.num(val, 0),
                                 pct,
+                                None,
                             ),
                         )
                     elif path.endswith("AdditionalFunctionalEffect") and self.num(val):
@@ -753,11 +778,46 @@ class T:
 
     # ---- techs & unlocks -----------------------------------------------------------------------------------
     def techs(self):
+        # category hubs: the tree places each hub at Position (pixels) and its techs' GridPosition relative to it
+        order = [
+            self.num(c.get("Category"))
+            for f in self.by_template("TechsFeature")
+            for c in self.items(D(f["v"].get("TechFeature")).get("CategoryOrder"))
+        ]
+        def asset_icon(g):
+            return D(self.assets.get(self.num(g))).get("icon")
+
+        # a category's opening gate isn't in its Techs list or linked from it; the game names it "Gate <type> Early"
+        tech_by_name = {a["name"]: a["guid"] for a in self.by_template("Tech")}
+
+        buildings = {g for (g,) in self.db.execute("select guid from building")}
+
+        category = {}
+        for a in self.by_template("TechCategory"):
+            c = D(a["v"].get("TechCategory"))
+            pos = D(c.get("Position"))
+            self.db.execute(
+                "insert into tech_category values(?,?,?,?,?,?,?,?,?,?)",
+                (
+                    a["guid"],
+                    c.get("CategoryType"),
+                    self.text(c.get("CategoryName")),
+                    self.text(D(a["v"].get("Standard")).get("InfoDescription")),
+                    tech_by_name.get(f"Gate {c.get('CategoryType')} Early"),
+                    self.icon(asset_icon(c.get("CategoryIcon")) or a["icon"]),
+                    self.icon(asset_icon(c.get("CategoryArtwork"))),
+                    self.num(pos.get("X"), 0),
+                    self.num(pos.get("Y"), 0),
+                    order.index(a["guid"]) if a["guid"] in order else len(order),
+                ),
+            )
+            for it in self.items(c.get("Techs")):
+                category[self.num(it.get("Tech"))] = a["guid"]
         for a in self.by_template("Tech"):
             t = D(a["v"].get("Tech"))
             gp = D(t.get("GridPosition"))
             self.db.execute(
-                "insert into tech values(?,?,?,?,?,?,?,?,?)",
+                "insert into tech values(?,?,?,?,?,?,?,?,?,?,?,?)",
                 (
                     a["guid"],
                     a["name"],
@@ -768,10 +828,45 @@ class T:
                     1 if t.get("IsGate") == "1" else 0,
                     self.num(gp.get("X"), 0),
                     self.num(gp.get("Y"), 0),
+                    category.get(a["guid"]),
+                    1 if t.get("ShowConnectionToCategory") == "1" else 0,
+                    self.icon(asset_icon(t.get("TechInfoImage"))),
                 ),
             )
             rw = D(t.get("Rewards"))
-            for u in self.items(rw.get("Unlocks")):
+            for idx, u in enumerate(self.items(rw.get("Unlocks"))):
+                # the asset as the game lists it (e.g. "Warehouse Upgrade"), before pools are flattened
+                shown = self.assets.get(self.num(u.get("UnlockReward")))
+                if shown:
+                    # the game describes the entry with the first building in the pool (e.g. the wall in "Stone Walls")
+                    building = next(
+                        (g for g in self.pool_members(shown["guid"]) if g in buildings),
+                        None,
+                    )
+                    self.db.execute(
+                        "insert into tech_unlock_reward values(?,?,?,?,?,?,?)",
+                        (
+                            a["guid"],
+                            idx,
+                            shown["guid"],
+                            self.text(shown["text_id"]),
+                            # its own text (e.g. "Unlocks all buildings necessary to produce armour."), else its first member's
+                            next(
+                                (
+                                    self.text(desc)
+                                    for g in [shown["guid"], *self.pool_members(shown["guid"])]
+                                    if (
+                                        desc := D(self.assets[g]["v"].get("Standard")).get(
+                                            "InfoDescription"
+                                        )
+                                    )
+                                ),
+                                None,
+                            ),
+                            self.icon(shown["icon"]),
+                            building,
+                        ),
+                    )
                 for g in self.flatten_pool(u.get("UnlockReward")):
                     self.db.execute(
                         "insert or ignore into tech_unlock values(?,?)", (a["guid"], g)
@@ -1215,7 +1310,7 @@ create table pool_member(pool_guid int, asset_guid int, primary key(pool_guid,as
 create view effect_target as select etp.effect_guid, pm.asset_guid building_guid from effect_target_pool etp join pool_member pm using(pool_guid);
 create table effect_source(effect_guid int references effect(guid), source_kind text, source_guid int, primary key(effect_guid,source_guid)) without rowid;
 create table buff(guid integer primary key, name text, name_text integer, icon text, source_category text);
-create table buff_modifier(buff_guid int references buff(guid), path text, attribute_id int references attribute(id), value real, is_percent int);
+create table buff_modifier(buff_guid int references buff(guid), path text, attribute_id int references attribute(id), value real, is_percent int, product_guid int references product(guid));
 create table buff_functional_effect(buff_guid int references buff(guid), effect_guid int);
 create table buff_provided_need(buff_guid int references buff(guid), need_guid int references need(guid), primary key(buff_guid,need_guid));
 
@@ -1225,7 +1320,10 @@ create table item_boost_buff(item_guid int references item(guid), buff_guid int 
 create table item_boost_condition(item_guid int references item(guid), condition_id int);
 create table item_source(item_guid int references item(guid), kind text, source_guid int, primary key(item_guid,kind,source_guid)) without rowid;
 
-create table tech(guid integer primary key, name text, name_text integer, description_text integer, icon text, knowledge_needed real, is_gate int, grid_x int, grid_y int);
+create table tech_category(guid integer primary key, type text, name_text integer, description_text integer, gate_guid int, icon text, artwork text, x int, y int, sort int);
+create table tech(guid integer primary key, name text, name_text integer, description_text integer, icon text, knowledge_needed real, is_gate int, grid_x int, grid_y int,
+  category_guid int references tech_category(guid), show_connection_to_category int, image text);
+create table tech_unlock_reward(tech_guid int references tech(guid), idx int, asset_guid int, name_text integer, description_text integer, icon text, building_guid int references building(guid), primary key(tech_guid,idx)) without rowid;
 create table tech_unlock(tech_guid int references tech(guid), asset_guid int, primary key(tech_guid,asset_guid));
 create table tech_effect(tech_guid int references tech(guid), effect_guid int);
 create table tech_resource(tech_guid int references tech(guid), product_guid int, amount real);

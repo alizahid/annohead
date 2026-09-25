@@ -383,15 +383,15 @@ test('products and techs', async () => {
     lang: 'en',
     search: 'Armoursmithing',
   })
-  expect(t.rows.some((r) => r.unlocksBuildings.length > 0)).toBe(true)
+  expect(t.some((r) => r.unlocks.some((u) => u.buildingGuid))).toBe(true)
   expect(
     (
       await anno.techs.get({
-        id: t.rows[0]?.guid ?? 0,
+        id: t[0]?.guid ?? 0,
         lang: 'en',
       })
     )?.guid,
-  ).toBe(t.rows[0]?.guid)
+  ).toBe(t[0]?.guid)
 })
 
 test('storylines and quests', async () => {

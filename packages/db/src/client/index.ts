@@ -52,6 +52,7 @@ export type Storylines = Awaited<ReturnType<typeof storylines.list>>
 export type Storyline = Awaited<ReturnType<typeof storylines.get>>
 export type Techs = Awaited<ReturnType<typeof techs.list>>
 export type Tech = Awaited<ReturnType<typeof techs.get>>
+export type TechCategories = Awaited<ReturnType<typeof techs.categories>>
 
 export const anno = {
   buildings,

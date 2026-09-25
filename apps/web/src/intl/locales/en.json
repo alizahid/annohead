@@ -160,6 +160,17 @@
         "results": "{total, plural, =0 {No results} =1 {1 result} other {# results}}",
         "title": "Search"
       }
+    },
+    "technologies": {
+      "popover": {
+        "discovery": "Discovery",
+        "effects": "Effects",
+        "inspiration": "Inspiration",
+        "knowledge": "Knowledge",
+        "requirement": "Requirement",
+        "rewards": "Rewards",
+        "unlocks": "Unlocks"
+      }
     }
   },
   "hook": {
@@ -197,6 +208,9 @@
     },
     "search": {
       "title": "Search × Annohead"
+    },
+    "technologies": {
+      "title": "Technologies × Annohead"
     }
   }
 }

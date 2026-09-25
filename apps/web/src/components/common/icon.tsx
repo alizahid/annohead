@@ -13,7 +13,11 @@ export function Icon({ className, icon, size = 64 }: Props) {
   return (
     <Image
       alt={icon}
-      className={cn('size-16', className)}
+      className={cn(
+        'size-16',
+        icon.includes('2d') && 'invert dark:invert-0',
+        className,
+      )}
       height={size}
       src={icon.startsWith('/img/') ? icon : getIconUrl(icon)}
       unoptimized={!icon.startsWith('/img/')}

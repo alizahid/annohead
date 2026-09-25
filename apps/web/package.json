@@ -21,6 +21,7 @@
     "cn": "^0.3.0",
     "convex": "^1.46.0",
     "date-fns": "^4.4.0",
+    "html-react-parser": "^6.1.8",
     "lodash": "^4.18.1",
     "next": "16.3.5",
     "next-intl": "^4.14.5",
@@ -30,6 +31,7 @@
     "react-dom": "19.3.0",
     "react-hook-form": "^7.88.0",
     "react-hotkeys-hook": "^5.3.3",
+    "react-zoom-pan-pinch": "^4.2.0",
     "zod": "^4.6.5"
   },
   "devDependencies": {

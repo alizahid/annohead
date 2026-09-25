@@ -451,6 +451,8 @@ export const buffModifier = sqliteTable(
     buffGuid: integer('buff_guid').references(() => buff.guid),
     isPercent: integer('is_percent'),
     path: text(),
+    /** the good a per-product modifier changes, e.g. the workforce added to a villa */
+    productGuid: integer('product_guid').references(() => product.guid),
     value: real(),
   },
   (table) => [index('idx_buff_modifier_buff').on(table.buffGuid)],
@@ -531,16 +533,34 @@ export const itemSource = sqliteTable(
   ],
 )
 
+export const techCategory = sqliteTable('tech_category', {
+  artwork: text(),
+  descriptionText: integer('description_text'),
+  gateGuid: integer('gate_guid'),
+  guid: integer().primaryKey(),
+  icon: text(),
+  nameText: integer('name_text'),
+  sort: integer(),
+  type: text(),
+  x: integer(),
+  y: integer(),
+})
+
 export const tech = sqliteTable('tech', {
+  categoryGuid: integer('category_guid').references(() => techCategory.guid),
   descriptionText: integer('description_text'),
   gridX: integer('grid_x'),
   gridY: integer('grid_y'),
   guid: integer().primaryKey(),
   icon: text(),
-  isGate: integer('is_gate'),
+  image: text(),
+  isGate: integer('is_gate', { mode: 'boolean' }),
   knowledgeNeeded: real('knowledge_needed'),
   name: text(),
   nameText: integer('name_text'),
+  showConnectionToCategory: integer('show_connection_to_category', {
+    mode: 'boolean',
+  }),
 })
 
 export const techUnlock = sqliteTable(
@@ -554,6 +574,25 @@ export const techUnlock = sqliteTable(
     primaryKey({
       columns: [table.techGuid, table.assetGuid],
       name: 'tech_unlock_tech_guid_asset_guid_pk',
+    }),
+  ],
+)
+
+export const techUnlockReward = sqliteTable(
+  'tech_unlock_reward',
+  {
+    assetGuid: integer('asset_guid'),
+    buildingGuid: integer('building_guid').references(() => building.guid),
+    descriptionText: integer('description_text'),
+    icon: text(),
+    idx: integer(),
+    nameText: integer('name_text'),
+    techGuid: integer('tech_guid').references(() => tech.guid),
+  },
+  (table) => [
+    primaryKey({
+      columns: [table.techGuid, table.idx],
+      name: 'tech_unlock_reward_tech_guid_idx_pk',
     }),
   ],
 )

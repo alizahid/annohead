@@ -85,5 +85,6 @@ export const modifierColumns = {
       Boolean,
     ),
   path: buffModifier.path,
+  productGuid: buffModifier.productGuid,
   value: buffModifier.value,
 }
