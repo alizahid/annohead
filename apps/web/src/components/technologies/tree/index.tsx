@@ -51,7 +51,7 @@ export function TechTree({ categories, techs }: Props) {
         )
       }}
     >
-      <div className="relative h-screen select-none overflow-hidden rounded-2xl bg-gray-2 lg:h-[calc(100vh-(--spacing(6))-(--spacing(10))-(--spacing(4))-(--spacing(10))-(--spacing(12))-(--spacing(12))-(--spacing(4))-(--spacing(6)))]">
+      <div className="relative h-[calc(100vh-(--spacing(8)))] select-none overflow-hidden rounded-2xl bg-gray-2">
         <TransformComponent
           wrapperStyle={{
             height: '100%',
