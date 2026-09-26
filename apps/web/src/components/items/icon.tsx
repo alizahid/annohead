@@ -10,6 +10,12 @@ type Props = {
 }
 
 export function ItemIcon({ className, icon, rarity }: Props) {
+  if (
+    !(icon?.includes('items_specialist') || icon?.includes('item_specialist'))
+  ) {
+    return icon ? <Icon className={className} icon={icon} /> : null
+  }
+
   const backgroundColor = rarity
     ? rarity === 'Common'
       ? undefined
