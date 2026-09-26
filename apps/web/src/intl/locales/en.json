@@ -126,7 +126,7 @@
         "dlcs": "DLC",
         "niches": "Niche",
         "rarities": "Rarity",
-        "types": "Allocation"
+        "types": "Type"
       },
       "list": {
         "empty": "Nothing found",
@@ -144,9 +144,9 @@
           "targets": "Targets"
         },
         "other": {
-          "allocation": "Allocation",
           "title": "Other",
-          "tradePrice": "Trade price"
+          "tradePrice": "Trade price",
+          "type": "Type"
         }
       }
     },

@@ -59,6 +59,35 @@ export function ChainFiltersCard({ dlcs, types, regions }: Props) {
       </div>
 
       <div className="flex flex-col gap-4">
+        <h3>{t('dlcs')}</h3>
+
+        <CheckboxGroup
+          className="flex flex-col gap-2"
+          onValueChange={async (next) => {
+            await setFilters({
+              dlcs: next.map(Number),
+              page: null,
+            })
+
+            router.refresh()
+          }}
+          value={filters.dlcs ? filters.dlcs.map(String) : []}
+        >
+          {dlcs.map((item) => (
+            <Checkbox.Root
+              className="flex h-8 items-center gap-2 rounded-md px-1 outline-none ring-accent-8 transition-colors hover:bg-accent-4 focus-visible:ring-2 data-checked:bg-accent-5"
+              key={item.guid}
+              value={String(item.guid)}
+            >
+              {item.icon ? <Icon className="size-6" icon={item.icon} /> : null}
+
+              <span className="font-bold text-sm">{item.name}</span>
+            </Checkbox.Root>
+          ))}
+        </CheckboxGroup>
+      </div>
+
+      <div className="flex flex-col gap-4">
         <h3>{t('types')}</h3>
 
         <CheckboxGroup
@@ -87,35 +116,6 @@ export function ChainFiltersCard({ dlcs, types, regions }: Props) {
                   keepMounted
                 />
               )}
-
-              <span className="font-bold text-sm">{item.name}</span>
-            </Checkbox.Root>
-          ))}
-        </CheckboxGroup>
-      </div>
-
-      <div className="flex flex-col gap-4">
-        <h3>{t('dlcs')}</h3>
-
-        <CheckboxGroup
-          className="flex flex-col gap-2"
-          onValueChange={async (next) => {
-            await setFilters({
-              dlcs: next.map(Number),
-              page: null,
-            })
-
-            router.refresh()
-          }}
-          value={filters.dlcs ? filters.dlcs.map(String) : []}
-        >
-          {dlcs.map((item) => (
-            <Checkbox.Root
-              className="flex h-8 items-center gap-2 rounded-md px-1 outline-none ring-accent-8 transition-colors hover:bg-accent-4 focus-visible:ring-2 data-checked:bg-accent-5"
-              key={item.guid}
-              value={String(item.guid)}
-            >
-              {item.icon ? <Icon className="size-6" icon={item.icon} /> : null}
 
               <span className="font-bold text-sm">{item.name}</span>
             </Checkbox.Root>

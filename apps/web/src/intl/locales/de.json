@@ -126,7 +126,7 @@
         "dlcs": "DLC",
         "niches": "Nische",
         "rarities": "Seltenheit",
-        "types": "Zuordnung"
+        "types": "Typ"
       },
       "list": {
         "empty": "Nichts gefunden",
@@ -144,9 +144,9 @@
           "targets": "Ziele"
         },
         "other": {
-          "allocation": "Zuordnung",
           "title": "Sonstiges",
-          "tradePrice": "Handelspreis"
+          "tradePrice": "Handelspreis",
+          "type": "Typ"
         }
       }
     },

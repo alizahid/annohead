@@ -179,10 +179,7 @@ export function ItemPage({ item }: Props) {
         <div className="flex flex-col gap-6 empty:hidden">
           <DataList.Root title={t('other.title')}>
             {item.type ? (
-              <DataList.Item
-                name={t('other.allocation')}
-                value={item.type.name}
-              />
+              <DataList.Item name={t('other.type')} value={item.type.name} />
             ) : null}
 
             {item.tradePrice ? (
