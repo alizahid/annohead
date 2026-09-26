@@ -1,10 +1,11 @@
 import { type Building } from '@anno/db/client'
 
 import { NavLink } from '@/intl/nav'
-import { getIcon } from '@/lib/icons'
 import { getUrl } from '@/lib/url'
 
 import { Icon } from '../common/icon'
+import { DlcCard } from '../shared/dlc'
+import { RegionCard } from '../shared/region'
 
 type Props = {
   building: Building
@@ -27,20 +28,10 @@ export function BuildingCard({ building }: Props) {
       </div>
 
       {building.region?.key || building.dlc?.key ? (
-        <div className="pointer-events-none absolute top-4 right-4 flex gap-2">
-          {building.region?.key ? (
-            <Icon
-              className="size-6"
-              icon={getIcon(`region.${building.region.key}`)}
-            />
-          ) : null}
+        <div className="absolute top-4 right-4 flex gap-2">
+          <RegionCard region={building.region?.key} />
 
-          {building.dlc?.key ? (
-            <Icon
-              className="size-6"
-              icon={getIcon(`dlc.${building.dlc.key}`)}
-            />
-          ) : null}
+          <DlcCard dlc={building.dlc?.key} />
         </div>
       ) : null}
     </NavLink>

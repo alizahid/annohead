@@ -1,10 +1,16 @@
 {
   "annohead": "Annohead",
   "common": {
-    "Celtic": "阿爾比恩",
-    "Egyptian": "三角洲",
-    "Roman": "拉丁姆",
-    "needsFuel": "需要煤炭"
+    "dlc": {
+      "DLC01_Prophecies_of_Ash": "灰燼預言",
+      "DLC02_The_Hippodrome": "賽馬場"
+    },
+    "needsFuel": "需要煤炭",
+    "region": {
+      "Celtic": "阿爾比恩",
+      "Egyptian": "三角洲",
+      "Roman": "拉丁姆"
+    }
   },
   "component": {
     "auth": {

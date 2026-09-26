@@ -1,10 +1,10 @@
 import { type Unit } from '@anno/db/client'
 
 import { NavLink } from '@/intl/nav'
-import { getIcon } from '@/lib/icons'
 import { getUrl } from '@/lib/url'
 
 import { Icon } from '../common/icon'
+import { RegionCard } from '../shared/region'
 
 type Props = {
   unit: Unit
@@ -27,11 +27,8 @@ export function UnitCard({ unit }: Props) {
       </div>
 
       {unit.region?.key ? (
-        <div className="pointer-events-none absolute top-4 right-4 flex gap-2">
-          <Icon
-            className="size-6"
-            icon={getIcon(`region.${unit.region.key}`)}
-          />
+        <div className="absolute top-4 right-4 flex gap-2">
+          <RegionCard region={unit.region.key} />
         </div>
       ) : null}
     </NavLink>

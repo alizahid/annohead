@@ -9,6 +9,7 @@ import { getUrl } from '@/lib/url'
 
 import { Icon } from '../../common/icon'
 import { Tooltip } from '../../common/tooltip'
+import { RegionCard } from '../../shared/region'
 
 type Props = {
   chain: Chain
@@ -52,19 +53,12 @@ export function ChainNode({ chain, node }: Props) {
           </Tooltip>
         ) : null}
 
-        {node.region?.key ? (
-          <Tooltip
-            content={t(node.region.key)}
-            render={
-              <div className="absolute -top-1 -left-1 flex size-8 items-center justify-center rounded-full bg-white dark:bg-black" />
-            }
-          >
-            <Icon
-              className="size-6"
-              icon={getIcon(`region.${node.region.key}`)}
-            />
-          </Tooltip>
-        ) : null}
+        <RegionCard
+          region={node.region?.key}
+          render={
+            <div className="absolute -top-1 -left-1 flex size-8 items-center justify-center rounded-full bg-white dark:bg-black" />
+          }
+        />
       </Tooltip>
     </div>
   )

@@ -6,6 +6,7 @@ import { getUrl } from '@/lib/url'
 
 import { Icon } from '../common/icon'
 import { ItemIcon } from '../items/icon'
+import { RegionCard } from '../shared/region'
 
 type Props = {
   item: SearchHit
@@ -42,11 +43,7 @@ export function SearchCard({ item }: Props) {
           item.type === 'unit' ? (
             <div className="flex gap-2">
               {item.regions.map((region) => (
-                <Icon
-                  className="size-6"
-                  icon={getIcon(`region.${region}`)}
-                  key={region}
-                />
+                <RegionCard key={region} region={region} />
               ))}
             </div>
           ) : null}

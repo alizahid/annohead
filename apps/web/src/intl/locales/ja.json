@@ -1,10 +1,16 @@
 {
   "annohead": "Annohead",
   "common": {
-    "Celtic": "アルビオン",
-    "Egyptian": "デルタ",
-    "Roman": "ラティウム",
-    "needsFuel": "石炭が必要"
+    "dlc": {
+      "DLC01_Prophecies_of_Ash": "灰の予言",
+      "DLC02_The_Hippodrome": "競馬場"
+    },
+    "needsFuel": "石炭が必要",
+    "region": {
+      "Celtic": "アルビオン",
+      "Egyptian": "デルタ",
+      "Roman": "ラティウム"
+    }
   },
   "component": {
     "auth": {

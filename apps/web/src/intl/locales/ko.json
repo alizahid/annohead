@@ -1,10 +1,16 @@
 {
   "annohead": "Annohead",
   "common": {
-    "Celtic": "알비온",
-    "Egyptian": "델타",
-    "Roman": "라티움",
-    "needsFuel": "석탄 필요"
+    "dlc": {
+      "DLC01_Prophecies_of_Ash": "재의 예언",
+      "DLC02_The_Hippodrome": "히포드롬"
+    },
+    "needsFuel": "석탄 필요",
+    "region": {
+      "Celtic": "알비온",
+      "Egyptian": "델타",
+      "Roman": "라티움"
+    }
   },
   "component": {
     "auth": {

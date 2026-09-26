@@ -9,6 +9,8 @@ import { CommentList } from '../comments/list'
 import { Html } from '../common/html'
 import { Icon } from '../common/icon'
 import { DataList } from '../data-list'
+import { DlcCard } from '../shared/dlc'
+import { RegionCard } from '../shared/region'
 
 type Props = {
   building: Building
@@ -24,19 +26,9 @@ export function BuildingPage({ building }: Props) {
         <div className="flex flex-1 flex-col gap-4">
           {building.region?.key || building.dlc?.key ? (
             <div className="flex gap-4">
-              {building.region?.key ? (
-                <Icon
-                  className="size-6"
-                  icon={getIcon(`region.${building.region.key}`)}
-                />
-              ) : null}
+              <RegionCard region={building.region?.key} />
 
-              {building.dlc?.key ? (
-                <Icon
-                  className="size-6"
-                  icon={getIcon(`dlc.${building.dlc.key}`)}
-                />
-              ) : null}
+              <DlcCard dlc={building.dlc?.key} />
             </div>
           ) : null}
 

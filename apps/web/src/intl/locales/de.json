@@ -1,10 +1,16 @@
 {
   "annohead": "Annohead",
   "common": {
-    "Celtic": "Albion",
-    "Egyptian": "Delta",
-    "Roman": "Latium",
-    "needsFuel": "Benötigt Kohle"
+    "dlc": {
+      "DLC01_Prophecies_of_Ash": "Verheißung des Vulkans",
+      "DLC02_The_Hippodrome": "Das Hippodrom"
+    },
+    "needsFuel": "Benötigt Kohle",
+    "region": {
+      "Celtic": "Albion",
+      "Egyptian": "Delta",
+      "Roman": "Latium"
+    }
   },
   "component": {
     "auth": {

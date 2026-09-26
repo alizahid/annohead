@@ -1,10 +1,11 @@
 import { type Chain } from '@anno/db/client'
 
 import { NavLink } from '@/intl/nav'
-import { getIcon } from '@/lib/icons'
 import { getUrl } from '@/lib/url'
 
 import { Icon } from '../common/icon'
+import { DlcCard } from '../shared/dlc'
+import { RegionCard } from '../shared/region'
 
 type Props = {
   chain: Chain
@@ -21,17 +22,10 @@ export function ChainCard({ chain }: Props) {
       <div className="font-bold">{chain.name}</div>
 
       {chain.region?.key || chain.dlc?.key ? (
-        <div className="pointer-events-none absolute top-4 right-4 flex gap-2">
-          {chain.region?.key ? (
-            <Icon
-              className="size-6"
-              icon={getIcon(`region.${chain.region.key}`)}
-            />
-          ) : null}
+        <div className="absolute top-4 right-4 flex gap-2">
+          <RegionCard region={chain.region?.key} />
 
-          {chain.dlc?.key ? (
-            <Icon className="size-6" icon={getIcon(`dlc.${chain.dlc.key}`)} />
-          ) : null}
+          <DlcCard dlc={chain.dlc?.key} />
         </div>
       ) : null}
     </NavLink>

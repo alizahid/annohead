@@ -8,6 +8,8 @@ import { getUrl } from '@/lib/url'
 import { CommentList } from '../comments/list'
 import { Icon } from '../common/icon'
 import { DataList } from '../data-list'
+import { DlcCard } from '../shared/dlc'
+import { RegionCard } from '../shared/region'
 
 type Props = {
   tech: Tech
@@ -23,19 +25,9 @@ export function TechnologyPage({ tech }: Props) {
         <div className="flex flex-1 flex-col gap-4">
           {tech.region?.key || tech.dlc?.key ? (
             <div className="flex gap-4">
-              {tech.region?.key ? (
-                <Icon
-                  className="size-6"
-                  icon={getIcon(`region.${tech.region.key}`)}
-                />
-              ) : null}
+              <RegionCard region={tech.region?.key} />
 
-              {tech.dlc?.key ? (
-                <Icon
-                  className="size-6"
-                  icon={getIcon(`dlc.${tech.dlc.key}`)}
-                />
-              ) : null}
+              <DlcCard dlc={tech.dlc?.key} />
             </div>
           ) : null}
 
@@ -108,12 +100,10 @@ export function TechnologyPage({ tech }: Props) {
                         key={target.buildingGuid}
                         name={target.name}
                         value={
-                          target.region?.key ? (
-                            <Icon
-                              className="size-5"
-                              icon={getIcon(`region.${target.region.key}`)}
-                            />
-                          ) : null
+                          <RegionCard
+                            className="size-5"
+                            region={target.region?.key}
+                          />
                         }
                       />
                     ) : (
@@ -122,12 +112,10 @@ export function TechnologyPage({ tech }: Props) {
                         key={target.guid}
                         name={target.name}
                         value={
-                          target.region?.key ? (
-                            <Icon
-                              className="size-5"
-                              icon={getIcon(`region.${target.region.key}`)}
-                            />
-                          ) : null
+                          <RegionCard
+                            className="size-5"
+                            region={target.region?.key}
+                          />
                         }
                       />
                     ),

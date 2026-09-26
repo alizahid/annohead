@@ -1,9 +1,9 @@
 import { type Chain } from '@anno/db/client'
 
-import { getIcon } from '@/lib/icons'
-
 import { CommentList } from '../comments/list'
 import { Icon } from '../common/icon'
+import { DlcCard } from '../shared/dlc'
+import { RegionCard } from '../shared/region'
 import { Calculator } from './calculator'
 import { ProductionChain } from './production'
 
@@ -18,19 +18,9 @@ export function ChainPage({ chain }: Props) {
         <div className="flex flex-1 flex-col gap-4">
           {chain.region?.key || chain.dlc?.key ? (
             <div className="flex gap-4">
-              {chain.region?.key ? (
-                <Icon
-                  className="size-6"
-                  icon={getIcon(`region.${chain.region.key}`)}
-                />
-              ) : null}
+              <RegionCard region={chain.region?.key} />
 
-              {chain.dlc?.key ? (
-                <Icon
-                  className="size-6"
-                  icon={getIcon(`dlc.${chain.dlc.key}`)}
-                />
-              ) : null}
+              <DlcCard dlc={chain.dlc?.key} />
             </div>
           ) : null}
 

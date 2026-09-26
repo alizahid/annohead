@@ -1,12 +1,13 @@
 import { type Product } from '@anno/db/client'
 import { useTranslations } from 'next-intl'
 
-import { getIcon } from '@/lib/icons'
 import { getUrl } from '@/lib/url'
 
 import { CommentList } from '../comments/list'
 import { Icon } from '../common/icon'
 import { DataList } from '../data-list'
+import { DlcCard } from '../shared/dlc'
+import { RegionCard } from '../shared/region'
 
 type Props = {
   product: Product
@@ -21,22 +22,11 @@ export function ProductPage({ product }: Props) {
         <div className="flex flex-1 flex-col gap-4">
           {product.regions.length || product.dlc?.key ? (
             <div className="flex gap-4">
-              {product.regions.map((region) =>
-                region.key ? (
-                  <Icon
-                    className="size-6"
-                    icon={getIcon(`region.${region.key}`)}
-                    key={region.key}
-                  />
-                ) : null,
-              )}
+              {product.regions.map((region) => (
+                <RegionCard key={region.id} region={region.key} />
+              ))}
 
-              {product.dlc?.key ? (
-                <Icon
-                  className="size-6"
-                  icon={getIcon(`dlc.${product.dlc.key}`)}
-                />
-              ) : null}
+              <DlcCard dlc={product.dlc?.key} />
             </div>
           ) : null}
 
@@ -65,12 +55,7 @@ export function ProductPage({ product }: Props) {
                   key={item.guid}
                   name={item.name}
                   value={
-                    item.region?.key ? (
-                      <Icon
-                        className="size-5"
-                        icon={getIcon(`region.${item.region.key}`)}
-                      />
-                    ) : null
+                    <RegionCard className="size-5" region={item.region?.key} />
                   }
                 />
               ))}
@@ -86,12 +71,7 @@ export function ProductPage({ product }: Props) {
                   key={item.guid}
                   name={item.name}
                   value={
-                    item.region?.key ? (
-                      <Icon
-                        className="size-5"
-                        icon={getIcon(`region.${item.region.key}`)}
-                      />
-                    ) : null
+                    <RegionCard className="size-5" region={item.region?.key} />
                   }
                 />
               ))}

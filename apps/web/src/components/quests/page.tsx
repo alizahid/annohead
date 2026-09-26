@@ -1,9 +1,9 @@
 import { type Quest } from '@anno/db/client'
 
-import { getIcon } from '@/lib/icons'
-
 import { CommentList } from '../comments/list'
 import { Icon } from '../common/icon'
+import { DlcCard } from '../shared/dlc'
+import { RegionCard } from '../shared/region'
 import { QuestFlow } from './tree'
 
 type Props = {
@@ -17,19 +17,9 @@ export function QuestPage({ quest }: Props) {
         <div className="flex flex-1 flex-col gap-4">
           {quest.region?.key || quest.dlc?.key ? (
             <div className="flex gap-4">
-              {quest.region?.key ? (
-                <Icon
-                  className="size-6"
-                  icon={getIcon(`region.${quest.region.key}`)}
-                />
-              ) : null}
+              <RegionCard region={quest.region?.key} />
 
-              {quest.dlc?.key ? (
-                <Icon
-                  className="size-6"
-                  icon={getIcon(`dlc.${quest.dlc.key}`)}
-                />
-              ) : null}
+              <DlcCard dlc={quest.dlc?.key} />
             </div>
           ) : null}
 

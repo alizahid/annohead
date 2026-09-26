@@ -1,10 +1,11 @@
 import { type Product } from '@anno/db/client'
 
 import { NavLink } from '@/intl/nav'
-import { getIcon } from '@/lib/icons'
 import { getUrl } from '@/lib/url'
 
 import { Icon } from '../common/icon'
+import { DlcCard } from '../shared/dlc'
+import { RegionCard } from '../shared/region'
 
 type Props = {
   product: Product
@@ -27,20 +28,12 @@ export function ProductCard({ product }: Props) {
       </div>
 
       {product.regions.length || product.dlc?.key ? (
-        <div className="pointer-events-none absolute top-4 right-4 flex gap-2">
-          {product.regions.map((region) =>
-            region.key ? (
-              <Icon
-                className="size-6"
-                icon={getIcon(`region.${region.key}`)}
-                key={region.key}
-              />
-            ) : null,
-          )}
+        <div className="absolute top-4 right-4 flex gap-2">
+          {product.regions.map((region) => (
+            <RegionCard key={region.id} region={region.key} />
+          ))}
 
-          {product.dlc?.key ? (
-            <Icon className="size-6" icon={getIcon(`dlc.${product.dlc.key}`)} />
-          ) : null}
+          <DlcCard dlc={product.dlc?.key} />
         </div>
       ) : null}
     </NavLink>

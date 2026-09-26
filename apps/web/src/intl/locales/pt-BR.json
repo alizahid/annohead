@@ -1,10 +1,16 @@
 {
   "annohead": "Annohead",
   "common": {
-    "Celtic": "Albion",
-    "Egyptian": "Delta",
-    "Roman": "Latium",
-    "needsFuel": "Precisa de carvão"
+    "dlc": {
+      "DLC01_Prophecies_of_Ash": "Profecias das Cinzas",
+      "DLC02_The_Hippodrome": "O Hipódromo"
+    },
+    "needsFuel": "Precisa de carvão",
+    "region": {
+      "Celtic": "Albion",
+      "Egyptian": "Delta",
+      "Roman": "Latium"
+    }
   },
   "component": {
     "auth": {

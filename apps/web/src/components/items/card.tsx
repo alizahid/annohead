@@ -1,10 +1,10 @@
 import { type Item } from '@anno/db/client'
 
 import { NavLink } from '@/intl/nav'
-import { getIcon } from '@/lib/icons'
 import { getUrl } from '@/lib/url'
 
-import { Icon } from '../common/icon'
+import { DlcCard } from '../shared/dlc'
+import { ItemTypeCard } from '../shared/item-type'
 import { ItemIcon } from './icon'
 
 type Props = {
@@ -28,14 +28,10 @@ export function ItemCard({ item }: Props) {
       </div>
 
       {(item.type && item.type.key !== 'None') || item.dlc?.key ? (
-        <div className="pointer-events-none absolute top-4 right-4 flex gap-2">
-          {item.type && item.type.key !== 'None' ? (
-            <Icon className="size-6" icon={getIcon(`type.${item.type.key}`)} />
-          ) : null}
+        <div className="absolute top-4 right-4 flex gap-2">
+          <ItemTypeCard type={item.type} />
 
-          {item.dlc?.key ? (
-            <Icon className="size-6" icon={getIcon(`dlc.${item.dlc.key}`)} />
-          ) : null}
+          <DlcCard dlc={item.dlc?.key} />
         </div>
       ) : null}
     </NavLink>

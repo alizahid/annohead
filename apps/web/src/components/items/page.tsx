@@ -6,8 +6,9 @@ import { getUrl } from '@/lib/url'
 
 import { CommentList } from '../comments/list'
 import { Html } from '../common/html'
-import { Icon } from '../common/icon'
 import { DataList } from '../data-list'
+import { DlcCard } from '../shared/dlc'
+import { ItemTypeCard } from '../shared/item-type'
 import { ItemIcon } from './icon'
 
 type Props = {
@@ -24,19 +25,9 @@ export function ItemPage({ item }: Props) {
         <div className="flex flex-1 flex-col gap-4">
           {(item.type && item.type.key !== 'None') || item.dlc?.key ? (
             <div className="flex gap-4">
-              {item.type && item.type.key !== 'None' ? (
-                <Icon
-                  className="size-6"
-                  icon={getIcon(`type.${item.type.key}`)}
-                />
-              ) : null}
+              <ItemTypeCard type={item.type} />
 
-              {item.dlc?.key ? (
-                <Icon
-                  className="size-6"
-                  icon={getIcon(`dlc.${item.dlc.key}`)}
-                />
-              ) : null}
+              <DlcCard dlc={item.dlc?.key} />
             </div>
           ) : null}
 

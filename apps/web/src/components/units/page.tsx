@@ -1,13 +1,13 @@
 import { type Unit } from '@anno/db/client'
 import { useFormatter, useTranslations } from 'next-intl'
 
-import { getIcon } from '@/lib/icons'
 import { getUrl } from '@/lib/url'
 
 import { CommentList } from '../comments/list'
 import { Html } from '../common/html'
 import { Icon } from '../common/icon'
 import { DataList } from '../data-list'
+import { RegionCard } from '../shared/region'
 
 type Props = {
   unit: Unit
@@ -33,10 +33,7 @@ export function UnitPage({ unit }: Props) {
         <div className="flex flex-1 flex-col gap-4">
           {unit.region?.key ? (
             <div className="flex gap-4">
-              <Icon
-                className="size-6"
-                icon={getIcon(`region.${unit.region.key}`)}
-              />
+              <RegionCard region={unit.region.key} />
             </div>
           ) : null}
 
@@ -96,12 +93,7 @@ export function UnitPage({ unit }: Props) {
                   key={item.guid}
                   name={item.name}
                   value={
-                    item.region?.key ? (
-                      <Icon
-                        className="size-5"
-                        icon={getIcon(`region.${item.region.key}`)}
-                      />
-                    ) : null
+                    <RegionCard className="size-5" region={item.region?.key} />
                   }
                 />
               ))}

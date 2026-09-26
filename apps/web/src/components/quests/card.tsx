@@ -5,6 +5,8 @@ import { getIcon } from '@/lib/icons'
 import { getUrl } from '@/lib/url'
 
 import { Icon } from '../common/icon'
+import { DlcCard } from '../shared/dlc'
+import { RegionCard } from '../shared/region'
 
 type Props = {
   quest: Quests['rows'][number]
@@ -28,17 +30,10 @@ export function QuestCard({ quest }: Props) {
       <div className="font-bold">{quest.name}</div>
 
       {quest.region?.key || quest.dlc?.key ? (
-        <div className="pointer-events-none absolute top-4 right-4 flex gap-2">
-          {quest.region?.key ? (
-            <Icon
-              className="size-6"
-              icon={getIcon(`region.${quest.region.key}`)}
-            />
-          ) : null}
+        <div className="absolute top-4 right-4 flex gap-2">
+          <RegionCard region={quest.region?.key} />
 
-          {quest.dlc?.key ? (
-            <Icon className="size-6" icon={getIcon(`dlc.${quest.dlc.key}`)} />
-          ) : null}
+          <DlcCard dlc={quest.dlc?.key} />
         </div>
       ) : null}
     </NavLink>

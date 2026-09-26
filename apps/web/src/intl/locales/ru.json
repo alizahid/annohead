@@ -1,10 +1,16 @@
 {
   "annohead": "Annohead",
   "common": {
-    "Celtic": "Альбион",
-    "Egyptian": "Дельта",
-    "Roman": "Лаций",
-    "needsFuel": "Нужен уголь"
+    "dlc": {
+      "DLC01_Prophecies_of_Ash": "Пророчества пепла",
+      "DLC02_The_Hippodrome": "Ипподром"
+    },
+    "needsFuel": "Нужен уголь",
+    "region": {
+      "Celtic": "Альбион",
+      "Egyptian": "Дельта",
+      "Roman": "Лаций"
+    }
   },
   "component": {
     "auth": {

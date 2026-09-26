@@ -1,10 +1,16 @@
 {
   "annohead": "Annohead",
   "common": {
-    "Celtic": "Albion",
-    "Egyptian": "Delta",
-    "Roman": "Latium",
-    "needsFuel": "Needs coal"
+    "dlc": {
+      "DLC01_Prophecies_of_Ash": "Prophecies of Ash",
+      "DLC02_The_Hippodrome": "The Hippodrome"
+    },
+    "needsFuel": "Needs coal",
+    "region": {
+      "Celtic": "Albion",
+      "Egyptian": "Delta",
+      "Roman": "Latium"
+    }
   },
   "component": {
     "auth": {
@@ -289,7 +295,6 @@
         "costs": "Costs",
         "maintenance": "Maintenance",
         "recruited": "Recruited at",
-        "unlocked": "Unlocked by",
         "stats": {
           "buildTime": "Build time",
           "cargoSlots": "Cargo slots",
@@ -300,7 +305,8 @@
           "soldiers": "Soldiers",
           "speed": "Speed",
           "title": "Other"
-        }
+        },
+        "unlocked": "Unlocked by"
       }
     }
   },

@@ -1,10 +1,16 @@
 {
   "annohead": "Annohead",
   "common": {
-    "Celtic": "Albion",
-    "Egyptian": "Delta",
-    "Roman": "Latium",
-    "needsFuel": "Richiede carbone"
+    "dlc": {
+      "DLC01_Prophecies_of_Ash": "Profezie cineree",
+      "DLC02_The_Hippodrome": "L'Ippodromo"
+    },
+    "needsFuel": "Richiede carbone",
+    "region": {
+      "Celtic": "Albion",
+      "Egyptian": "Delta",
+      "Roman": "Latium"
+    }
   },
   "component": {
     "auth": {
