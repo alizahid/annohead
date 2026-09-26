@@ -242,6 +242,17 @@
       "box": {
         "placeholder": "搜索"
       },
+      "card": {
+        "type": {
+          "building": "建筑",
+          "chain": "生产链",
+          "item": "物品",
+          "product": "货物",
+          "quest": "任务",
+          "tech": "科技",
+          "unit": "单位"
+        }
+      },
       "filters": {
         "all": "全部",
         "building": "建筑",

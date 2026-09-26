@@ -242,6 +242,17 @@
       "box": {
         "placeholder": "Rechercher"
       },
+      "card": {
+        "type": {
+          "building": "Bâtiment",
+          "chain": "Chaîne de production",
+          "item": "Objet",
+          "product": "Marchandise",
+          "quest": "Quête",
+          "tech": "Technologie",
+          "unit": "Unité"
+        }
+      },
       "filters": {
         "all": "Tout",
         "building": "Bâtiments",

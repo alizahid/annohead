@@ -242,6 +242,17 @@
       "box": {
         "placeholder": "Buscar"
       },
+      "card": {
+        "type": {
+          "building": "Construção",
+          "chain": "Cadeia de produção",
+          "item": "Item",
+          "product": "Produto",
+          "quest": "Missão",
+          "tech": "Tecnologia",
+          "unit": "Unidade"
+        }
+      },
       "filters": {
         "all": "Tudo",
         "building": "Construções",

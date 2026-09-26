@@ -242,6 +242,17 @@
       "box": {
         "placeholder": "Szukaj"
       },
+      "card": {
+        "type": {
+          "building": "Budynek",
+          "chain": "Łańcuch produkcyjny",
+          "item": "Przedmiot",
+          "product": "Towar",
+          "quest": "Zadanie",
+          "tech": "Technologia",
+          "unit": "Jednostka"
+        }
+      },
       "filters": {
         "all": "Wszystko",
         "building": "Budynki",

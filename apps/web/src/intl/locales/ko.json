@@ -242,6 +242,17 @@
       "box": {
         "placeholder": "검색"
       },
+      "card": {
+        "type": {
+          "building": "건물",
+          "chain": "생산 체인",
+          "item": "아이템",
+          "product": "물품",
+          "quest": "퀘스트",
+          "tech": "기술",
+          "unit": "유닛"
+        }
+      },
       "filters": {
         "all": "전체",
         "building": "건물",

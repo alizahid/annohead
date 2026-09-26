@@ -242,6 +242,17 @@
       "box": {
         "placeholder": "Search"
       },
+      "card": {
+        "type": {
+          "building": "Building",
+          "chain": "Production chain",
+          "item": "Item",
+          "product": "Product",
+          "quest": "Quest",
+          "tech": "Technology",
+          "unit": "Unit"
+        }
+      },
       "filters": {
         "all": "All",
         "building": "Buildings",

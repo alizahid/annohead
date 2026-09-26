@@ -242,6 +242,17 @@
       "box": {
         "placeholder": "Suchen"
       },
+      "card": {
+        "type": {
+          "building": "Gebäude",
+          "chain": "Produktionskette",
+          "item": "Gegenstand",
+          "product": "Ware",
+          "quest": "Quest",
+          "tech": "Technologie",
+          "unit": "Einheit"
+        }
+      },
       "filters": {
         "all": "Alle",
         "building": "Gebäude",

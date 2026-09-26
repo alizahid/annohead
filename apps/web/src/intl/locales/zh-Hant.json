@@ -242,6 +242,17 @@
       "box": {
         "placeholder": "搜尋"
       },
+      "card": {
+        "type": {
+          "building": "建築",
+          "chain": "生產鏈",
+          "item": "物品",
+          "product": "貨物",
+          "quest": "任務",
+          "tech": "科技",
+          "unit": "單位"
+        }
+      },
       "filters": {
         "all": "全部",
         "building": "建築",

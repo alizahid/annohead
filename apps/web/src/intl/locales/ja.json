@@ -242,6 +242,17 @@
       "box": {
         "placeholder": "検索"
       },
+      "card": {
+        "type": {
+          "building": "建物",
+          "chain": "生産チェーン",
+          "item": "アイテム",
+          "product": "品物",
+          "quest": "クエスト",
+          "tech": "技術",
+          "unit": "ユニット"
+        }
+      },
       "filters": {
         "all": "すべて",
         "building": "建物",
