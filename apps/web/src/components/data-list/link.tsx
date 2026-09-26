@@ -1,38 +1,26 @@
-import { type SearchType } from '@anno/db/search'
 import { useFormatter } from 'next-intl'
 import { type ReactNode } from 'react'
 
 import { NavLink } from '@/intl/nav'
-import { getUrl } from '@/lib/url'
 
 import { Icon } from '../common/icon'
 
 type Props = {
   description?: string | null
+  /** see `getUrl` */
+  href: string
   icon?: string | null
-  id: number
   name: string | null
-  /** English URL slug of the linked page */
-  slug: string | null
-  type: SearchType
   value?: ReactNode | string | number | null
 }
 
-export function Link({
-  description,
-  icon,
-  id,
-  name,
-  slug,
-  type,
-  value,
-}: Props) {
+export function Link({ description, href, icon, name, value }: Props) {
   const f = useFormatter()
 
   return (
     <NavLink
       className="-mx-4 flex items-center justify-between gap-4 rounded-sm px-4 py-1 outline-none ring-accent-8 transition-colors hover:bg-accent-4 focus-visible:ring-2"
-      href={getUrl(type, id, slug)}
+      href={href}
     >
       <div className="flex flex-1 items-center gap-2">
         {icon ? <Icon className="size-6" icon={icon} /> : null}

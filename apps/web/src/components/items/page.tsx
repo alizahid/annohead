@@ -2,6 +2,7 @@ import { type Item } from '@anno/db/client'
 import { useFormatter, useTranslations } from 'next-intl'
 
 import { getIcon } from '@/lib/icons'
+import { getUrl } from '@/lib/url'
 
 import { CommentList } from '../comments/list'
 import { Html } from '../common/html'
@@ -63,12 +64,10 @@ export function ItemPage({ item }: Props) {
             <DataList.Root title={t('details.targets')}>
               {item.targets.map((target) => (
                 <DataList.Link
+                  href={getUrl('building', target.guid, target.slug)}
                   icon={target.icon}
-                  id={target.guid}
                   key={target.guid}
                   name={target.name}
-                  slug={target.slug}
-                  type="building"
                 />
               ))}
             </DataList.Root>
@@ -79,12 +78,14 @@ export function ItemPage({ item }: Props) {
               {item.sources.map((source) =>
                 source.kind === 'tech' || source.questline ? (
                   <DataList.Link
+                    href={getUrl(
+                      source.questline ? 'quest' : 'tech',
+                      source.questline ?? source.guid,
+                      source.slug,
+                    )}
                     icon={source.icon}
-                    id={source.questline ?? source.guid}
                     key={`${source.guid}:${source.kind}`}
                     name={source.name}
-                    slug={source.slug}
-                    type={source.questline ? 'quest' : 'tech'}
                   />
                 ) : (
                   <DataList.Item

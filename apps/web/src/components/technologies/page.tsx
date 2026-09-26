@@ -3,6 +3,7 @@ import { useFormatter, useTranslations } from 'next-intl'
 import { Fragment } from 'react'
 
 import { getIcon } from '@/lib/icons'
+import { getUrl } from '@/lib/url'
 
 import { CommentList } from '../comments/list'
 import { Icon } from '../common/icon'
@@ -58,12 +59,10 @@ export function TechnologyPage({ tech }: Props) {
                 item.buildingGuid ? (
                   <DataList.Link
                     description={item.description}
+                    href={getUrl('building', item.buildingGuid, item.slug)}
                     icon={item.icon}
-                    id={item.buildingGuid}
                     key={item.guid}
                     name={item.name}
-                    slug={item.slug}
-                    type="building"
                   />
                 ) : (
                   <DataList.Item
@@ -100,12 +99,14 @@ export function TechnologyPage({ tech }: Props) {
                   {effect.targets.map((target) =>
                     target.kind === 'building' && target.buildingGuid ? (
                       <DataList.Link
+                        href={getUrl(
+                          'building',
+                          target.buildingGuid,
+                          target.slug,
+                        )}
                         icon={target.icon}
-                        id={target.buildingGuid}
                         key={target.buildingGuid}
                         name={target.name}
-                        slug={target.slug}
-                        type="building"
                         value={
                           target.region?.key ? (
                             <Icon

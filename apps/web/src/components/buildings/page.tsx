@@ -3,6 +3,7 @@ import { compact } from 'lodash'
 import { useFormatter, useTranslations } from 'next-intl'
 
 import { getIcon } from '@/lib/icons'
+import { getUrl } from '@/lib/url'
 
 import { CommentList } from '../comments/list'
 import { Html } from '../common/html'
@@ -61,12 +62,10 @@ export function BuildingPage({ building }: Props) {
             <DataList.Root title={t('details.construction')}>
               {building.costs.map((item) => (
                 <DataList.Link
+                  href={getUrl('product', item.guid, item.slug)}
                   icon={item.icon}
-                  id={item.guid}
                   key={item.guid}
                   name={item.name}
-                  slug={item.slug}
-                  type="product"
                   value={item.amount}
                 />
               ))}
@@ -92,12 +91,10 @@ export function BuildingPage({ building }: Props) {
             <DataList.Root title={t('details.inputs')}>
               {building.inputs.map((item) => (
                 <DataList.Link
+                  href={getUrl('product', item.guid, item.slug)}
                   icon={item.icon}
-                  id={item.guid}
                   key={item.guid}
                   name={item.name}
-                  slug={item.slug}
-                  type="product"
                   value={item.amount}
                 />
               ))}
@@ -108,12 +105,10 @@ export function BuildingPage({ building }: Props) {
             <DataList.Root title={t('details.outputs')}>
               {building.outputs.map((item) => (
                 <DataList.Link
+                  href={getUrl('product', item.guid, item.slug)}
                   icon={item.icon}
-                  id={item.guid}
                   key={item.guid}
                   name={item.name}
-                  slug={item.slug}
-                  type="product"
                   value={item.amount}
                 />
               ))}
@@ -191,12 +186,10 @@ export function BuildingPage({ building }: Props) {
             <DataList.Root title={t('details.unlocked')}>
               {building.unlockedBy.map((item) => (
                 <DataList.Link
+                  href={getUrl('tech', item.guid, item.slug)}
                   icon={item.icon}
-                  id={item.guid}
                   key={item.guid}
                   name={item.name}
-                  slug={item.slug}
-                  type="tech"
                 />
               ))}
             </DataList.Root>
@@ -291,12 +284,10 @@ export function BuildingPage({ building }: Props) {
 
                 {phase.costs.map((item) => (
                   <DataList.Link
+                    href={getUrl('product', item.guid, item.slug)}
                     icon={item.icon}
-                    id={item.guid}
                     key={item.guid}
                     name={item.name}
-                    slug={item.slug}
-                    type="product"
                     value={item.amount}
                   />
                 ))}

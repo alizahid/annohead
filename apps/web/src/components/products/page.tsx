@@ -2,6 +2,7 @@ import { type Product } from '@anno/db/client'
 import { useTranslations } from 'next-intl'
 
 import { getIcon } from '@/lib/icons'
+import { getUrl } from '@/lib/url'
 
 import { CommentList } from '../comments/list'
 import { Icon } from '../common/icon'
@@ -59,12 +60,10 @@ export function ProductPage({ product }: Props) {
             <DataList.Root title={t('produced')}>
               {product.producedBy.map((item) => (
                 <DataList.Link
+                  href={getUrl('building', item.guid, item.slug)}
                   icon={item.icon}
-                  id={item.guid}
                   key={item.guid}
                   name={item.name}
-                  slug={item.slug}
-                  type="building"
                   value={
                     item.region?.key ? (
                       <Icon
@@ -82,12 +81,10 @@ export function ProductPage({ product }: Props) {
             <DataList.Root title={t('consumed')}>
               {product.consumedBy.map((item) => (
                 <DataList.Link
+                  href={getUrl('building', item.guid, item.slug)}
                   icon={item.icon}
-                  id={item.guid}
                   key={item.guid}
                   name={item.name}
-                  slug={item.slug}
-                  type="building"
                   value={
                     item.region?.key ? (
                       <Icon
