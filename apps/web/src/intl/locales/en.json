@@ -361,6 +361,10 @@
     "items": {
       "title": "Items × Annohead"
     },
+    "landing": {
+      "database": "Database",
+      "language": "Language"
+    },
     "product": {
       "fallback": "Product",
       "title": "{name} × Products × Annohead"
