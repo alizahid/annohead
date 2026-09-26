@@ -3,7 +3,7 @@
 export const allocationValues = ['None', 'Ship', 'Villa'] as const
 export type Allocation = (typeof allocationValues)[number]
 
-export const categoryKindValues = ['menu', 'product'] as const
+export const categoryKindValues = ['menu', 'product', 'unit'] as const
 export type CategoryKind = (typeof categoryKindValues)[number]
 
 export const conditionTemplateValues = [

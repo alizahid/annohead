@@ -162,7 +162,8 @@
           "products": "Goods",
           "quests": "Quests",
           "techs": "Technologies",
-          "title": "Database"
+          "title": "Database",
+          "units": "Units"
         },
         "title": "Annohead"
       }
@@ -242,7 +243,8 @@
         "item": "Items",
         "product": "Products",
         "quest": "Quests",
-        "tech": "Technologies"
+        "tech": "Technologies",
+        "unit": "Units"
       },
       "page": {
         "empty": "Nothing found",
@@ -272,6 +274,33 @@
         "requirement": "Requirement",
         "rewards": "Rewards",
         "unlocks": "Unlocks"
+      }
+    },
+    "units": {
+      "filters": {
+        "regions": "Region",
+        "types": "Category"
+      },
+      "list": {
+        "empty": "Nothing found",
+        "title": "Units"
+      },
+      "page": {
+        "costs": "Costs",
+        "maintenance": "Maintenance",
+        "recruited": "Recruited at",
+        "unlocked": "Unlocked by",
+        "stats": {
+          "buildTime": "Build time",
+          "cargoSlots": "Cargo slots",
+          "health": "Health",
+          "itemSockets": "Item sockets",
+          "moduleSlots": "Module slots",
+          "morale": "Morale",
+          "soldiers": "Soldiers",
+          "speed": "Speed",
+          "title": "Other"
+        }
       }
     }
   },
@@ -338,6 +367,13 @@
     "technology": {
       "fallback": "Technology",
       "title": "{name} × Technologies × Annohead"
+    },
+    "unit": {
+      "fallback": "Unit",
+      "title": "{name} × Units × Annohead"
+    },
+    "units": {
+      "title": "Units × Annohead"
     }
   }
 }

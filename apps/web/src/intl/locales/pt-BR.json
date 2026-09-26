@@ -162,7 +162,8 @@
           "products": "Mercadorias",
           "quests": "Missões",
           "techs": "Tecnologias",
-          "title": "Banco de dados"
+          "title": "Banco de dados",
+          "units": "Unidades"
         },
         "title": "Annohead"
       }
@@ -242,7 +243,8 @@
         "item": "Itens",
         "product": "Produtos",
         "quest": "Missões",
-        "tech": "Tecnologias"
+        "tech": "Tecnologias",
+        "unit": "Unidades"
       },
       "page": {
         "empty": "Nada encontrado",
@@ -272,6 +274,33 @@
         "requirement": "Requisito",
         "rewards": "Recompensas",
         "unlocks": "Desbloqueia"
+      }
+    },
+    "units": {
+      "filters": {
+        "regions": "Região",
+        "types": "Categoria"
+      },
+      "list": {
+        "empty": "Nada encontrado",
+        "title": "Unidades"
+      },
+      "page": {
+        "costs": "Custos",
+        "maintenance": "Manutenção",
+        "recruited": "Recrutado em",
+        "unlocked": "Desbloqueado por",
+        "stats": {
+          "buildTime": "Tempo de construção",
+          "cargoSlots": "Espaços de carga",
+          "health": "Vida",
+          "itemSockets": "Espaços de itens",
+          "moduleSlots": "Espaços de módulos",
+          "morale": "Moral",
+          "soldiers": "Soldados",
+          "speed": "Velocidade",
+          "title": "Outros"
+        }
       }
     }
   },
@@ -338,6 +367,13 @@
     "technology": {
       "fallback": "Tecnologia",
       "title": "{name} × Tecnologias × Annohead"
+    },
+    "unit": {
+      "fallback": "Unidade",
+      "title": "{name} × Unidades × Annohead"
+    },
+    "units": {
+      "title": "Unidades × Annohead"
     }
   }
 }

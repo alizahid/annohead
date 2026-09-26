@@ -8,6 +8,7 @@ import { quests } from './quests'
 import { regions } from './regions'
 import { search } from './search'
 import { techs } from './techs'
+import { units } from './units'
 
 export type { BuildingFilter } from './buildings'
 export type { ChainFilter } from './chains'
@@ -20,6 +21,7 @@ export type { RegionFilter } from './regions'
 export type { SearchFilter, SearchHit } from './search'
 export type { Get, Page } from './shared'
 export type { TechFilter } from './techs'
+export type { UnitFilter } from './units'
 
 export type Buildings = Awaited<ReturnType<typeof buildings.list>>
 export type Building = Awaited<ReturnType<typeof buildings.get>>
@@ -48,6 +50,9 @@ export type SearchResults = Awaited<ReturnType<typeof search>>
 export type Techs = Awaited<ReturnType<typeof techs.list>>
 export type Tech = Awaited<ReturnType<typeof techs.get>>
 export type TechCategories = Awaited<ReturnType<typeof techs.categories>>
+export type Units = Awaited<ReturnType<typeof units.list>>
+export type Unit = Awaited<ReturnType<typeof units.get>>
+export type UnitTypes = Awaited<ReturnType<typeof units.types>>
 
 export const anno = {
   buildings,
@@ -60,4 +65,5 @@ export const anno = {
   regions,
   search,
   techs,
+  units,
 }

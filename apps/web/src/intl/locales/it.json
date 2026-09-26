@@ -162,7 +162,8 @@
           "products": "Merci",
           "quests": "Missioni",
           "techs": "Tecnologie",
-          "title": "Database"
+          "title": "Database",
+          "units": "Unità"
         },
         "title": "Annohead"
       }
@@ -242,7 +243,8 @@
         "item": "Oggetti",
         "product": "Merci",
         "quest": "Missioni",
-        "tech": "Tecnologie"
+        "tech": "Tecnologie",
+        "unit": "Unità"
       },
       "page": {
         "empty": "Nessun risultato",
@@ -272,6 +274,33 @@
         "requirement": "Requisito",
         "rewards": "Ricompense",
         "unlocks": "Sblocca"
+      }
+    },
+    "units": {
+      "filters": {
+        "regions": "Regione",
+        "types": "Categoria"
+      },
+      "list": {
+        "empty": "Nessun risultato",
+        "title": "Unità"
+      },
+      "page": {
+        "costs": "Costi",
+        "maintenance": "Manutenzione",
+        "recruited": "Reclutato in",
+        "unlocked": "Sbloccato da",
+        "stats": {
+          "buildTime": "Tempo di costruzione",
+          "cargoSlots": "Slot di carico",
+          "health": "Salute",
+          "itemSockets": "Slot oggetti",
+          "moduleSlots": "Slot moduli",
+          "morale": "Morale",
+          "soldiers": "Soldati",
+          "speed": "Velocità",
+          "title": "Altro"
+        }
       }
     }
   },
@@ -338,6 +367,13 @@
     "technology": {
       "fallback": "Tecnologia",
       "title": "{name} × Tecnologie × Annohead"
+    },
+    "unit": {
+      "fallback": "Unità",
+      "title": "{name} × Unità × Annohead"
+    },
+    "units": {
+      "title": "Unità × Annohead"
     }
   }
 }

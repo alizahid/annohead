@@ -162,7 +162,8 @@
           "products": "貨物",
           "quests": "任務",
           "techs": "科技",
-          "title": "資料庫"
+          "title": "資料庫",
+          "units": "單位"
         },
         "title": "Annohead"
       }
@@ -242,7 +243,8 @@
         "item": "物品",
         "product": "貨物",
         "quest": "任務",
-        "tech": "科技"
+        "tech": "科技",
+        "unit": "單位"
       },
       "page": {
         "empty": "找不到結果",
@@ -272,6 +274,33 @@
         "requirement": "需求",
         "rewards": "獎勵",
         "unlocks": "解鎖"
+      }
+    },
+    "units": {
+      "filters": {
+        "regions": "地區",
+        "types": "分類"
+      },
+      "list": {
+        "empty": "找不到結果",
+        "title": "單位"
+      },
+      "page": {
+        "costs": "費用",
+        "maintenance": "維護",
+        "recruited": "招募地點",
+        "unlocked": "解鎖條件",
+        "stats": {
+          "buildTime": "建造時間",
+          "cargoSlots": "貨艙格",
+          "health": "生命值",
+          "itemSockets": "物品槽",
+          "moduleSlots": "模組槽",
+          "morale": "士氣",
+          "soldiers": "士兵",
+          "speed": "速度",
+          "title": "其他"
+        }
       }
     }
   },
@@ -338,6 +367,13 @@
     "technology": {
       "fallback": "科技",
       "title": "{name} × 科技 × Annohead"
+    },
+    "unit": {
+      "fallback": "單位",
+      "title": "{name} × 單位 × Annohead"
+    },
+    "units": {
+      "title": "單位 × Annohead"
     }
   }
 }

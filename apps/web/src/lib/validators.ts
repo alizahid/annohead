@@ -94,3 +94,13 @@ export const questFilters = {
 export const parseQuestFilters = createLoader(questFilters)
 
 export type QuestFilters = Awaited<ReturnType<typeof parseQuestFilters>>
+
+export const unitFilters = {
+  page: parseAsInteger,
+  regions: parseAsArrayOf(parseAsInteger),
+  types: parseAsArrayOf(parseAsInteger),
+}
+
+export const parseUnitFilters = createLoader(unitFilters)
+
+export type UnitFilters = Awaited<ReturnType<typeof parseUnitFilters>>

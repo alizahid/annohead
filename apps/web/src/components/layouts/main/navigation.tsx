@@ -45,6 +45,11 @@ export function Navigation({ className }: Props) {
       icon: 'tech',
       key: 'techs',
     },
+    {
+      href: '/units',
+      icon: 'unit',
+      key: 'units',
+    },
   ] as const
 
   return (

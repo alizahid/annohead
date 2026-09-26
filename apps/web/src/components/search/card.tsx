@@ -37,7 +37,9 @@ export function SearchCard({ item }: Props) {
         <div className="flex gap-2">
           <div className="text-pretty font-bold">{item.name}</div>
 
-          {item.type === 'building' || item.type === 'chain' ? (
+          {item.type === 'building' ||
+          item.type === 'chain' ||
+          item.type === 'unit' ? (
             <div className="flex gap-2">
               {item.regions.map((region) => (
                 <Icon

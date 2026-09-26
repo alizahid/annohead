@@ -13,7 +13,9 @@ export function getUrl(type: SearchType, id: number, slug?: string | null) {
             ? 'products'
             : type === 'quest'
               ? 'quests'
-              : 'techs'
+              : type === 'unit'
+                ? 'units'
+                : 'techs'
 
   return `/${base}/${id}/${slug ?? type}`
 }

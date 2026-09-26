@@ -162,7 +162,8 @@
           "products": "Waren",
           "quests": "Quests",
           "techs": "Technologien",
-          "title": "Datenbank"
+          "title": "Datenbank",
+          "units": "Einheiten"
         },
         "title": "Annohead"
       }
@@ -242,7 +243,8 @@
         "item": "Gegenstände",
         "product": "Waren",
         "quest": "Quests",
-        "tech": "Technologien"
+        "tech": "Technologien",
+        "unit": "Einheiten"
       },
       "page": {
         "empty": "Nichts gefunden",
@@ -272,6 +274,33 @@
         "requirement": "Voraussetzung",
         "rewards": "Belohnungen",
         "unlocks": "Schaltet frei"
+      }
+    },
+    "units": {
+      "filters": {
+        "regions": "Region",
+        "types": "Kategorie"
+      },
+      "list": {
+        "empty": "Nichts gefunden",
+        "title": "Einheiten"
+      },
+      "page": {
+        "costs": "Kosten",
+        "maintenance": "Unterhalt",
+        "recruited": "Rekrutiert in",
+        "unlocked": "Freigeschaltet durch",
+        "stats": {
+          "buildTime": "Bauzeit",
+          "cargoSlots": "Frachtplätze",
+          "health": "Lebenspunkte",
+          "itemSockets": "Gegenstandsplätze",
+          "moduleSlots": "Modulplätze",
+          "morale": "Moral",
+          "soldiers": "Soldaten",
+          "speed": "Geschwindigkeit",
+          "title": "Sonstiges"
+        }
       }
     }
   },
@@ -338,6 +367,13 @@
     "technology": {
       "fallback": "Technologie",
       "title": "{name} × Technologien × Annohead"
+    },
+    "unit": {
+      "fallback": "Einheit",
+      "title": "{name} × Einheiten × Annohead"
+    },
+    "units": {
+      "title": "Einheiten × Annohead"
     }
   }
 }

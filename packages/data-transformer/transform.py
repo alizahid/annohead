@@ -204,6 +204,7 @@ class T:
         self.enums = defaultdict(set)
         self.attributes = {}
         self.conditions = []
+        self.merged = {}  # what a category name reads in every language -> category guid
         if os.path.exists(out):
             os.unlink(out)
         self.db = sqlite3.connect(out)
@@ -678,6 +679,18 @@ class T:
         )
 
     # ---- construction menu and trading post filter -----------------------------------------------------------
+    def category(self, kind, g, text_id, icon, sort):
+        """Insert a filter category; ones that read the same in every language (ignoring case) share the first guid."""
+        same = tuple(r.casefold() for (r,) in self.src.execute("select text from texts where line_id=? order by lang", (str(text_id),)))
+        key = (kind, same or g)
+        if key not in self.merged:
+            self.merged[key] = g
+            self.db.execute(
+                "insert into category(guid, kind, name_text, icon, sort) values(?,?,?,?,?)",
+                (g, self.enum("category_kind", kind), self.text(text_id), self.icon(icon), sort),
+            )
+        return self.merged[key]
+
     def categories(self):
         """Buildings and chains by construction-menu tab, goods by trading-post filter category.
 
@@ -709,19 +722,6 @@ class T:
                     out |= members(i)
             return out
 
-        merged = {}  # what a name reads in every language -> category guid
-
-        def category(kind, g, text_id, icon, sort):
-            same = tuple(r for (r,) in self.src.execute("select text from texts where line_id=? order by lang", (str(text_id),)))
-            key = (kind, same or g)
-            if key not in merged:
-                merged[key] = g
-                self.db.execute(
-                    "insert into category(guid, kind, name_text, icon, sort) values(?,?,?,?,?)",
-                    (g, self.enum("category_kind", kind), self.text(text_id), self.icon(icon), sort),
-                )
-            return merged[key]
-
         menu = D(next(iter(self.by_template("ConstructionMenu")), {}).get("v")).get("ConstructionMenu", {})
         tabs = []
         for region in self.regions:
@@ -735,7 +735,7 @@ class T:
         for sort, (g, nested) in enumerate(tabs):
             own = members(g, nested)
             if own:
-                c = category("menu", g, self.assets[g]["text_id"], self.assets[g]["icon"], sort)
+                c = self.category("menu", g, self.assets[g]["text_id"], self.assets[g]["icon"], sort)
                 for m in own:
                     found[m].add(c)
         upgrades = defaultdict(set)
@@ -762,7 +762,7 @@ class T:
             for sort, c in enumerate(self.items(D(a["v"].get("ProductFilter")).get("Categories"))[1:]):
                 lst = self.assets.get(self.num(c.get("ProductList")))
                 icon = D(self.assets.get(self.num(c.get("Icon")))).get("icon")
-                g = category("product", self.num(c.get("ProductList")), c.get("Text"), icon, sort)
+                g = self.category("product", self.num(c.get("ProductList")), c.get("Text"), icon, sort)
                 for it in self.items(D(D(lst).get("v")).get("ProductList", {}).get("List")):
                     if self.num(it.get("Product")) in products:
                         self.db.execute("insert or ignore into category_member values(?,?)", (g, self.num(it["Product"])))
@@ -770,6 +770,65 @@ class T:
             self.db.execute(
                 "insert into category(guid, kind, key, sort) values(?,?,?,?)", (g, "product", kind, 100 - g)
             )
+
+    # ---- units ---------------------------------------------------------------------------------------------
+    def hull(self, g):
+        """The ship a shipyard loadout (ShipConfiguration) is built on; other assets are their own unit."""
+        a = self.assets.get(self.num(g))
+        if not a:
+            return None
+        if a["template"] == "ShipConfiguration":
+            return self.num(D(a["v"].get("ShipConfiguration")).get("ShipHullGUID"))
+        return a["guid"]
+
+    def units(self):
+        """Ships and troops the player gets: whatever a building recruits (barracks, shipyards, villas; ships as their
+        hull, not the module loadouts a shipyard offers) and the flagship of each start fleet. Units are filed under
+        the building that recruits them, flagships under their own name."""
+        recruiters = defaultdict(set)  # unit -> buildings recruiting it
+        for (b,) in self.db.execute("select guid from building").fetchall():
+            for o in self.items(D(self.assets[b]["v"].get("Recruitment")).get("AssemblyOptions")):
+                u = self.hull(o.get("Vehicle"))
+                if u in self.assets:
+                    recruiters[u].add(b)
+        flagships = {}  # unit -> region
+        for path, g in self.src.execute("select path, to_guid from refs where path like 'DifficultySettings.StartShips.%'"):
+            u = self.hull(g)
+            if dict_get(D(self.assets.get(u)).get("v"), "Unit.UnitUniqueType") == "Flagship":
+                flagships[u] = self.regions.get(path.split(".Region.")[1].split(".")[0])
+        building_region = dict(self.db.execute("select guid, region_id from building"))
+        filed = [(b, {u for u, bs in recruiters.items() if b in bs}) for b in sorted(set().union(*recruiters.values()))]
+        for sort, (g, members) in enumerate([*filed, *((u, {u}) for u in flagships)]):
+            c = self.category("unit", g, self.assets[g]["text_id"], self.assets[g]["icon"], sort)
+            for u in members:
+                self.db.execute("insert or ignore into category_member values(?,?)", (c, u))
+        for u in sorted(recruiters.keys() | flagships.keys()):
+            a, v = self.assets[u], self.assets[u]["v"]
+            actor = D(dict_get(v, "Unit.Actor.Values.CompositeUnitActor"))
+            regions = {building_region[b] for b in recruiters[u]} if u in recruiters else {flagships[u]}
+            health = self.num(D(v.get("Health")).get("BaseHealth"))
+            crafting = self.num(D(v.get("Craftable")).get("CraftingTime"))
+            self.db.execute(
+                "insert into unit values(?,?,?,?,?,?,?,?,?,?,?,?,?,null)",
+                (
+                    u,
+                    self.text(a["text_id"]),
+                    self.text(D(v.get("Standard")).get("InfoDescription")),
+                    self.icon(a["icon"]),
+                    regions.pop() if len(regions) == 1 else None,
+                    health if health and health > 0 else None,  # troops: -1, their health is per soldier
+                    self.num(actor.get("Elements")),
+                    self.num(D(actor.get("MoraleConfig")).get("MaximumMorale")),
+                    self.num(D(v.get("Movement")).get("BaseSpeed")),
+                    crafting // 1000 if crafting else None,
+                    self.num(D(v.get("ItemContainer")).get("SlotCount")),
+                    self.num(D(v.get("ItemContainer")).get("SocketCount")),
+                    self.num(D(v.get("ShipModuleOwner")).get("MaximumModificationCount")),
+                ),
+            )
+            self.cost_rows(v, u, "unit")
+            for b in recruiters[u]:
+                self.db.execute("insert into unit_recruiter values(?,?)", (u, b))
 
     # ---- labels --------------------------------------------------------------------------------------------
     def labels(self):
@@ -1922,6 +1981,7 @@ class T:
         for table, column in (
             ("building", "name_text"),
             ("product", "name_text"),
+            ("unit", "name_text"),
             ("item", "name_text"),
             ("tech", "name_text"),
             ("production_chain", "name_text"),
@@ -2041,9 +2101,14 @@ create table factory_input(building_guid int references building(guid), product_
 create table factory_output(building_guid int references building(guid), product_guid int references product(guid), amount real);
 create table residence(building_guid integer primary key references building(guid), population_level_guid int references population_level(guid));
 create table residence_need(building_guid int references building(guid), need_guid int references need(guid), consumption_rate real, buff_only int);
+create table unit(guid integer primary key, name_text integer, description_text integer, icon text, region_id int references region(id),
+  health int, soldiers int, morale int, speed real, build_seconds int, cargo_slots int, item_sockets int, module_slots int, slug text);
+create table unit_cost(unit_guid int references unit(guid), product_guid int references product(guid), amount real);
+create table unit_maintenance(unit_guid int references unit(guid), product_guid int references product(guid), amount real);
+create table unit_recruiter(unit_guid int references unit(guid), building_guid int references building(guid), primary key(unit_guid, building_guid)) without rowid;
 create table production_chain(guid integer primary key, name_text integer, icon text, building_guid int references building(guid), region_id int references region(id), slug text);
 create table production_chain_node(id integer primary key, chain_guid int references production_chain(guid), parent_id int, building_guid int, tier int);
--- construction-menu tabs (kind menu: buildings and chains) and trading-post filter categories (kind product)
+-- construction-menu tabs (kind menu: buildings and chains), trading-post filter categories (kind product) and recruiting buildings (kind unit)
 create table category(guid integer primary key, kind text, name_text integer, key text, icon text, sort int);
 create table category_member(category_guid int references category(guid), asset_guid int, primary key(category_guid, asset_guid)) without rowid;
 -- game names of keys stored elsewhere: attribute, rarity, niche, allocation, modifier (buff_modifier.path) …
@@ -2101,6 +2166,8 @@ create index idx_building_effect_building on building_effect(building_guid);
 create index idx_building_phase_building on building_phase(building_guid);
 create index idx_building_phase_cost_phase on building_phase_cost(phase_guid);
 create index idx_building_phase_maintenance_phase on building_phase_maintenance(phase_guid);
+create index idx_unit_cost_unit on unit_cost(unit_guid);
+create index idx_unit_maintenance_unit on unit_maintenance(unit_guid);
 create index idx_factory_input_building on factory_input(building_guid);
 create index idx_factory_input_product on factory_input(product_guid);
 create index idx_factory_output_building on factory_output(building_guid);
@@ -2144,6 +2211,7 @@ if __name__ == "__main__":
         t.products,
         t.buildings,
         t.categories,
+        t.units,
         t.effects,
         t.items_,
         t.phases,  # before techs: unlocks resolve monument phases to their building

@@ -55,6 +55,7 @@ const icons = {
   'ui.profile': '/img/anno/icon_2d_meta_rival.png',
   'ui.quest': '/img/anno/icon_2d_questlog.png',
   'ui.tech': '/img/anno/icon_2d_research.png',
+  'ui.unit': '/img/anno/icon_2d_category_military_buildings_0.png',
 } as const
 
 export function getIcon(name: keyof typeof icons) {

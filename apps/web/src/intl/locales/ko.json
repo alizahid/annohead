@@ -162,7 +162,8 @@
           "products": "물품",
           "quests": "퀘스트",
           "techs": "기술",
-          "title": "데이터베이스"
+          "title": "데이터베이스",
+          "units": "유닛"
         },
         "title": "Annohead"
       }
@@ -242,7 +243,8 @@
         "item": "아이템",
         "product": "물품",
         "quest": "퀘스트",
-        "tech": "기술"
+        "tech": "기술",
+        "unit": "유닛"
       },
       "page": {
         "empty": "결과 없음",
@@ -272,6 +274,33 @@
         "requirement": "필요조건",
         "rewards": "보상",
         "unlocks": "잠금 해제"
+      }
+    },
+    "units": {
+      "filters": {
+        "regions": "지역",
+        "types": "카테고리"
+      },
+      "list": {
+        "empty": "결과 없음",
+        "title": "유닛"
+      },
+      "page": {
+        "costs": "비용",
+        "maintenance": "유지비",
+        "recruited": "모집 장소",
+        "unlocked": "잠금 해제 조건",
+        "stats": {
+          "buildTime": "건조 시간",
+          "cargoSlots": "화물 슬롯",
+          "health": "체력",
+          "itemSockets": "아이템 슬롯",
+          "moduleSlots": "모듈 슬롯",
+          "morale": "사기",
+          "soldiers": "병사",
+          "speed": "속도",
+          "title": "기타"
+        }
       }
     }
   },
@@ -338,6 +367,13 @@
     "technology": {
       "fallback": "기술",
       "title": "{name} × 기술 × Annohead"
+    },
+    "unit": {
+      "fallback": "유닛",
+      "title": "{name} × 유닛 × Annohead"
+    },
+    "units": {
+      "title": "유닛 × Annohead"
     }
   }
 }

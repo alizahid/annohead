@@ -162,7 +162,8 @@
           "products": "Товары",
           "quests": "Задания",
           "techs": "Технологии",
-          "title": "База данных"
+          "title": "База данных",
+          "units": "Отряды"
         },
         "title": "Annohead"
       }
@@ -242,7 +243,8 @@
         "item": "Объекты",
         "product": "Товары",
         "quest": "Задания",
-        "tech": "Технологии"
+        "tech": "Технологии",
+        "unit": "Отряды"
       },
       "page": {
         "empty": "Ничего не найдено",
@@ -272,6 +274,33 @@
         "requirement": "Требование",
         "rewards": "Награды",
         "unlocks": "Разблокирует"
+      }
+    },
+    "units": {
+      "filters": {
+        "regions": "Регион",
+        "types": "Категория"
+      },
+      "list": {
+        "empty": "Ничего не найдено",
+        "title": "Отряды"
+      },
+      "page": {
+        "costs": "Стоимость",
+        "maintenance": "Содержание",
+        "recruited": "Набор в",
+        "unlocked": "Разблокируется",
+        "stats": {
+          "buildTime": "Время постройки",
+          "cargoSlots": "Грузовые отсеки",
+          "health": "Прочность",
+          "itemSockets": "Ячейки предметов",
+          "moduleSlots": "Ячейки модулей",
+          "morale": "Боевой дух",
+          "soldiers": "Солдаты",
+          "speed": "Скорость",
+          "title": "Прочее"
+        }
       }
     }
   },
@@ -338,6 +367,13 @@
     "technology": {
       "fallback": "Технология",
       "title": "{name} × Технологии × Annohead"
+    },
+    "unit": {
+      "fallback": "Отряд",
+      "title": "{name} × Отряды × Annohead"
+    },
+    "units": {
+      "title": "Отряды × Annohead"
     }
   }
 }

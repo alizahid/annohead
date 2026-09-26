@@ -66,4 +66,12 @@ assert q("select dlc_guid from building where guid=152714") == [(67903,)]
 assert q("select dlc_guid from building where guid=145229") == [(67902,)]
 assert q("select dlc_guid from building where guid=3615") == [(None,)]
 assert q("select dlc_guid from building where guid=2916") == [(None,)]
+# units: shipyard loadouts collapse to their hull (Roman Quinquireme); Roman and Celtic barracks share one category;
+# villa garrisons are recruited in both regions; the start flagship is filed under its own name
+assert q("select building_guid from unit_recruiter where unit_guid=37224") == [(6054,)]
+assert q("select count(*) from unit where guid in (37993, 37994)") == [(0,)]
+assert q("select category_guid from category_member where asset_guid in (30456, 37500) order by asset_guid") == [(15519,), (15519,)]
+assert q("select region_id from unit where guid=109628") == [(None,)]
+assert q("select category_guid from category_member where asset_guid=39573") == [(5473,)]
+assert q("select amount from unit_cost where unit_guid=30456 and product_guid=1010017") == [(5000.0,)]
 print("ok")

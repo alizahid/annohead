@@ -104,6 +104,17 @@ Template `ProductionChain` (77): `guid, name, icon, output_building, region, tie
 `region` is the output building's region, which is what tells the two Bread chains apart. Rates for
 the calculator come from `building_production` (output per minute = 60 / cycle_time × amount).
 
+### unit (2026-09-26)
+
+What the player recruits: every `Recruitment.AssemblyOptions[].Vehicle` of a site building (barracks, Equitum
+Campus, siege workshop, shipyard, governor villa), plus the `UnitUniqueType` Flagship of each
+`DifficultySettings.StartShips` fleet. Shipyard options are `ShipConfiguration` loadouts; they collapse to their
+`ShipHullGUID`, so a page shows the hull. `unit(guid, name_text, description_text, icon, region_id, health,
+soldiers, morale, speed, build_seconds, cargo_slots, item_sockets, module_slots, slug)` (`health` ships only, troops
+have it per soldier; `region_id` null for villa garrisons, recruited in both regions), `unit_cost`,
+`unit_maintenance`, `unit_recruiter(unit_guid, building_guid)`. Categories of kind `unit` are the recruiting
+buildings, and the flagship under its own name. AI, pirate and quest-only units are left out.
+
 ### need
 
 Template `Need` (88): `guid, name, product, category, attributes provided (Population, Money, …)`.
@@ -234,13 +245,13 @@ Display names come from the game's own config tables, not hand-written ones, so 
   listing buildings, production chains (and their buildings) and nested categories; buildings only reached by
   upgrading take the tab of what they upgrade from. Kind `product` is the trading-post filter (`ProductFilter`,
   "All Goods" skipped); workforce, services and empire products get key-only categories the client names.
-  Categories that read the same in every language are merged. These replace building kinds, chain types,
-  product kinds and item types (items use `allocation`).
+  Categories that read the same in every language (ignoring case) are merged. These replace building kinds, chain types,
+  product kinds and item types (items use `allocation`). Kind `unit`: see unit.
 - Hand-written text left in the client lives in `packages/db/src/client/phrases/<lang>.json`, one file per language
   typed against `en.json`: condition and item-source phrasing ("Worship {name}", "Sold by {name}"), statistics and
   war-state names the game never shows, quest placeholders, the three unnamed product groups, a few words, and the
   regex that strips "Part I" from a questline's first title in that language.
-- `slug` on building, product, item, tech, production_chain and questline: the English name kebab-cased (questlines
+- `slug` on building, product, unit, item, tech, production_chain and questline: the English name kebab-cased (questlines
   without "Part I"), so a page has the same URL path in every language and analytics groups it. Regional variants
   may share a slug; the guid in the URL tells them apart.
 - All 12 game languages ship (`lang` ids: English 1, German 2, the rest alphabetical); the DB grows from 2.4 MB with
@@ -256,7 +267,7 @@ Display names come from the game's own config tables, not hand-written ones, so 
 2. **SQLite** is the site database (shared by the Next.js site and the Expo app).
 3. **Region variants stay separate rows**; every entity table gets a `region` column (lookup id).
    No `variant_group` table for v1; the UI groups by display name if it wants to.
-4. **Ornaments and military units are out of v1.**
+4. **Ornaments are out of v1.** Military units were added 2026-09-26 (see unit).
 5. Anno 1800 is ignored for now. Multi-game support (one DB, `game_id`, attributes as rows) is deferred.
 
 ## Normalization rule

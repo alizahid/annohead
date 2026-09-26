@@ -162,7 +162,8 @@
           "products": "品物",
           "quests": "クエスト",
           "techs": "技術",
-          "title": "データベース"
+          "title": "データベース",
+          "units": "ユニット"
         },
         "title": "Annohead"
       }
@@ -242,7 +243,8 @@
         "item": "アイテム",
         "product": "品物",
         "quest": "クエスト",
-        "tech": "技術"
+        "tech": "技術",
+        "unit": "ユニット"
       },
       "page": {
         "empty": "見つかりませんでした",
@@ -272,6 +274,33 @@
         "requirement": "要件",
         "rewards": "報酬",
         "unlocks": "アンロック"
+      }
+    },
+    "units": {
+      "filters": {
+        "regions": "地域",
+        "types": "カテゴリー"
+      },
+      "list": {
+        "empty": "見つかりませんでした",
+        "title": "ユニット"
+      },
+      "page": {
+        "costs": "コスト",
+        "maintenance": "維持費",
+        "recruited": "募集場所",
+        "unlocked": "アンロック条件",
+        "stats": {
+          "buildTime": "建造時間",
+          "cargoSlots": "積荷スロット",
+          "health": "耐久力",
+          "itemSockets": "アイテムスロット",
+          "moduleSlots": "モジュールスロット",
+          "morale": "士気",
+          "soldiers": "兵士",
+          "speed": "速度",
+          "title": "その他"
+        }
       }
     }
   },
@@ -338,6 +367,13 @@
     "technology": {
       "fallback": "技術",
       "title": "{name} × 技術 × Annohead"
+    },
+    "unit": {
+      "fallback": "ユニット",
+      "title": "{name} × ユニット × Annohead"
+    },
+    "units": {
+      "title": "ユニット × Annohead"
     }
   }
 }

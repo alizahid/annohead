@@ -315,6 +315,61 @@ export const residenceNeed = sqliteTable(
   (table) => [index('idx_residence_need_building').on(table.buildingGuid)],
 )
 
+/** ships and troops the player recruits, plus the start flagships */
+export const unit = sqliteTable('unit', {
+  buildSeconds: integer('build_seconds'),
+  cargoSlots: integer('cargo_slots'),
+  descriptionText: integer('description_text'),
+  guid: integer().primaryKey(),
+  /** ships only; troops have health per soldier */
+  health: integer(),
+  icon: text(),
+  itemSockets: integer('item_sockets'),
+  moduleSlots: integer('module_slots'),
+  morale: integer(),
+  nameText: integer('name_text'),
+  /** null when recruited in several regions (villa garrisons) */
+  regionId: integer('region_id').references(() => region.id),
+  /** English URL slug, the same in every language */
+  slug: text(),
+  soldiers: integer(),
+  speed: real(),
+})
+
+export const unitCost = sqliteTable(
+  'unit_cost',
+  {
+    amount: real(),
+    productGuid: integer('product_guid').references(() => product.guid),
+    unitGuid: integer('unit_guid').references(() => unit.guid),
+  },
+  (table) => [index('idx_unit_cost_unit').on(table.unitGuid)],
+)
+
+export const unitMaintenance = sqliteTable(
+  'unit_maintenance',
+  {
+    amount: real(),
+    productGuid: integer('product_guid').references(() => product.guid),
+    unitGuid: integer('unit_guid').references(() => unit.guid),
+  },
+  (table) => [index('idx_unit_maintenance_unit').on(table.unitGuid)],
+)
+
+export const unitRecruiter = sqliteTable(
+  'unit_recruiter',
+  {
+    buildingGuid: integer('building_guid').references(() => building.guid),
+    unitGuid: integer('unit_guid').references(() => unit.guid),
+  },
+  (table) => [
+    primaryKey({
+      columns: [table.unitGuid, table.buildingGuid],
+      name: 'unit_recruiter_unit_guid_building_guid_pk',
+    }),
+  ],
+)
+
 export const productionChain = sqliteTable('production_chain', {
   buildingGuid: integer('building_guid').references(() => building.guid),
   guid: integer().primaryKey(),

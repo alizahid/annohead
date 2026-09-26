@@ -10,6 +10,7 @@ import {
   productionChain,
   questline,
   tech,
+  unit,
 } from '../schema'
 import { type SearchType } from '../search'
 import { questlineName } from './quests'
@@ -102,6 +103,16 @@ const sources: Array<Source> = [
     slug: productionChain.slug,
     table: productionChain,
     type: 'chain',
+  },
+  {
+    description: unit.descriptionText,
+    guid: unit.guid,
+    icon: unit.icon,
+    name: unit.nameText,
+    regions: sql`(select key from region where id = ${unit.regionId})`,
+    slug: unit.slug,
+    table: unit,
+    type: 'unit',
   },
 ]
 
