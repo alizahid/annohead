@@ -5,7 +5,6 @@ import { getIcon } from '@/lib/icons'
 import { getUrl } from '@/lib/url'
 
 import { Icon } from '../common/icon'
-import { Calculator } from './calculator'
 
 type Props = {
   chain: Chain
@@ -35,8 +34,6 @@ export function ChainCard({ chain }: Props) {
           ) : null}
         </div>
       ) : null}
-
-      <Calculator chain={chain} variant="mini" />
     </NavLink>
   )
 }

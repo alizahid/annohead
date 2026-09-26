@@ -7,16 +7,14 @@ import {
   MinusIcon,
   PlusIcon,
 } from '@phosphor-icons/react/dist/ssr'
-import { cn } from 'cn'
 import { useFormatter, useTranslations } from 'next-intl'
 import { useState } from 'react'
 
 type Props = {
   chain: Chain
-  variant?: 'full' | 'mini'
 }
 
-export function Calculator({ chain, variant = 'full' }: Props) {
+export function Calculator({ chain }: Props) {
   const t = useTranslations('component.chains.calculator')
   const f = useFormatter()
 
@@ -28,16 +26,8 @@ export function Calculator({ chain, variant = 'full' }: Props) {
     ((chain.building?.baseProductivity ?? 100) / 100)
 
   return (
-    <div
-      className={cn(
-        'flex flex-col bg-gray-2',
-        variant === 'mini' && '-m-2 gap-2 rounded-md p-2 text-sm',
-        variant === 'full' && 'gap-4 rounded-lg p-4',
-      )}
-    >
-      {variant === 'full' ? (
-        <div className="font-bold text-sm">{t('title')}</div>
-      ) : null}
+    <div className="flex flex-col gap-4 rounded-lg bg-gray-2 p-4">
+      <div className="font-bold text-sm">{t('title')}</div>
 
       <NumberField.Root
         className="flex items-start justify-between gap-4"
@@ -62,58 +52,42 @@ export function Calculator({ chain, variant = 'full' }: Props) {
         </NumberField.ScrubArea>
 
         <NumberField.Group className="flex gap-2">
-          <NumberField.Decrement
-            className={cn(
-              'flex size-6 items-center justify-center rounded-sm transition-colors',
-              variant === 'mini' && 'hover:bg-accent-5 active:bg-accent-6',
-              variant === 'full' && 'hover:bg-accent-4 active:bg-accent-5',
-            )}
-          >
+          <NumberField.Decrement className="flex size-6 items-center justify-center rounded-sm transition-colors hover:bg-accent-4 active:bg-accent-5">
             <MinusIcon />
           </NumberField.Decrement>
 
           <NumberField.Input className="w-12 rounded-sm px-1 text-sm tabular-nums outline-none ring-accent-8 focus-visible:ring-2" />
 
-          <NumberField.Increment
-            className={cn(
-              'flex size-6 items-center justify-center rounded-sm transition-colors',
-              variant === 'mini' && 'hover:bg-accent-5 active:bg-accent-6',
-              variant === 'full' && 'hover:bg-accent-4 active:bg-accent-5',
-            )}
-          >
+          <NumberField.Increment className="flex size-6 items-center justify-center rounded-sm transition-colors hover:bg-accent-4 active:bg-accent-5">
             <PlusIcon />
           </NumberField.Increment>
         </NumberField.Group>
       </NumberField.Root>
 
-      {variant === 'full' ? (
-        <div className="flex justify-between gap-4">
-          <div>{t('cycleTime')}</div>
+      <div className="flex justify-between gap-4">
+        <div>{t('cycleTime')}</div>
 
-          {chain.building?.cycleTime ? (
-            <div className="tabular-nums">
-              {f.number(chain.building.cycleTime, {
-                style: 'unit',
-                unit: 'second',
-              })}
-            </div>
-          ) : null}
-        </div>
-      ) : null}
+        {chain.building?.cycleTime ? (
+          <div className="tabular-nums">
+            {f.number(chain.building.cycleTime, {
+              style: 'unit',
+              unit: 'second',
+            })}
+          </div>
+        ) : null}
+      </div>
 
-      {variant === 'full' ? (
-        <div className="flex justify-between gap-4">
-          <div>{t('baseProductivity')}</div>
+      <div className="flex justify-between gap-4">
+        <div>{t('baseProductivity')}</div>
 
-          {chain.building?.baseProductivity ? (
-            <div className="tabular-nums">
-              {f.number(chain.building.baseProductivity / 100, {
-                style: 'percent',
-              })}
-            </div>
-          ) : null}
-        </div>
-      ) : null}
+        {chain.building?.baseProductivity ? (
+          <div className="tabular-nums">
+            {f.number(chain.building.baseProductivity / 100, {
+              style: 'percent',
+            })}
+          </div>
+        ) : null}
+      </div>
 
       <div className="flex justify-between gap-4">
         <div>{t('output')}</div>
@@ -135,17 +109,9 @@ export function Calculator({ chain, variant = 'full' }: Props) {
         </div>
       </div>
 
-      {variant === 'full' ? (
-        <div className="mt-4 font-bold text-sm">{t('inputs')}</div>
-      ) : null}
+      <div className="mt-4 font-bold text-sm">{t('inputs')}</div>
 
-      <div
-        className={cn(
-          'flex',
-          variant === 'mini' && 'flex-wrap gap-2',
-          variant === 'full' && 'flex-col gap-4',
-        )}
-      >
+      <div className="flex flex-col gap-4">
         {chain.nodes
           .filter((node) => Boolean(node.parentId))
           .map((node) => (
