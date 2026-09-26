@@ -13,25 +13,16 @@ import {
   allocationValues,
   attributeValues,
   buildingKindValues,
-  buildingTypeValues,
   chainTypeValues,
   conditionTemplateValues,
   dlcValues,
-  effectScopeValues,
   itemSourceKindValues,
   itemTypeValues,
-  needCategoryValues,
   nicheValues,
-  nodeTypeValues,
-  optionCategoryValues,
-  participantKindValues,
   productKindValues,
-  questCategoryValues,
   racerAttributeValues,
   rarityValues,
   regionValues,
-  sourceCategoryValues,
-  storylineSystemValues,
   subConditionOrderValues,
   variableOperationValues,
 } from './enums'
@@ -41,7 +32,7 @@ export const region = sqliteTable('region', {
   key: text({
     enum: regionValues,
   }),
-  name: text(),
+  nameText: integer('name_text'),
 })
 
 export const dlc = sqliteTable('dlc', {
@@ -56,38 +47,30 @@ export const dlc = sqliteTable('dlc', {
 export const patron = sqliteTable('patron', {
   guid: integer().primaryKey(),
   icon: text(),
-  name: text(),
   nameText: integer('name_text'),
 })
 
 export const participant = sqliteTable('participant', {
   guid: integer().primaryKey(),
   icon: text(),
-  kind: text({
-    enum: participantKindValues,
-  }),
-  name: text(),
   nameText: integer('name_text'),
 })
 
 export const festival = sqliteTable('festival', {
   guid: integer().primaryKey(),
   icon: text(),
-  name: text(),
   nameText: integer('name_text'),
 })
 
 export const assetPool = sqliteTable('asset_pool', {
   guid: integer().primaryKey(),
   icon: text(),
-  name: text(),
   nameText: integer('name_text'),
 })
 
 export const monumentEvent = sqliteTable('monument_event', {
   guid: integer().primaryKey(),
   icon: text(),
-  name: text(),
   nameText: integer('name_text'),
 })
 
@@ -144,14 +127,11 @@ export const translation = sqliteTable(
 )
 
 export const product = sqliteTable('product', {
-  basePrice: real('base_price'),
-  categoryText: integer('category_text'),
   guid: integer().primaryKey(),
   icon: text(),
   kind: text({
     enum: productKindValues,
   }),
-  name: text(),
   nameText: integer('name_text'),
 })
 
@@ -170,13 +150,7 @@ export const productRegion = sqliteTable(
 )
 
 export const need = sqliteTable('need', {
-  category: text({
-    enum: needCategoryValues,
-  }),
-  descriptionText: integer('description_text'),
   guid: integer().primaryKey(),
-  name: text(),
-  nameText: integer('name_text'),
   productGuid: integer('product_guid').references(() => product.guid),
 })
 
@@ -195,23 +169,15 @@ export const building = sqliteTable('building', {
   descriptionText: integer('description_text'),
   dlcGuid: integer('dlc_guid').references(() => dlc.guid),
   guid: integer().primaryKey(),
-  health: integer(),
   icon: text(),
   kind: text({
     enum: buildingKindValues,
   }),
-  name: text(),
   nameText: integer('name_text'),
-  populationLevelGuid: integer('population_level_guid').references(
-    () => populationLevel.guid,
-  ),
   radius: integer(),
   regionId: integer('region_id').references(() => region.id),
   streetRadius: integer('street_radius'),
   template: text(),
-  type: text({
-    enum: buildingTypeValues,
-  }),
 })
 
 export const buildingRegion = sqliteTable(
@@ -255,7 +221,6 @@ export const buildingEffect = sqliteTable(
   {
     buildingGuid: integer('building_guid').references(() => building.guid),
     effectGuid: integer('effect_guid'),
-    kind: text(),
   },
   (table) => [index('idx_building_effect_building').on(table.buildingGuid)],
 )
@@ -314,7 +279,6 @@ export const factoryInput = sqliteTable(
     amount: real(),
     buildingGuid: integer('building_guid').references(() => building.guid),
     productGuid: integer('product_guid').references(() => product.guid),
-    storage: integer(),
   },
   (table) => [
     index('idx_factory_input_product').on(table.productGuid),
@@ -328,7 +292,6 @@ export const factoryOutput = sqliteTable(
     amount: real(),
     buildingGuid: integer('building_guid').references(() => building.guid),
     productGuid: integer('product_guid').references(() => product.guid),
-    storage: integer(),
   },
   (table) => [
     index('idx_factory_output_product').on(table.productGuid),
@@ -343,7 +306,6 @@ export const residence = sqliteTable('residence', {
   populationLevelGuid: integer('population_level_guid').references(
     () => populationLevel.guid,
   ),
-  upgradeToGuid: integer('upgrade_to_guid'),
 })
 
 export const residenceNeed = sqliteTable(
@@ -357,23 +319,10 @@ export const residenceNeed = sqliteTable(
   (table) => [index('idx_residence_need_building').on(table.buildingGuid)],
 )
 
-export const residenceUpgradeCost = sqliteTable(
-  'residence_upgrade_cost',
-  {
-    amount: real(),
-    buildingGuid: integer('building_guid').references(() => building.guid),
-    productGuid: integer('product_guid').references(() => product.guid),
-  },
-  (table) => [
-    index('idx_residence_upgrade_cost_building').on(table.buildingGuid),
-  ],
-)
-
 export const productionChain = sqliteTable('production_chain', {
   buildingGuid: integer('building_guid').references(() => building.guid),
   guid: integer().primaryKey(),
   icon: text(),
-  name: text(),
   nameText: integer('name_text'),
   regionId: integer('region_id').references(() => region.id),
 })
@@ -409,16 +358,8 @@ export const effect = sqliteTable('effect', {
   descriptionText: integer('description_text'),
   /** how long a timed effect lasts; null when permanent */
   durationMs: integer('duration_ms'),
-  excludeSource: integer('exclude_source'),
   guid: integer().primaryKey(),
-  name: text(),
   nameText: integer('name_text'),
-  scope: text({
-    enum: effectScopeValues,
-  }),
-  sourceCategory: text('source_category', {
-    enum: sourceCategoryValues,
-  }),
 })
 
 export const effectBuff = sqliteTable(
@@ -487,38 +428,11 @@ export const poolMember = sqliteTable(
   ],
 )
 
-export const effectSource = sqliteTable(
-  'effect_source',
-  {
-    effectGuid: integer('effect_guid')
-      .notNull()
-      .references(() => effect.guid),
-    sourceGuid: integer('source_guid').notNull(),
-    sourceKind: text('source_kind'),
-  },
-  (table) => [
-    primaryKey({
-      columns: [table.effectGuid, table.sourceGuid],
-      name: 'effect_source_effect_guid_source_guid_pk',
-    }),
-  ],
-)
-
-export const buff = sqliteTable('buff', {
-  guid: integer().primaryKey(),
-  icon: text(),
-  name: text(),
-  nameText: integer('name_text'),
-  sourceCategory: text('source_category', {
-    enum: sourceCategoryValues,
-  }),
-})
-
 export const buffModifier = sqliteTable(
   'buff_modifier',
   {
     attributeId: integer('attribute_id').references(() => attribute.id),
-    buffGuid: integer('buff_guid').references(() => buff.guid),
+    buffGuid: integer('buff_guid'),
     isPercent: integer('is_percent'),
     path: text(),
     /** the good a per-product modifier changes, e.g. the workforce added to a villa */
@@ -531,7 +445,7 @@ export const buffModifier = sqliteTable(
 export const buffFunctionalEffect = sqliteTable(
   'buff_functional_effect',
   {
-    buffGuid: integer('buff_guid').references(() => buff.guid),
+    buffGuid: integer('buff_guid'),
     effectGuid: integer('effect_guid'),
   },
   (table) => [index('idx_buff_functional_effect_buff').on(table.buffGuid)],
@@ -540,7 +454,7 @@ export const buffFunctionalEffect = sqliteTable(
 export const buffProvidedNeed = sqliteTable(
   'buff_provided_need',
   {
-    buffGuid: integer('buff_guid').references(() => buff.guid),
+    buffGuid: integer('buff_guid'),
     needGuid: integer('need_guid').references(() => need.guid),
   },
   (table) => [
@@ -561,7 +475,6 @@ export const item = sqliteTable('item', {
   effectGuid: integer('effect_guid').references(() => effect.guid),
   guid: integer().primaryKey(),
   icon: text(),
-  name: text(),
   nameText: integer('name_text'),
   niche: text({
     enum: nicheValues,
@@ -569,7 +482,6 @@ export const item = sqliteTable('item', {
   rarity: text({
     enum: rarityValues,
   }),
-  template: text(),
   tradePrice: real('trade_price'),
   type: text({
     enum: itemTypeValues,
@@ -579,7 +491,7 @@ export const item = sqliteTable('item', {
 export const itemBoostBuff = sqliteTable(
   'item_boost_buff',
   {
-    buffGuid: integer('buff_guid').references(() => buff.guid),
+    buffGuid: integer('buff_guid'),
     itemGuid: integer('item_guid').references(() => item.guid),
   },
   (table) => [index('idx_item_boost_buff_item').on(table.itemGuid)],
@@ -621,7 +533,6 @@ export const techCategory = sqliteTable('tech_category', {
   icon: text(),
   nameText: integer('name_text'),
   sort: integer(),
-  type: text(),
   x: integer(),
   y: integer(),
 })
@@ -634,12 +545,10 @@ export const tech = sqliteTable('tech', {
   gridY: integer('grid_y'),
   guid: integer().primaryKey(),
   icon: text(),
-  image: text(),
   isGate: integer('is_gate', {
     mode: 'boolean',
   }),
   knowledgeNeeded: real('knowledge_needed'),
-  name: text(),
   nameText: integer('name_text'),
   regionId: integer('region_id').references(() => region.id),
   showConnectionToCategory: integer('show_connection_to_category', {
@@ -700,22 +609,12 @@ export const techResource = sqliteTable(
   (table) => [index('idx_tech_resource_tech').on(table.techGuid)],
 )
 
-export const techRequirement = sqliteTable(
-  'tech_requirement',
-  {
-    conditionId: integer('condition_id'),
-    techGuid: integer('tech_guid').references(() => tech.guid),
-  },
-  (table) => [index('idx_tech_requirement_tech').on(table.techGuid)],
-)
-
 export const unlock = sqliteTable(
   'unlock',
   {
     assetGuid: integer('asset_guid'),
     conditionId: integer('condition_id'),
     sourceGuid: integer('source_guid'),
-    sourceKind: text('source_kind'),
   },
   (table) => [
     primaryKey({
@@ -761,28 +660,9 @@ export const storyline = sqliteTable('storyline', {
   guid: integer().primaryKey(),
   /** icon of the governor request that announces it */
   icon: text(),
-  name: text(),
-  /** governor request text, e.g. "An Amphitheatre event requires attention" */
-  requestText: integer('request_text'),
-  system: text({
-    enum: storylineSystemValues,
-  }),
   /** player-facing name: the first decision's headline, else its journal entry */
   titleText: integer('title_text'),
 })
-
-export const storylineVariable = sqliteTable(
-  'storyline_variable',
-  {
-    name: text(),
-    startValue: text('start_value'),
-    storylineGuid: integer('storyline_guid').references(() => storyline.guid),
-    type: text(),
-  },
-  (table) => [
-    index('idx_storyline_variable_storyline').on(table.storylineGuid),
-  ],
-)
 
 export const storylineCondition = sqliteTable(
   'storyline_condition',
@@ -795,94 +675,28 @@ export const storylineCondition = sqliteTable(
   ],
 )
 
-export const questPool = sqliteTable('quest_pool', {
-  guid: integer().primaryKey(),
-  name: text(),
-})
-
-export const questPoolStoryline = sqliteTable(
-  'quest_pool_storyline',
-  {
-    poolGuid: integer('pool_guid').references(() => questPool.guid),
-    storylineGuid: integer('storyline_guid'),
-    weight: real(),
-  },
-  (table) => [index('idx_quest_pool_storyline_pool').on(table.poolGuid)],
-)
-
 export const quest = sqliteTable(
   'quest',
   {
-    category: text({
-      enum: questCategoryValues,
-    }),
-    dlcGuid: integer('dlc_guid').references(() => dlc.guid),
     guid: integer().primaryKey(),
     icon: text(),
-    name: text(),
     nameText: integer('name_text'),
-    regionId: integer('region_id').references(() => region.id),
     storylineGuid: integer('storyline_guid'),
-    summaryText: integer('summary_text'),
   },
   (table) => [index('idx_quest_storyline').on(table.storylineGuid)],
-)
-
-export const questNode = sqliteTable(
-  'quest_node',
-  {
-    /** the condition a branching function checks (success / failure ports) */
-    conditionId: integer('condition_id').references(() => condition.id),
-    guid: integer().primaryKey(),
-    headlineText: integer('headline_text'),
-    name: text(),
-    questGuid: integer('quest_guid'),
-    /** who asks on a decision screen (an advisor, a resident …); null for the player or a runtime variable */
-    speakerGuid: integer('speaker_guid'),
-    stepText: integer('step_text'),
-    storylineGuid: integer('storyline_guid').references(() => storyline.guid),
-    textText: integer('text_text'),
-    timeLimitMs: integer('time_limit_ms'),
-    type: text({
-      enum: nodeTypeValues,
-    }),
-  },
-  (table) => [
-    index('idx_quest_node_quest').on(table.questGuid),
-    index('idx_quest_node_storyline').on(table.storylineGuid),
-  ],
-)
-
-export const questEdge = sqliteTable(
-  'quest_edge',
-  {
-    fromGuid: integer('from_guid').notNull(),
-    idx: integer().notNull(),
-    kind: text().notNull(),
-    optionIndex: integer('option_index'),
-    toGuid: integer('to_guid').notNull(),
-  },
-  (table) => [
-    index('idx_quest_edge_to').on(table.toGuid),
-    primaryKey({
-      columns: [table.fromGuid, table.toGuid, table.kind, table.idx],
-      name: 'quest_edge_from_guid_to_guid_kind_idx_pk',
-    }),
-  ],
 )
 
 export const questOption = sqliteTable(
   'quest_option',
   {
-    category: text({
-      enum: optionCategoryValues,
-    }),
     /** requirement to pick the option */
     conditionId: integer('condition_id').references(() => condition.id),
     costAmount: real('cost_amount'),
     /** product paid to pick the option, usually coins */
     costGuid: integer('cost_guid'),
-    decisionGuid: integer('decision_guid').references(() => questNode.guid),
+    decisionGuid: integer('decision_guid').references(
+      () => questChoice.nodeGuid,
+    ),
     idx: integer(),
     textText: integer('text_text'),
   },
@@ -904,7 +718,7 @@ export const questReward = sqliteTable(
     kind: text(),
     /** the asset's own name, for assets without a table of their own (incidents, provinces, ships) */
     nameText: integer('name_text'),
-    nodeGuid: integer('node_guid').references(() => questNode.guid),
+    nodeGuid: integer('node_guid'),
   },
   (table) => [index('idx_quest_reward_node').on(table.nodeGuid)],
 )
@@ -913,7 +727,7 @@ export const questReward = sqliteTable(
 export const questVariableChange = sqliteTable(
   'quest_variable_change',
   {
-    nodeGuid: integer('node_guid').references(() => questNode.guid),
+    nodeGuid: integer('node_guid'),
     operation: text({
       enum: variableOperationValues,
     }),
@@ -929,15 +743,19 @@ export const questVariableChange = sqliteTable(
 export const questChoice = sqliteTable(
   'quest_choice',
   {
+    /** the condition a check tests (holds / fails) */
+    conditionId: integer('condition_id').references(() => condition.id),
+    headlineText: integer('headline_text'),
     kind: text({
       enum: ['decision', 'check'],
     }),
-    nodeGuid: integer('node_guid')
-      .primaryKey()
-      .references(() => questNode.guid),
+    nodeGuid: integer('node_guid').primaryKey(),
     /** order within the storyline */
     position: integer(),
+    /** who asks on a decision screen (an advisor, a resident …); null for the player or a runtime variable */
+    speakerGuid: integer('speaker_guid'),
     storylineGuid: integer('storyline_guid').references(() => storyline.guid),
+    textText: integer('text_text'),
   },
   (table) => [index('idx_quest_choice_storyline').on(table.storylineGuid)],
 )
@@ -950,9 +768,7 @@ export const questChoiceOutcome = sqliteTable(
       .notNull()
       .references(() => questChoice.nodeGuid),
     idx: integer().notNull(),
-    nodeGuid: integer('node_guid')
-      .notNull()
-      .references(() => questNode.guid),
+    nodeGuid: integer('node_guid').notNull(),
   },
   (table) => [
     primaryKey({

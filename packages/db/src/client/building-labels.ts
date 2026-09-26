@@ -1,10 +1,4 @@
-import {
-  type BuildingKind,
-  type BuildingType,
-  buildingKindValues,
-  buildingTypeValues,
-  type Lang,
-} from '../enums'
+import { type BuildingKind, buildingKindValues, type Lang } from '../enums'
 
 const kindNames: Record<Lang, Record<BuildingKind, string>> = {
   de: {
@@ -33,25 +27,6 @@ const kindNames: Record<Lang, Record<BuildingKind, string>> = {
   },
 }
 
-const typeNames: Record<Lang, Record<BuildingType, string>> = {
-  de: {
-    Factory: 'Fabrik',
-    Logistic: 'Logistik',
-    Other: 'Sonstiges',
-    Public: 'Öffentlichkeit',
-    Residence: 'Wohnhaus',
-    Warehouse: 'Lagerhaus',
-  },
-  en: {
-    Factory: 'Factory',
-    Logistic: 'Logistic',
-    Other: 'Other',
-    Public: 'Public',
-    Residence: 'Residence',
-    Warehouse: 'Warehouse',
-  },
-}
-
 export function kindLabel(key: BuildingKind | null, lang: Lang) {
   return key === null
     ? null
@@ -61,25 +36,9 @@ export function kindLabel(key: BuildingKind | null, lang: Lang) {
       }
 }
 
-export function typeLabel(key: BuildingType | null, lang: Lang) {
-  return key === null
-    ? null
-    : {
-        key,
-        name: typeNames[lang][key],
-      }
-}
-
 export function kinds({ lang }: { lang: Lang }) {
   return buildingKindValues.map((key) => ({
     key,
     name: kindNames[lang][key],
-  }))
-}
-
-export function types({ lang }: { lang: Lang }) {
-  return buildingTypeValues.map((key) => ({
-    key,
-    name: typeNames[lang][key],
   }))
 }

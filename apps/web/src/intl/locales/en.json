@@ -125,7 +125,6 @@
     "items": {
       "filters": {
         "allocations": "Allocation",
-        "categories": "Category",
         "dlcs": "DLC",
         "niches": "Niche",
         "rarities": "Rarity",

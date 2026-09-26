@@ -17,16 +17,6 @@ export const buildingKindValues = [
 ] as const
 export type BuildingKind = (typeof buildingKindValues)[number]
 
-export const buildingTypeValues = [
-  'Factory',
-  'Logistic',
-  'Other',
-  'Public',
-  'Residence',
-  'Warehouse',
-] as const
-export type BuildingType = (typeof buildingTypeValues)[number]
-
 export const chainTypeValues = [
   'Consumer',
   'Harbour',
@@ -75,21 +65,6 @@ export const conditionTemplateValues = [
 ] as const
 export type ConditionTemplate = (typeof conditionTemplateValues)[number]
 
-export const effectScopeValues = [
-  'Area',
-  'AreasInMeta',
-  'AreasInSession',
-  'Local',
-  'Meta',
-  'ModuleOwner',
-  'ObjectsInArea',
-  'ObjectsInMeta',
-  'ObjectsInSession',
-  'Radius',
-  'StreetDistance',
-] as const
-export type EffectScope = (typeof effectScopeValues)[number]
-
 export const itemSourceKindValues = [
   'contract',
   'defeated',
@@ -111,16 +86,6 @@ export const itemTypeValues = [
 ] as const
 export type ItemType = (typeof itemTypeValues)[number]
 
-export const needCategoryValues = [
-  'Culture',
-  'Fashion',
-  'Food',
-  'Household',
-  'Public',
-  'Wonders',
-] as const
-export type NeedCategory = (typeof needCategoryValues)[number]
-
 export const nicheValues = [
   'Agriculture',
   'Culture',
@@ -135,37 +100,6 @@ export const nicheValues = [
 ] as const
 export type Niche = (typeof nicheValues)[number]
 
-export const nodeTypeValues = [
-  'ComplexCombination',
-  'Decision',
-  'DecisionRoot',
-  'DenyAndExit',
-  'Exit',
-  'Function',
-  'FunctionImmediate',
-  'Loop',
-  'Objective',
-  'QuestLine',
-  'Sequence',
-  'SequenceCharNotif',
-  'Starter',
-  'StateChecker',
-  'StoryLine',
-  'Success',
-] as const
-export type NodeType = (typeof nodeTypeValues)[number]
-
-export const optionCategoryValues = ['None', 'Rebellion'] as const
-export type OptionCategory = (typeof optionCategoryValues)[number]
-
-export const participantKindValues = [
-  'Emperor',
-  'Pirate',
-  'Rival',
-  'Trader',
-] as const
-export type ParticipantKind = (typeof participantKindValues)[number]
-
 export const productKindValues = [
   'Good',
   'Meta',
@@ -173,14 +107,6 @@ export const productKindValues = [
   'Workforce',
 ] as const
 export type ProductKind = (typeof productKindValues)[number]
-
-export const questCategoryValues = [
-  'Campaign',
-  'Contracts',
-  'Quests',
-  'Tutorials',
-] as const
-export type QuestCategory = (typeof questCategoryValues)[number]
 
 export const racerAttributeValues = [
   'Boost',
@@ -201,31 +127,6 @@ export const rarityValues = [
   'Unique',
 ] as const
 export type Rarity = (typeof rarityValues)[number]
-
-export const sourceCategoryValues = [
-  'Adjacency',
-  'Aqueduct',
-  'Assembly',
-  'Diplomacy',
-  'Festival',
-  'Generic',
-  'Institution',
-  'Item',
-  'MajorIncident',
-  'Religion',
-  'Tech',
-  'Threat',
-  'Volcano',
-  'Wonder',
-] as const
-export type SourceCategory = (typeof sourceCategoryValues)[number]
-
-export const storylineSystemValues = [
-  'Contracts',
-  'GovernorDecisions',
-  'Quests',
-] as const
-export type StorylineSystem = (typeof storylineSystemValues)[number]
 
 export const subConditionOrderValues = [
   'Linear',
@@ -261,55 +162,11 @@ export type Lang = (typeof langValues)[number]
 export const dlcValues = [
   'DLC01_Prophecies_of_Ash',
   'DLC02_The_Hippodrome',
-  'DLC03_Dawn_of_Delta',
 ] as const
 export type Dlc = (typeof dlcValues)[number]
 
-export const regionValues = ['Roman', 'Celtic', 'Egyptian'] as const
+export const regionValues = ['Roman', 'Celtic'] as const
 export type Region = (typeof regionValues)[number]
-
-export const buildingCategoryValues = [
-  'Amenity',
-  'Arable Farm',
-  'Armoury',
-  'Artisanal Studio',
-  'Barterer',
-  'Celtic Residence',
-  'City Watch',
-  'Clothier',
-  'Defensive Building',
-  'Emperor Representative',
-  'Extractor',
-  'Fishery',
-  'Forest Camp',
-  'Free Trader',
-  'Gatherer',
-  'Harbour Building',
-  'Hunting Cabin',
-  'Infrastructure Building',
-  'Kitchen',
-  'Livestock Farm',
-  'Marvel',
-  'Mine',
-  'Monument— Marvel',
-  'Ornamental Road',
-  'Pit',
-  'Plantation',
-  'Public Service',
-  'Quarry',
-  'Recruitment Building',
-  'Refinery',
-  'Road',
-  'Roman Residence',
-  'Romano-Celtic Residence',
-  'Shrine',
-  'Smelter',
-  'Specialist Building',
-  'Upholsterer',
-  'Victualler',
-  'Workshop',
-] as const
-export type BuildingCategory = (typeof buildingCategoryValues)[number]
 
 /** ISO code -> name of the game's texts file / lang table row */
 export const langNames = {

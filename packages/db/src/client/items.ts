@@ -13,7 +13,6 @@ import { db } from '../db'
 import {
   type Allocation,
   type Attribute,
-  type BuildingCategory,
   type ItemType,
   type Lang,
   type Niche,
@@ -21,12 +20,10 @@ import {
 } from '../enums'
 import {
   attribute,
-  buff,
   buffModifier,
   building,
   condition,
   dlc,
-  effect,
   effectBuff,
   effectTargetPool,
   festival,
@@ -53,7 +50,6 @@ import {
 } from './item-labels'
 import { modifierName } from './modifier-labels'
 import {
-  categoryIn,
   type Get,
   groupBy,
   langId,
@@ -72,8 +68,6 @@ export type ItemFilter = {
   allocations?: Array<Allocation>
   /** DLC guids */
   dlcs?: Array<number>
-  /** building categories (see `buildings.categories`) the item's effect targets */
-  categories?: Array<BuildingCategory>
   /** attribute keys (Money, Knowledge …) the item's effect modifies */
   attributes?: Array<Attribute>
 }
@@ -85,26 +79,6 @@ function itemWhere(f: ItemFilter): SQL | undefined {
     f.types?.length ? inArray(item.type, f.types) : undefined,
     f.allocations?.length ? inArray(item.allocation, f.allocations) : undefined,
     f.dlcs?.length ? inArray(item.dlcGuid, f.dlcs) : undefined,
-    f.categories?.length
-      ? exists(
-          db
-            .select({
-              one: sql`1`,
-            })
-            .from(effectTargetPool)
-            .innerJoin(
-              poolMember,
-              eq(poolMember.poolGuid, effectTargetPool.poolGuid),
-            )
-            .innerJoin(building, eq(building.guid, poolMember.assetGuid))
-            .where(
-              and(
-                eq(effectTargetPool.effectGuid, item.effectGuid),
-                categoryIn(f.categories),
-              ),
-            ),
-        )
-      : undefined,
     f.attributes?.length
       ? exists(
           db
@@ -156,8 +130,7 @@ async function itemDetails(guids: Array<number>, lang: Lang) {
       })
       .from(item)
       .innerJoin(effectBuff, eq(effectBuff.effectGuid, item.effectGuid))
-      .innerJoin(buff, eq(buff.guid, effectBuff.buffGuid))
-      .innerJoin(buffModifier, eq(buffModifier.buffGuid, buff.guid))
+      .innerJoin(buffModifier, eq(buffModifier.buffGuid, effectBuff.buffGuid))
       .leftJoin(attribute, eq(attribute.id, buffModifier.attributeId))
       .where(inArray(item.guid, guids)),
     db
@@ -166,8 +139,10 @@ async function itemDetails(guids: Array<number>, lang: Lang) {
         ...modifierColumns,
       })
       .from(itemBoostBuff)
-      .innerJoin(buff, eq(buff.guid, itemBoostBuff.buffGuid))
-      .innerJoin(buffModifier, eq(buffModifier.buffGuid, buff.guid))
+      .innerJoin(
+        buffModifier,
+        eq(buffModifier.buffGuid, itemBoostBuff.buffGuid),
+      )
       .leftJoin(attribute, eq(attribute.id, buffModifier.attributeId))
       .where(inArray(itemBoostBuff.itemGuid, guids)),
     db
@@ -257,7 +232,6 @@ async function queryItems(f: ItemFilter & Page, id?: number) {
           key: dlc.key,
           name: dlcT.value,
         },
-        effectScope: effect.scope,
         guid: item.guid,
         hint: hintT.value,
         icon: item.icon,
@@ -271,7 +245,6 @@ async function queryItems(f: ItemFilter & Page, id?: number) {
       .leftJoin(nameT, on(nameT, item.nameText, f.lang))
       .leftJoin(descT, on(descT, item.descriptionText, f.lang))
       .leftJoin(hintT, on(hintT, item.boostHintText, f.lang))
-      .leftJoin(effect, eq(effect.guid, item.effectGuid))
       .leftJoin(dlc, eq(dlc.guid, item.dlcGuid))
       .leftJoin(dlcT, on(dlcT, dlc.nameText, f.lang))
       .where(where)
@@ -336,20 +309,6 @@ async function list(f: ItemFilter & Page) {
   return await queryItems(f)
 }
 
-function listSpecialists(f: Omit<ItemFilter, 'types'> & Page) {
-  return list({
-    ...f,
-    types: ['Specialist'],
-  })
-}
-
-function listCaptains(f: Omit<ItemFilter, 'types'> & Page) {
-  return list({
-    ...f,
-    types: ['Captains'],
-  })
-}
-
 export const items = {
   allocations,
   get,
@@ -357,12 +316,4 @@ export const items = {
   niches,
   rarities,
   types,
-}
-export const specialists = {
-  get,
-  list: listSpecialists,
-}
-export const captains = {
-  get,
-  list: listCaptains,
 }

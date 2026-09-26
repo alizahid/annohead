@@ -196,6 +196,29 @@ choices lead somewhere.
   volcano phases, participants' profiles …); the client falls back to it when naming a condition's subject.
 - `condition.sub_order`: how sub-conditions combine (`Parallel` / `Linear`: all, `MutuallyExclusive`: one of them).
 
+### Pruning (2026-09-26)
+
+The site DB only keeps what `packages/db/src/client` reads; `transform.py` `prune()` runs last. So several tables
+above no longer ship:
+
+- Internal asset `name` columns are gone everywhere; the build reads them from `source.sqlite`. Region names come
+  from the game's `Region` assets (`region.name_text`).
+- `quest_node`, `quest_edge` and `storyline_variable` are build-time scratch. A choice's screen (headline, text,
+  speaker, check condition) is copied onto `quest_choice`.
+- Quest rows outside questlines (radiant requests, contracts) are deleted, as are their conditions. `quest` keeps
+  only journal entries that reward items (for `item_source`); `storyline` only questline parts, item sources and
+  follow-up rewards.
+- Effects nothing grants (building, item, tech, quest reward, or a buff's nearby effect of those) and modifiers of
+  buffs no kept effect or item boost uses are deleted. The `buff` table itself is gone; `buff_guid` stays as a key.
+- Dropped outright: `effect_source`, `quest_pool*`, `residence_upgrade_cost`, `tech_requirement`, and the columns
+  building `type`/`health`/`population_level_guid`, product `base_price`/`category_text`, need
+  `name_text`/`category`/`description_text`, effect `scope`/`source_category`, item `template`, tech `image`,
+  `tech_category.type`, `unlock.source_kind`, factory `storage`, `quest_option.category`.
+- `translation` only holds lines some remaining `*_text` column points at.
+- Unreleased content is left out: a DLC only when its `UplayProduct.IsInstalled` is set (Dawn of the Delta is
+  announced but not shipped), a region only when the game has a `Region` asset for it (Egyptian has none yet, though
+  base buildings and goods already list it). Both appear on their own once a patch ships them.
+
 ## Decisions (2026-09-09)
 
 1. **Storylines and quests are separate tables**, Wowhead-style. `storyline` = game `StoryLine` (the chain,

@@ -1,44 +1,26 @@
-import {
-  and,
-  asc,
-  count,
-  desc,
-  eq,
-  inArray,
-  ne,
-  type SQL,
-  sql,
-} from 'drizzle-orm'
+import { and, asc, count, desc, eq, inArray, ne } from 'drizzle-orm'
 
 import { db } from '../db'
-import { type Lang, type StorylineSystem } from '../enums'
+import { type Lang } from '../enums'
 import {
   assetName,
   attribute,
-  buff,
   buffModifier,
-  building,
   condition,
   dlc,
   effect,
   effectBuff,
   effectTargetPool,
-  item,
-  product,
-  quest,
   questChoice,
   questChoiceOutcome,
-  questEdge,
   questline,
   questlineStoryline,
-  questNode,
   questOption,
   questReward,
   questVariableChange,
   region,
   storyline,
   storylineCondition,
-  storylineVariable,
 } from '../schema'
 import {
   anyOfLabel,
@@ -59,201 +41,6 @@ import {
   paginate,
   regionColumns,
 } from './shared'
-
-// ---------------------------------------------------------------- rewards
-
-/** Rewards for a set of quest nodes, with the rewarded asset's name resolved (product, item or building). */
-function rewardRows(nodeGuids: Array<number>, lang: Lang) {
-  const pName = localized('p_name')
-  const iName = localized('i_name')
-  const bName = localized('b_name')
-  return db
-    .select({
-      amount: questReward.amount,
-      amountVariable: questReward.amountVariable,
-      assetGuid: questReward.assetGuid,
-      icon: sql<
-        string | null
-      >`coalesce(${product.icon}, ${item.icon}, ${building.icon})`,
-      kind: questReward.kind,
-      name: sql<
-        string | null
-      >`coalesce(${pName.value}, ${iName.value}, ${bName.value})`,
-      nodeGuid: questReward.nodeGuid,
-    })
-    .from(questReward)
-    .leftJoin(product, eq(product.guid, questReward.assetGuid))
-    .leftJoin(pName, on(pName, product.nameText, lang))
-    .leftJoin(item, eq(item.guid, questReward.assetGuid))
-    .leftJoin(iName, on(iName, item.nameText, lang))
-    .leftJoin(building, eq(building.guid, questReward.assetGuid))
-    .leftJoin(bName, on(bName, building.nameText, lang))
-    .where(inArray(questReward.nodeGuid, nodeGuids))
-}
-
-function optionRows(decisionGuids: Array<number>, lang: Lang) {
-  const oText = localized('o_text')
-  return db
-    .select({
-      category: questOption.category,
-      decisionGuid: questOption.decisionGuid,
-      idx: questOption.idx,
-      text: oText.value,
-    })
-    .from(questOption)
-    .leftJoin(oText, on(oText, questOption.textText, lang))
-    .where(inArray(questOption.decisionGuid, decisionGuids))
-    .orderBy(asc(questOption.idx))
-}
-
-function nodeRows(where: SQL, lang: Lang) {
-  const hText = localized('h_text')
-  const tText = localized('t_text')
-  const sText = localized('s_text')
-  return db
-    .select({
-      guid: questNode.guid,
-      headline: hText.value,
-      name: questNode.name,
-      questGuid: questNode.questGuid,
-      step: sText.value,
-      storylineGuid: questNode.storylineGuid,
-      text: tText.value,
-      timeLimitMs: questNode.timeLimitMs,
-      type: questNode.type,
-    })
-    .from(questNode)
-    .leftJoin(hText, on(hText, questNode.headlineText, lang))
-    .leftJoin(tText, on(tText, questNode.textText, lang))
-    .leftJoin(sText, on(sText, questNode.stepText, lang))
-    .where(where)
-}
-
-// ---------------------------------------------------------------- storylines
-
-export type StorylineFilter = {
-  lang: Lang
-  system?: StorylineSystem
-}
-
-const storylineQuestCount = db.$count(
-  quest,
-  eq(quest.storylineGuid, storyline.guid),
-)
-const storylineNodeCount = db.$count(
-  questNode,
-  eq(questNode.storylineGuid, storyline.guid),
-)
-
-/** Storylines (quest chains) with their journal quests. */
-async function listStorylines(f: StorylineFilter & Page) {
-  const qName = localized('q_name')
-  const where = and(f.system ? eq(storyline.system, f.system) : undefined)
-  const { limit, offset } = paginate(f)
-  const [[{ total }], rows] = await Promise.all([
-    db
-      .select({
-        total: count(),
-      })
-      .from(storyline)
-      .where(where),
-    db
-      .select({
-        guid: storyline.guid,
-        name: storyline.name,
-        nodeCount: storylineNodeCount,
-        questCount: storylineQuestCount,
-        system: storyline.system,
-      })
-      .from(storyline)
-      .where(where)
-      .orderBy(asc(storyline.name), asc(storyline.guid))
-      .limit(limit)
-      .offset(offset),
-  ])
-  const quests = await db
-    .select({
-      category: quest.category,
-      guid: quest.guid,
-      icon: quest.icon,
-      name: qName.value,
-      storylineGuid: quest.storylineGuid,
-    })
-    .from(quest)
-    .leftJoin(qName, on(qName, quest.nameText, f.lang))
-    .where(
-      inArray(
-        quest.storylineGuid,
-        rows.map((r) => r.guid),
-      ),
-    )
-  const q = groupBy(quests, 'storylineGuid')
-  return {
-    pages: Math.ceil(total / limit),
-    rows: rows.map((r) => ({
-      ...r,
-      quests: q(r.guid),
-    })),
-    total,
-  }
-}
-
-/** One storyline with its full node/edge graph for the flowchart view. */
-async function getStoryline({ id: guid, lang }: Get) {
-  const [[head], nodes, edges, variables] = await Promise.all([
-    db
-      .select({
-        guid: storyline.guid,
-        name: storyline.name,
-        system: storyline.system,
-      })
-      .from(storyline)
-      .where(eq(storyline.guid, guid)),
-    nodeRows(eq(questNode.storylineGuid, guid), lang),
-    db
-      .select({
-        fromGuid: questEdge.fromGuid,
-        idx: questEdge.idx,
-        kind: questEdge.kind,
-        optionIndex: questEdge.optionIndex,
-        toGuid: questEdge.toGuid,
-      })
-      .from(questEdge)
-      .innerJoin(questNode, eq(questNode.guid, questEdge.fromGuid))
-      .where(eq(questNode.storylineGuid, guid)),
-    db
-      .select({
-        name: storylineVariable.name,
-        startValue: storylineVariable.startValue,
-        type: storylineVariable.type,
-      })
-      .from(storylineVariable)
-      .where(eq(storylineVariable.storylineGuid, guid)),
-  ])
-  if (!head) {
-    return null
-  }
-  const nodeGuids = nodes.map((n) => n.guid)
-  const [rewards, options] = await Promise.all([
-    rewardRows(nodeGuids, lang),
-    optionRows(
-      nodes.filter((n) => n.type === 'Decision').map((n) => n.guid),
-      lang,
-    ),
-  ])
-  const r = groupBy(rewards, 'nodeGuid')
-  const o = groupBy(options, 'decisionGuid')
-  return {
-    ...head,
-    edges,
-    nodes: nodes.map((n) => ({
-      ...n,
-      options: o(n.guid),
-      rewards: r(n.guid),
-    })),
-    variables,
-  }
-}
 
 // ---------------------------------------------------------------- questlines
 
@@ -538,8 +325,7 @@ async function outcomeRows(nodeGuids: Array<number>, lang: Lang) {
           ...modifierColumns,
         })
         .from(effectBuff)
-        .innerJoin(buff, eq(buff.guid, effectBuff.buffGuid))
-        .innerJoin(buffModifier, eq(buffModifier.buffGuid, buff.guid))
+        .innerJoin(buffModifier, eq(buffModifier.buffGuid, effectBuff.buffGuid))
         .leftJoin(attribute, eq(attribute.id, buffModifier.attributeId))
         .where(inArray(effectBuff.effectGuid, effectGuids)),
       db
@@ -619,7 +405,7 @@ async function choiceRows(storylineGuids: Array<number>, lang: Lang) {
   const pName = localized('p_name')
   const choices = await db
     .select({
-      conditionId: questNode.conditionId,
+      conditionId: questChoice.conditionId,
       guid: questChoice.nodeGuid,
       headline: hText.value,
       kind: questChoice.kind,
@@ -632,10 +418,9 @@ async function choiceRows(storylineGuids: Array<number>, lang: Lang) {
       text: tText.value,
     })
     .from(questChoice)
-    .innerJoin(questNode, eq(questNode.guid, questChoice.nodeGuid))
-    .leftJoin(hText, on(hText, questNode.headlineText, lang))
-    .leftJoin(tText, on(tText, questNode.textText, lang))
-    .leftJoin(assetName, eq(assetName.guid, questNode.speakerGuid))
+    .leftJoin(hText, on(hText, questChoice.headlineText, lang))
+    .leftJoin(tText, on(tText, questChoice.textText, lang))
+    .leftJoin(assetName, eq(assetName.guid, questChoice.speakerGuid))
     .leftJoin(pName, on(pName, assetName.nameText, lang))
     .where(inArray(questChoice.storylineGuid, storylineGuids))
     .orderBy(asc(questChoice.storylineGuid), asc(questChoice.position))
@@ -774,12 +559,9 @@ async function getQuestline({ id, lang }: Get) {
       )
     ).rows[0] ?? null
   const titleT = localized('title')
-  const requestT = localized('request')
   const parts = await db
     .select({
       conditionId: storylineCondition.conditionId,
-      /** the governor request announcing the part */
-      description: requestT.value,
       guid: storyline.guid,
       icon: storyline.icon,
       name: titleT.value,
@@ -791,7 +573,6 @@ async function getQuestline({ id, lang }: Get) {
       eq(storylineCondition.storylineGuid, storyline.guid),
     )
     .leftJoin(titleT, on(titleT, storyline.titleText, lang))
-    .leftJoin(requestT, on(requestT, storyline.requestText, lang))
     .where(eq(questlineStoryline.questlineGuid, id))
     .orderBy(asc(questlineStoryline.idx))
   const guids = parts.map((part) => part.guid)
@@ -813,7 +594,6 @@ async function getQuestline({ id, lang }: Get) {
               }
             : choice,
         ),
-        description: questText(part.description, lang),
         name: questText(part.name, lang),
         /** what earlier choices must have been for this part to start; "not yet played" guards left out */
         requirements: conditionId
@@ -831,8 +611,4 @@ function listQuestlines(f: QuestFilter & Page) {
 export const quests = {
   get: getQuestline,
   list: listQuestlines,
-}
-export const storylines = {
-  get: getStoryline,
-  list: listStorylines,
 }

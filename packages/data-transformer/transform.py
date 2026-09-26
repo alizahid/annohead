@@ -13,13 +13,13 @@ from collections import defaultdict
 GUID = re.compile(r"^\d{4,}$")
 DLC_PATH = re.compile(r"/(c?dlc)(\d+)/", re.IGNORECASE)
 DLC_NAME = re.compile(r"(?<![A-Za-z])(C?DLC)0*(\d+)(?!\d)")
-PARTICIPANTS = {
-    "Participant 3rdParty": "Trader",
-    "Participant 3rdParty Pirate": "Pirate",
-    "Participant 2ndParty (Rival)": "Rival",
-    "Participant 3rdParty Emperor": "Emperor",
-}
-REGIONS = {"Roman": (1, "Latium"), "Celtic": (2, "Albion"), "Egyptian": (3, "Delta")}
+PARTICIPANTS = (
+    "Participant 3rdParty",
+    "Participant 3rdParty Pirate",
+    "Participant 2ndParty (Rival)",
+    "Participant 3rdParty Emperor",
+)
+REGIONS = {"Roman": 1, "Celtic": 2, "Egyptian": 3}
 BUILDING_KIND = [  # (template regex, kind); first match wins
     (r"^Production|^SlotFactory|^Slot_?Marsh|^Slot$", "Production"),
     (r"Residence|VillaUrban", "Residence"),
@@ -110,14 +110,13 @@ class T:
         for f, p, t in self.src.execute("select from_guid,path,to_guid from refs"):
             self.refs_to[t].append((f, p))
         self.icons_dir = icons_dir
-        self.used_texts = set()
         self.enums = defaultdict(set)
         self.attributes = {}
         self.conditions = []
         if os.path.exists(out):
             os.unlink(out)
         self.db = sqlite3.connect(out)
-        self.db.executescript(SCHEMA)
+        self.db.executescript(SCHEMA + SCRATCH)
 
     # ---- helpers -------------------------------------------------------------------------------------------
     def by_template(self, *tpls):
@@ -130,7 +129,6 @@ class T:
             tid = int(tid)
         except (TypeError, ValueError):
             return None  # a variable name, not a line id
-        self.used_texts.add(str(tid))
         return tid
 
     def num(self, x, default=None):
@@ -150,8 +148,8 @@ class T:
 
     def region(self, v):
         """single region id from an AssociatedRegions string; None when multi/none."""
-        parts = [r for r in str(v or "").split(";") if r in REGIONS]
-        return REGIONS[parts[0]][0] if len(parts) == 1 else None
+        parts = [r for r in str(v or "").split(";") if r in self.regions]
+        return self.regions[parts[0]] if len(parts) == 1 else None
 
     def enum(self, name, value):
         if value is None:
@@ -337,11 +335,18 @@ class T:
 
     # ---- lookups -------------------------------------------------------------------------------------------
     def lookups(self):
-        for key, (rid, name) in REGIONS.items():
-            self.db.execute("insert into region values(?,?,?)", (rid, key, name))
+        # only regions the game defines a Region asset for; unreleased ones (Egyptian, before Dawn of the Delta) have
+        # none yet, though base assets already list them in AssociatedRegions
+        self.regions = {}
+        for a in self.by_template("Region"):
+            key = D(a["v"].get("Region")).get("RegionID")
+            if key in REGIONS:
+                self.regions[key] = REGIONS[key]
+                self.db.execute("insert into region values(?,?,?)", (REGIONS[key], key, self.text(a["text_id"])))
         for a in self.by_template("UplayProduct"):
             u = D(a["v"].get("UplayProduct"))
-            if u.get("ProductType", "DLC") == "DLC" or "DLC" in (a["name"] or ""):
+            # IsInstalled marks content shipped in this build; announced DLCs only have a shop entry
+            if u.get("IsInstalled") == "1" and (u.get("ProductType", "DLC") == "DLC" or "DLC" in (a["name"] or "")):
                 self.db.execute(
                     "insert into dlc values(?,?,?,?)",
                     (
@@ -361,40 +366,27 @@ class T:
                 if tpl == "AssetPool" and not a["text_id"]:
                     continue
                 self.db.execute(
-                    f"insert into {table} values(?,?,?,?)",
-                    (a["guid"], a["name"], self.text(a["text_id"]), self.icon(a["icon"])),
+                    f"insert into {table} values(?,?,?)",
+                    (a["guid"], self.text(a["text_id"]), self.icon(a["icon"])),
                 )
-        for tpl, kind in PARTICIPANTS.items():
-            for a in self.by_template(tpl):
-                self.db.execute(
-                    "insert into participant values(?,?,?,?,?)",
-                    (
-                        a["guid"],
-                        a["name"],
-                        self.text(a["text_id"]),
-                        self.icon(a["icon"]),
-                        self.enum("participant_kind", kind),
-                    ),
-                )
+        for a in self.by_template(*PARTICIPANTS):
+            self.db.execute(
+                "insert into participant values(?,?,?)",
+                (a["guid"], self.text(a["text_id"]), self.icon(a["icon"])),
+            )
         for a in self.by_template("PopulationLevel"):
             p = D(a["v"].get("PopulationLevel"))
             tier = self.num(
                 str(p.get("PopulationTier", "Level1")).replace("Level", ""), 1
             )
-            wf = self.num(p.get("ConnectedWorkforce"))
-            reg = None
-            for r in REGIONS:
-                if r in (a["name"] or ""):
-                    reg = REGIONS[r][0]
             self.db.execute(
-                "insert into population_level values(?,?,?,?,?,?)",
+                "insert into population_level values(?,?,?,?,null,?)",
                 (
                     a["guid"],
                     self.text(a["text_id"]),
                     self.icon(a["icon"]),
                     tier,
-                    reg,
-                    wf,
+                    self.num(p.get("ConnectedWorkforce")),
                 ),
             )
 
@@ -412,35 +404,24 @@ class T:
             else:
                 kind = "Good"
             self.db.execute(
-                "insert into product values(?,?,?,?,?,?,?)",
+                "insert into product values(?,?,?,?)",
                 (
                     a["guid"],
-                    a["name"],
                     self.text(a["text_id"]),
                     self.icon(a["icon"]),
-                    self.text(p.get("ProductCategory")),
-                    self.num(p.get("BasePrice")),
                     self.enum("product_kind", kind),
                 ),
             )
             for r in str(p.get("AssociatedRegion") or "").split(";"):
-                if r in REGIONS:
+                if r in self.regions:
                     self.db.execute(
                         "insert into product_region values(?,?)",
-                        (a["guid"], REGIONS[r][0]),
+                        (a["guid"], self.regions[r]),
                     )
         for a in self.by_template("Need"):
             n = D(a["v"].get("Need"))
             self.db.execute(
-                "insert into need values(?,?,?,?,?,?)",
-                (
-                    a["guid"],
-                    a["name"],
-                    self.text(a["text_id"]),
-                    self.num(n.get("NeedProduct")),
-                    self.enum("need_category", n.get("NeedCategoryType")),
-                    self.text(n.get("NeedDescription")),
-                ),
+                "insert into need values(?,?)", (a["guid"], self.num(n.get("NeedProduct")))
             )
             for k, v in D(n.get("NeedAttributes")).items():
                 self.db.execute(
@@ -491,7 +472,7 @@ class T:
             return None
         reg = self.assets.get(self.num(D(session["v"].get("Session")).get("Region")))
         rid = D(reg["v"].get("Region")).get("RegionID") if reg else None
-        return REGIONS[rid][0] if rid in REGIONS else None
+        return self.regions.get(rid)
 
     def buildings(self):
         for a in self.assets.values():
@@ -510,50 +491,41 @@ class T:
                 (k for rx, k in BUILDING_KIND if re.search(rx, a["template"] or "")),
                 "Other",
             )
-            b, std, es, h = (
-                D(v["Building"]),
-                D(v["Standard"]),
-                D(v.get("EffectSource")),
-                D(v.get("Health")),
-            )
+            b, std, es = D(v["Building"]), D(v["Standard"]), D(v.get("EffectSource"))
             self.db.execute(
-                "insert into building values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                "insert into building values(?,?,?,?,?,?,?,?,?,?,?)",
                 (
                     a["guid"],
-                    a["name"],
                     self.text(a["text_id"]),
                     self.text(std.get("InfoDescription")),
                     self.icon(a["icon"]),
                     a["template"],
                     self.enum("building_kind", kind),
-                    self.enum("building_type", b.get("BuildingType")),
                     self.text(b.get("BuildingCategoryName")),
                     self.region(b.get("AssociatedRegions")),
                     self.num(es.get("RadiusDistance")),
                     self.num(es.get("StreetDistance")),
-                    self.num(h.get("BaseHealth")),
-                    self.num(D(v.get("AttributeProvider")).get("Population")),
                     self.building_dlc(v),
                 ),
             )
             for r in str(b.get("AssociatedRegions") or "").split(";"):
-                if r in REGIONS:
+                if r in self.regions:
                     self.db.execute(
                         "insert into building_region values(?,?)",
-                        (a["guid"], REGIONS[r][0]),
+                        (a["guid"], self.regions[r]),
                     )
             self.cost_rows(v, a["guid"], "building")
             for fe in self.items(b.get("FunctionalEffects")):
                 if self.num(fe.get("FunctionalEffect")):
                     self.db.execute(
-                        "insert into building_effect values(?,?,?)",
-                        (a["guid"], self.num(fe["FunctionalEffect"]), "adjacency"),
+                        "insert into building_effect values(?,?)",
+                        (a["guid"], self.num(fe["FunctionalEffect"])),
                     )
             ps = D(v.get("PublicService")).get("PublicServiceEffect")
             if self.num(ps):
                 self.db.execute(
-                    "insert into building_effect values(?,?,?)",
-                    (a["guid"], self.num(ps), "service"),
+                    "insert into building_effect values(?,?)",
+                    (a["guid"], self.num(ps)),
                 )
             fb = v.get("FactoryBase")
             if "FactoryBase" in v:
@@ -575,38 +547,16 @@ class T:
                     for i in self.items(fb.get(key)):
                         if self.num(i.get("Product")):
                             self.db.execute(
-                                f"insert into {tbl} values(?,?,?,?)",
-                                (
-                                    a["guid"],
-                                    self.num(i["Product"]),
-                                    self.num(i.get("Amount"), 1),
-                                    self.num(i.get("StorageAmount")),
-                                ),
+                                f"insert into {tbl} values(?,?,?)",
+                                (a["guid"], self.num(i["Product"]), self.num(i.get("Amount"), 1)),
                             )
             r7 = v.get("Residence7")
             if "Residence7" in v:
                 r7 = D(r7)
-                up = next(
-                    iter(self.items(D(v.get("Upgradable")).get("PossibleUpgrades"))), {}
-                )
                 self.db.execute(
-                    "insert into residence values(?,?,?)",
-                    (
-                        a["guid"],
-                        self.num(r7.get("PopulationLevel")),
-                        self.num(up.get("UpgradeGUID")),
-                    ),
+                    "insert into residence values(?,?)",
+                    (a["guid"], self.num(r7.get("PopulationLevel"))),
                 )
-                for c in self.items(up.get("Cost")):
-                    if self.num(c.get("Amount"), 0):
-                        self.db.execute(
-                            "insert into residence_upgrade_cost values(?,?,?)",
-                            (
-                                a["guid"],
-                                self.num(c["Ingredient"]),
-                                self.num(c["Amount"]),
-                            ),
-                        )
                 for n in self.items(r7.get("NeedsList")):
                     if self.num(n.get("Need")):
                         self.db.execute(
@@ -622,10 +572,9 @@ class T:
             pc = D(a["v"].get("ProductionChain"))
             root = self.num(pc.get("Building"))
             self.db.execute(
-                "insert into production_chain values(?,?,?,?,?,?)",
+                "insert into production_chain values(?,?,?,?,?)",
                 (
                     a["guid"],
-                    a["name"],
                     self.text(a["text_id"]),
                     self.icon(a["icon"]),
                     root,
@@ -633,6 +582,11 @@ class T:
                 ),
             )
             self._chain_nodes(a["guid"], pc, None, 0)
+        # a population tier lives where its residences do
+        self.db.execute(
+            """update population_level set region_id=(select b.region_id from residence r join building b
+               on b.guid=r.building_guid where r.population_level_guid=population_level.guid and b.region_id is not null)"""
+        )
         # a chain lives where its output building does (Roman Bread vs Roman Celtic Bread)
         self.db.execute(
             "update production_chain set region_id=(select region_id from building b where b.guid=production_chain.building_guid)"
@@ -674,15 +628,11 @@ class T:
         for a in self.by_template("Effect"):
             e = D(a["v"].get("Effect"))
             self.db.execute(
-                "insert into effect values(?,?,?,?,?,?,?,?)",
+                "insert into effect values(?,?,?,?)",
                 (
                     a["guid"],
-                    a["name"],
                     self.text(a["text_id"]),
                     self.text(a["v"]["Standard"].get("InfoDescription")),
-                    self.enum("effect_scope", e.get("EffectScope")),
-                    self.enum("source_category", e.get("SourceCategory")),
-                    1 if e.get("ExcludeEffectSourceGUID") == "1" else 0,
                     self.num(D(e.get("TimedEffect")).get("EffectDuration")),
                 ),
             )
@@ -704,40 +654,9 @@ class T:
             ]
             for t in dict.fromkeys(g for g in targets if g):
                 self.insert_target(a["guid"], t)
-            # who grants it: any non-effect/buff asset referencing this effect
-            for f, path in self.refs_to[a["guid"]]:
-                src = self.assets[f]
-                if src["template"] in (
-                    "Effect",
-                    "BuildingBuff",
-                    "AreaBuff",
-                    "ShipBuff",
-                    "TroopBuff",
-                    "DefenseBuildingBuff",
-                    "WarehouseBuff",
-                    "MetaBuff",
-                    "ForwardBuff",
-                ):
-                    continue
-                self.db.execute(
-                    "insert or ignore into effect_source values(?,?,?)",
-                    (a["guid"], src["template"], f),
-                )
         for a in self.assets.values():
             if not (a["template"] or "").endswith("Buff") or "Buff" not in a["v"]:
                 continue
-            self.db.execute(
-                "insert into buff values(?,?,?,?,?)",
-                (
-                    a["guid"],
-                    a["name"],
-                    self.text(a["text_id"]),
-                    self.icon(a["icon"]),
-                    self.enum(
-                        "source_category", D(a["v"]["Buff"]).get("SourceCategory")
-                    ),
-                ),
-            )
             for prop, body in a["v"].items():
                 if (
                     not prop.endswith("Upgrade")
@@ -815,15 +734,11 @@ class T:
             )  # the item asset itself carries the Effect property
             if e:
                 self.db.execute(
-                    "insert or ignore into effect values(?,?,?,?,?,?,?,?)",
+                    "insert or ignore into effect values(?,?,?,?)",
                     (
                         a["guid"],
-                        a["name"],
                         self.text(a["text_id"]),
                         None,
-                        self.enum("effect_scope", e.get("EffectScope")),
-                        self.enum("source_category", e.get("SourceCategory")),
-                        0,
                         self.num(D(e.get("TimedEffect")).get("EffectDuration")),
                     ),
                 )
@@ -836,20 +751,14 @@ class T:
                 for t in self.items(e.get("Targets")):
                     if self.num(t.get("GUID")):
                         self.insert_target(a["guid"], t["GUID"])
-                self.db.execute(
-                    "insert or ignore into effect_source values(?,?,?)",
-                    (a["guid"], a["template"], a["guid"]),
-                )
             boost = D(a["v"].get("ItemWithBoost"))
             self.db.execute(
-                "insert into item values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                "insert into item values(?,?,?,?,?,?,?,?,?,?,?,?)",
                 (
                     a["guid"],
-                    a["name"],
                     self.text(a["text_id"]),
                     self.text(a["v"]["Standard"].get("InfoDescription")),
                     self.icon(a["icon"]),
-                    a["template"],
                     self.enum("rarity", it.get("Rarity")),
                     self.enum("niche", it.get("Niche")),
                     self.enum("item_type", it.get("ItemType")),
@@ -936,10 +845,9 @@ class T:
             c = D(a["v"].get("TechCategory"))
             pos = D(c.get("Position"))
             self.db.execute(
-                "insert into tech_category values(?,?,?,?,?,?,?,?,?,?)",
+                "insert into tech_category values(?,?,?,?,?,?,?,?,?)",
                 (
                     a["guid"],
-                    c.get("CategoryType"),
                     self.text(c.get("CategoryName")),
                     self.text(D(a["v"].get("Standard")).get("InfoDescription")),
                     tech_by_name.get(f"Gate {c.get('CategoryType')} Early"),
@@ -964,10 +872,9 @@ class T:
             t = D(a["v"].get("Tech"))
             gp = D(t.get("GridPosition"))
             self.db.execute(
-                "insert into tech values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                "insert into tech values(?,?,?,?,?,?,?,?,?,?,?,?)",
                 (
                     a["guid"],
-                    a["name"],
                     self.text(t.get("TechName")),
                     self.text(t.get("TechDescription")),
                     self.icon(a["icon"]),
@@ -977,7 +884,6 @@ class T:
                     self.num(gp.get("Y"), 0),
                     category.get(a["guid"]),
                     1 if t.get("ShowConnectionToCategory") == "1" else 0,
-                    self.icon(asset_icon(t.get("TechInfoImage"))),
                     # Culture is None, Roman or Celtic
                     self.region(t.get("Culture")),
                     tech_dlc.get(a["guid"]),
@@ -1037,17 +943,6 @@ class T:
                             self.num(r.get("Amount"), 1),
                         ),
                     )
-            trig = self.assets.get(self.num(t.get("TechResearchableTrigger")))
-            if trig and D(trig["v"].get("Trigger")).get("TriggerCondition"):
-                self.db.execute(
-                    "insert into tech_requirement values(?,?)",
-                    (
-                        a["guid"],
-                        self.condition(
-                            "tech", a["guid"], trig["v"]["Trigger"]["TriggerCondition"]
-                        ),
-                    ),
-                )
         # every ActionUnlockAsset anywhere
         for a in self.assets.values():
             trig_cond = D(a["v"].get("Trigger")).get("TriggerCondition")
@@ -1061,8 +956,8 @@ class T:
                 for it in self.items(act.get("UnlockAssets")):
                     for g in self.flatten_pool(it.get("Asset")):
                         self.db.execute(
-                            "insert or ignore into unlock values(?,?,?,?)",
-                            (g, a["template"], a["guid"], cid),
+                            "insert or ignore into unlock values(?,?,?)",
+                            (g, a["guid"], cid),
                         )
 
     # ---- monument construction phases ----------------------------------------------------------------------
@@ -1119,34 +1014,10 @@ class T:
 
     # ---- quests --------------------------------------------------------------------------------------------
     def quests(self):
-        for a in self.by_template("QuestPool"):
-            self.db.execute(
-                "insert into quest_pool values(?,?)", (a["guid"], a["name"])
-            )
-            for s in self.items(D(a["v"].get("QuestPool")).get("StoryLines")):
-                if self.num(s.get("StoryLine")):
-                    self.db.execute(
-                        "insert into quest_pool_storyline values(?,?,?)",
-                        (
-                            a["guid"],
-                            self.num(s["StoryLine"]),
-                            self.num(s.get("Weight"), 1),
-                        ),
-                    )
         node_story = {}
         for a in self.by_template("StoryLine"):
             sl = D(a["v"].get("StoryLine"))
-            self.db.execute(
-                "insert into storyline values(?,?,?,?,?,?)",
-                (
-                    a["guid"],
-                    a["name"],
-                    self.enum("storyline_system", sl.get("System")),
-                    None,
-                    None,
-                    None,
-                ),
-            )
+            self.db.execute("insert into storyline(guid) values(?)", (a["guid"],))
             vc = D(
                 D(D(sl.get("StorylineVariables")).get("Values")).get(
                     "ConditionVariableConfiguration"
@@ -1161,13 +1032,8 @@ class T:
                 for var in self.items(vc.get(kind)):
                     if var.get("Name"):
                         self.db.execute(
-                            "insert into storyline_variable values(?,?,?,?)",
-                            (
-                                a["guid"],
-                                var["Name"],
-                                kind[:-9].lower(),
-                                var.get("StartValue"),
-                            ),
+                            "insert into storyline_variable values(?,?,?)",
+                            (a["guid"], var["Name"], var.get("StartValue")),
                         )
             cid = self.precondition_list(
                 "storyline", a["guid"], a["v"].get("PreConditionList")
@@ -1194,34 +1060,19 @@ class T:
                         kind = re.sub(r"\[\d+\]", "", path).removesuffix(".Component")
                         idx = int(m.group(1)) if m else None
                         self.db.execute(
-                            "insert or ignore into quest_edge values(?,?,?,?,?)",
-                            (
-                                g,
-                                self.num(val),
-                                kind,
-                                idx,
-                                (
-                                    idx
-                                    if kind == "DecisionRoot.DecisionRootOutput.Output"
-                                    else None
-                                ),
-                            ),
+                            "insert or ignore into quest_edge values(?,?,?,?)",
+                            (g, self.num(val), kind, idx),
                         )
                         queue.append(self.num(val))
         for a in self.by_template("QuestEntry"):
             q = D(a["v"].get("QuestEntry"))
             self.db.execute(
-                "insert into quest values(?,?,?,?,?,?,?,?,?)",
+                "insert into quest values(?,?,?,null,?)",
                 (
                     a["guid"],
-                    a["name"],
                     self.text(q.get("QuestName")),
-                    self.text(q.get("SummaryText")),
-                    self.enum("quest_category", q.get("Category", "Quests")),
                     self.icon(a["icon"]),
-                    None,
                     self.province_region(q.get("QuestProvince")),
-                    self.name_dlc(a["name"]),
                 ),
             )
         for g, story in node_story.items():
@@ -1247,19 +1098,16 @@ class T:
                 else None
             )
             self.db.execute(
-                "insert into quest_node values(?,?,?,?,?,?,?,?,?,?,?)",
+                "insert into quest_node values(?,?,?,?,?,?,?,?)",
                 (
                     g,
                     story,
-                    self.enum("node_type", a["template"]),
-                    a["name"],
+                    a["template"],
                     quest,
                     self.text(dsc.get("Headline") or cq.get("ObjectiveTextHeadline")),
                     self.text(
                         D(dsc.get("Text")).get("Value") or cq.get("ObjectiveTextFull")
                     ),
-                    self.text(cq.get("ObjectiveTextStep")),
-                    self.num(D(v.get("Objective")).get("ObjectiveTimeLimit")),
                     branch,
                     self.speaker(dsc),
                 ),
@@ -1274,12 +1122,11 @@ class T:
             ):
                 cost = D(opt.get("CostData")) if opt.get("HasCost") == "1" else {}
                 self.db.execute(
-                    "insert into quest_option values(?,?,?,?,?,?,?)",
+                    "insert into quest_option values(?,?,?,?,?,?)",
                     (
                         g,
                         i,
                         self.text(opt.get("OptionText")),
-                        self.enum("option_category", opt.get("Category")),
                         next(
                             (
                                 self.num(p.get("GUID"))
@@ -1334,13 +1181,6 @@ class T:
                         "update quest set storyline_guid=? where guid=? and storyline_guid is null",
                         (story, q),
                     )
-        # quests not named after their DLC inherit it from their storyline ("DLC02 QL01")
-        for guid, name in self.db.execute(
-            "select q.guid, s.name from quest q join storyline s on s.guid=q.storyline_guid where q.dlc_guid is null"
-        ).fetchall():
-            self.db.execute(
-                "update quest set dlc_guid=? where guid=?", (self.name_dlc(name), guid)
-            )
         # the rewarded asset's own name and icon, for assets without a table of their own (incidents, provinces, ships)
         for (g,) in self.db.execute(
             "select distinct asset_guid from quest_reward where asset_guid is not null"
@@ -1523,8 +1363,9 @@ class T:
                     for i in range(options[g])
                 ]
             self.db.execute(
-                "insert into quest_choice values(?,?,?,?)",
-                (g, story, kind, position[story]),
+                """insert into quest_choice select guid, storyline_guid, ?, ?, headline_text, text_text, condition_id,
+                   speaker_guid from quest_node where guid=?""",
+                (kind, position[story], g),
             )
             position[story] += 1
             for i, s in enumerate(starts):
@@ -1539,14 +1380,13 @@ class T:
         another reads (favours, flags, "part done") or when one starts the other. Radiant storylines (random
         requests and contracts), cut content and tutorials are left out."""
         story_of = dict(node_story)
-        names = dict(self.db.execute("select guid, name from storyline"))
-        systems = dict(self.db.execute("select guid, system from storyline"))
+        names = {s: self.assets[s]["name"] for (s,) in self.db.execute("select guid from storyline")}
         by_story = defaultdict(list)
         for g, s in node_story.items():
             by_story[s].append(g)
 
         def radiant(s):
-            return systems.get(s) == "Contracts" or any(
+            return D(self.assets[s]["v"].get("StoryLine")).get("System") == "Contracts" or any(
                 isinstance(d.get("SetVariableTo"), dict)
                 and re.search(r"Random|PoolEntry", json.dumps(d["SetVariableTo"]))
                 for g in by_story[s]
@@ -1808,11 +1648,53 @@ class T:
             )
 
     # ---- finish --------------------------------------------------------------------------------------------
+    def prune(self):
+        """Drop what the site never reads: scratch tables, quest data outside questlines, effects and buffs
+        nothing grants."""
+        self.db.executescript(
+            """
+            drop table quest_edge; drop table quest_node; drop table storyline_variable;
+            alter table quest drop column region_id;
+            alter table storyline drop column request_text;
+            -- questlines only
+            delete from quest_choice where storyline_guid not in (select storyline_guid from questline_storyline);
+            delete from storyline_condition where storyline_guid not in (select storyline_guid from questline_storyline);
+            delete from quest_choice_outcome where choice_guid not in (select node_guid from quest_choice);
+            delete from quest_option where decision_guid not in (select node_guid from quest_choice);
+            delete from quest_reward where node_guid not in (select node_guid from quest_choice_outcome);
+            delete from quest_variable_change where node_guid not in (select node_guid from quest_choice_outcome);
+            delete from condition where owner_kind in ('quest_option', 'quest_node') and owner_id not in (select node_guid from quest_choice)
+              or owner_kind = 'storyline' and owner_id not in (select storyline_guid from questline_storyline);
+            -- quests and storylines are only named as item sources, questline parts and follow-up rewards
+            delete from quest where guid not in (select source_guid from item_source where kind = 'quest');
+            delete from storyline where guid not in (
+              select storyline_guid from questline_storyline
+              union select source_guid from item_source where kind = 'storyline'
+              union select asset_guid from quest_reward where kind = 'storyline');
+            -- effects granted by buildings, items, techs and quests, plus the effects their buffs pass on to nearby buildings
+            create temp table used_effect as
+              select effect_guid guid from building_effect union select effect_guid from item where effect_guid is not null
+              union select effect_guid from tech_effect union select asset_guid from quest_reward where kind = 'effect';
+            insert into used_effect select bf.effect_guid from buff_functional_effect bf
+              join effect_buff eb on eb.buff_guid = bf.buff_guid where eb.effect_guid in (select guid from used_effect);
+            delete from effect where guid not in (select guid from used_effect);
+            delete from effect_buff where effect_guid not in (select guid from used_effect);
+            delete from effect_target_pool where effect_guid not in (select guid from used_effect);
+            delete from effect_target_building where effect_guid not in (select guid from used_effect);
+            create temp table used_buff as select buff_guid guid from effect_buff union select buff_guid from item_boost_buff;
+            delete from buff_modifier where buff_guid not in (select guid from used_buff);
+            delete from buff_functional_effect where buff_guid not in (select guid from used_buff);
+            delete from buff_provided_need where buff_guid not in (select guid from used_buff);
+            delete from condition_param where condition_id not in (select id from condition);
+            """
+        )
+
     def finish(self):
+        self.prune()
         # names of assets conditions point at, and of decision speakers, that have no table of their own
         # (provinces, volcano phases, narrative characters …)
         for (value,) in self.db.execute(
-            "select distinct value from condition_param union select speaker_guid from quest_node where speaker_guid is not null"
+            "select distinct value from condition_param union select speaker_guid from quest_choice where speaker_guid is not null"
         ).fetchall():
             a = self.assets.get(self.num(value))
             if a and a["text_id"]:
@@ -1825,11 +1707,16 @@ class T:
         for name, vals in self.enums.items():
             for v in sorted(vals):
                 self.db.execute("insert into enum_value values(?,?)", (name, v))
-        q = ",".join("?" * len(self.used_texts))
+        # every text line a *_text column still points at
+        used = set()
+        for (t,) in self.db.execute("select name from sqlite_master where type='table'").fetchall():
+            for (c,) in self.db.execute("select name from pragma_table_info(?) where name like '%\\_text' escape '\\'", (t,)).fetchall():
+                used |= {r for (r,) in self.db.execute(f"select distinct {c} from {t} where {c} is not null")}
+        q = ",".join("?" * len(used))
         langs = {}
         for lid, lang, val in self.src.execute(
             f"select line_id,lang,text from texts where line_id in ({q})",
-            list(self.used_texts),
+            list(used),
         ):
             if self.langs and lang not in self.langs:
                 continue
@@ -1874,93 +1761,83 @@ def dict_get(o, path):
 
 
 SCHEMA = """
-create table region(id integer primary key, key text, name text);
+create table region(id integer primary key, key text, name_text integer);
 create table dlc(guid integer primary key, key text, name_text integer, icon text);
-create table patron(guid integer primary key, name text, name_text integer, icon text);
-create table participant(guid integer primary key, name text, name_text integer, icon text, kind text);
-create table festival(guid integer primary key, name text, name_text integer, icon text);
-create table asset_pool(guid integer primary key, name text, name_text integer, icon text);
-create table monument_event(guid integer primary key, name text, name_text integer, icon text);
+create table patron(guid integer primary key, name_text integer, icon text);
+create table participant(guid integer primary key, name_text integer, icon text);
+create table festival(guid integer primary key, name_text integer, icon text);
+create table asset_pool(guid integer primary key, name_text integer, icon text);
+create table monument_event(guid integer primary key, name_text integer, icon text);
 create table population_level(guid integer primary key, name_text integer, icon text, tier int, region_id int references region(id), workforce_product_guid int);
 create table attribute(id integer primary key, key text unique);
 create table enum_value(name text, value text, primary key(name,value));
 create table lang(id integer primary key, code text);
 create table translation(line_id integer, lang_id integer references lang(id), value text, primary key(line_id,lang_id)) without rowid;
 
-create table product(guid integer primary key, name text, name_text integer, icon text, category_text integer, base_price real, kind text);
+create table product(guid integer primary key, name_text integer, icon text, kind text);
 create table product_region(product_guid int references product(guid), region_id int references region(id), primary key(product_guid,region_id));
-create table need(guid integer primary key, name text, name_text integer, product_guid int references product(guid), category text, description_text integer);
+create table need(guid integer primary key, product_guid int references product(guid));
 create table need_attribute(need_guid int references need(guid), attribute_id int references attribute(id), value real);
 
-create table building(guid integer primary key, name text, name_text integer, description_text integer, icon text, template text, kind text, type text,
-  category_text integer, region_id int references region(id), radius int, street_radius int, health int, population_level_guid int references population_level(guid), dlc_guid int references dlc(guid));
+create table building(guid integer primary key, name_text integer, description_text integer, icon text, template text, kind text,
+  category_text integer, region_id int references region(id), radius int, street_radius int, dlc_guid int references dlc(guid));
 create table building_region(building_guid int references building(guid), region_id int references region(id), primary key(building_guid,region_id));
 create table building_cost(building_guid int references building(guid), product_guid int references product(guid), amount real);
 create table building_maintenance(building_guid int references building(guid), product_guid int references product(guid), amount real);
-create table building_effect(building_guid int references building(guid), effect_guid int, kind text);
+create table building_effect(building_guid int references building(guid), effect_guid int);
 create table building_phase(guid integer primary key, building_guid int references building(guid), phase int, name_text integer, duration_seconds int);
 create table building_phase_cost(phase_guid int references building_phase(guid), product_guid int references product(guid), amount real);
 create table building_phase_maintenance(phase_guid int references building_phase(guid), product_guid int references product(guid), amount real);
 create table factory(building_guid integer primary key references building(guid), cycle_time real, base_productivity real, transporter_range int, needs_fuel int not null default 0);
-create table factory_input(building_guid int references building(guid), product_guid int references product(guid), amount real, storage int);
-create table factory_output(building_guid int references building(guid), product_guid int references product(guid), amount real, storage int);
-create table residence(building_guid integer primary key references building(guid), population_level_guid int references population_level(guid), upgrade_to_guid int);
+create table factory_input(building_guid int references building(guid), product_guid int references product(guid), amount real);
+create table factory_output(building_guid int references building(guid), product_guid int references product(guid), amount real);
+create table residence(building_guid integer primary key references building(guid), population_level_guid int references population_level(guid));
 create table residence_need(building_guid int references building(guid), need_guid int references need(guid), consumption_rate real, buff_only int);
-create table residence_upgrade_cost(building_guid int references building(guid), product_guid int references product(guid), amount real);
-create table production_chain(guid integer primary key, name text, name_text integer, icon text, building_guid int references building(guid), region_id int references region(id));
+create table production_chain(guid integer primary key, name_text integer, icon text, building_guid int references building(guid), region_id int references region(id));
 create table production_chain_node(id integer primary key, chain_guid int references production_chain(guid), parent_id int, building_guid int, tier int);
 create table production_chain_category(chain_guid int references production_chain(guid), type text, population_level_guid int references population_level(guid), unique(chain_guid, type, population_level_guid));
 
-create table effect(guid integer primary key, name text, name_text integer, description_text integer, scope text, source_category text, exclude_source int, duration_ms int);
+create table effect(guid integer primary key, name_text integer, description_text integer, duration_ms int);
 create table effect_buff(effect_guid int references effect(guid), buff_guid int, primary key(effect_guid,buff_guid));
 create table effect_target_pool(effect_guid int references effect(guid), pool_guid int, name_text integer, kind text, icon text, primary key(effect_guid,pool_guid));
 create table effect_target_building(effect_guid int references effect(guid), pool_guid int, building_guid int references building(guid), primary key(effect_guid,pool_guid,building_guid)) without rowid;
 create table pool_member(pool_guid int, asset_guid int, primary key(pool_guid,asset_guid)) without rowid;
 create view effect_target as select etp.effect_guid, pm.asset_guid building_guid from effect_target_pool etp join pool_member pm using(pool_guid);
-create table effect_source(effect_guid int references effect(guid), source_kind text, source_guid int, primary key(effect_guid,source_guid)) without rowid;
-create table buff(guid integer primary key, name text, name_text integer, icon text, source_category text);
-create table buff_modifier(buff_guid int references buff(guid), path text, attribute_id int references attribute(id), value real, is_percent int, product_guid int references product(guid));
-create table buff_functional_effect(buff_guid int references buff(guid), effect_guid int);
-create table buff_provided_need(buff_guid int references buff(guid), need_guid int references need(guid), primary key(buff_guid,need_guid));
+create table buff_modifier(buff_guid int, path text, attribute_id int references attribute(id), value real, is_percent int, product_guid int references product(guid));
+create table buff_functional_effect(buff_guid int, effect_guid int);
+create table buff_provided_need(buff_guid int, need_guid int references need(guid), primary key(buff_guid,need_guid));
 
-create table item(guid integer primary key, name text, name_text integer, description_text integer, icon text, template text, rarity text, niche text, type text,
+create table item(guid integer primary key, name_text integer, description_text integer, icon text, rarity text, niche text, type text,
   allocation text, trade_price real, effect_guid int references effect(guid), boost_hint_text integer, dlc_guid int references dlc(guid));
-create table item_boost_buff(item_guid int references item(guid), buff_guid int references buff(guid));
+create table item_boost_buff(item_guid int references item(guid), buff_guid int);
 create table item_boost_condition(item_guid int references item(guid), condition_id int);
 create table item_source(item_guid int references item(guid), kind text, source_guid int, primary key(item_guid,kind,source_guid)) without rowid;
 
-create table tech_category(guid integer primary key, type text, name_text integer, description_text integer, gate_guid int, icon text, artwork text, x int, y int, sort int);
-create table tech(guid integer primary key, name text, name_text integer, description_text integer, icon text, knowledge_needed real, is_gate int, grid_x int, grid_y int,
-  category_guid int references tech_category(guid), show_connection_to_category int, image text,
+create table tech_category(guid integer primary key, name_text integer, description_text integer, gate_guid int, icon text, artwork text, x int, y int, sort int);
+create table tech(guid integer primary key, name_text integer, description_text integer, icon text, knowledge_needed real, is_gate int, grid_x int, grid_y int,
+  category_guid int references tech_category(guid), show_connection_to_category int,
   region_id int references region(id), dlc_guid int references dlc(guid));
 create table tech_unlock_reward(tech_guid int references tech(guid), idx int, asset_guid int, name_text integer, description_text integer, icon text, building_guid int references building(guid), primary key(tech_guid,idx)) without rowid;
 create table tech_unlock(tech_guid int references tech(guid), asset_guid int, primary key(tech_guid,asset_guid));
 create table tech_effect(tech_guid int references tech(guid), effect_guid int);
 create table tech_resource(tech_guid int references tech(guid), product_guid int, amount real);
-create table tech_requirement(tech_guid int references tech(guid), condition_id int);
-create table unlock(asset_guid int, source_kind text, source_guid int, condition_id int, primary key(asset_guid,source_guid));
+create table unlock(asset_guid int, source_guid int, condition_id int, primary key(asset_guid,source_guid));
 create table condition(id integer primary key, owner_kind text, owner_id int, template text not null, negate int, parent_id int, sub_order text);
 create table condition_param(condition_id int references condition(id), key text, value text);
 create table asset_name(guid integer primary key, name_text integer, icon text);
 
-create table storyline(guid integer primary key, name text, system text, title_text integer, request_text integer, icon text);
-create table storyline_variable(storyline_guid int references storyline(guid), name text, type text, start_value text);
+create table storyline(guid integer primary key, title_text integer, request_text integer, icon text); -- request_text: build only
 create table storyline_condition(storyline_guid int references storyline(guid), condition_id int);
-create table quest_pool(guid integer primary key, name text);
-create table quest_pool_storyline(pool_guid int references quest_pool(guid), storyline_guid int, weight real);
-create table quest(guid integer primary key, name text, name_text integer, summary_text integer, category text, icon text, storyline_guid int,
-  region_id int references region(id), dlc_guid int references dlc(guid));
-create table quest_node(guid integer primary key, storyline_guid int references storyline(guid), type text, name text, quest_guid int, headline_text integer, text_text integer, step_text integer, time_limit_ms int,
-  condition_id int references condition(id), speaker_guid int);
-create table quest_edge(from_guid int, to_guid int, kind text, idx int, option_index int, primary key(from_guid,to_guid,kind,idx)) without rowid;
-create table quest_option(decision_guid int references quest_node(guid), idx int, text_text integer, category text,
+create table quest(guid integer primary key, name_text integer, icon text, storyline_guid int, region_id int); -- region_id: build only
+create table quest_option(decision_guid int references quest_choice(node_guid), idx int, text_text integer,
   cost_guid int, cost_amount real, condition_id int references condition(id));
-create table quest_variable_change(node_guid int references quest_node(guid), variable text, operation text, value text, value_variable text);
-create table quest_choice(node_guid integer primary key references quest_node(guid), storyline_guid int references storyline(guid), kind text, position int);
-create table quest_choice_outcome(choice_guid int references quest_choice(node_guid), idx int, node_guid int references quest_node(guid), primary key(choice_guid, idx, node_guid)) without rowid;
+create table quest_variable_change(node_guid int, variable text, operation text, value text, value_variable text);
+create table quest_choice(node_guid integer primary key, storyline_guid int references storyline(guid), kind text, position int,
+  headline_text integer, text_text integer, condition_id int references condition(id), speaker_guid int);
+create table quest_choice_outcome(choice_guid int references quest_choice(node_guid), idx int, node_guid int, primary key(choice_guid, idx, node_guid)) without rowid;
 create table questline(guid integer primary key, title_text integer, icon text, region_id int references region(id), dlc_guid int references dlc(guid));
 create table questline_storyline(questline_guid int references questline(guid), storyline_guid int references storyline(guid), idx int, primary key(questline_guid, storyline_guid)) without rowid;
-create table quest_reward(node_guid int references quest_node(guid), kind text, asset_guid int, amount real, amount_variable text,
+create table quest_reward(node_guid int, kind text, asset_guid int, amount real, amount_variable text,
   name_text integer, icon text, attribute text);
 -- child tables looked up by parent (composite primary keys already cover the rest)
 create index idx_need_attribute_need on need_attribute(need_guid);
@@ -1975,7 +1852,6 @@ create index idx_factory_input_product on factory_input(product_guid);
 create index idx_factory_output_building on factory_output(building_guid);
 create index idx_factory_output_product on factory_output(product_guid);
 create index idx_residence_need_building on residence_need(building_guid);
-create index idx_residence_upgrade_cost_building on residence_upgrade_cost(building_guid);
 create index idx_production_chain_node_chain on production_chain_node(chain_guid);
 create index idx_production_chain_category_chain on production_chain_category(chain_guid);
 create index idx_buff_modifier_buff on buff_modifier(buff_guid);
@@ -1985,20 +1861,21 @@ create index idx_item_boost_condition_item on item_boost_condition(item_guid);
 create index idx_tech_unlock_asset on tech_unlock(asset_guid);
 create index idx_tech_effect_tech on tech_effect(tech_guid);
 create index idx_tech_resource_tech on tech_resource(tech_guid);
-create index idx_tech_requirement_tech on tech_requirement(tech_guid);
 create index idx_condition_param_condition on condition_param(condition_id);
-create index idx_storyline_variable_storyline on storyline_variable(storyline_guid);
 create index idx_storyline_condition_storyline on storyline_condition(storyline_guid);
-create index idx_quest_pool_storyline_pool on quest_pool_storyline(pool_guid);
 create index idx_quest_storyline on quest(storyline_guid);
-create index idx_quest_node_storyline on quest_node(storyline_guid);
-create index idx_quest_node_quest on quest_node(quest_guid);
-create index idx_quest_edge_to on quest_edge(to_guid);
 create index idx_quest_option_decision on quest_option(decision_guid);
 create index idx_quest_reward_node on quest_reward(node_guid);
 create index idx_quest_variable_change_node on quest_variable_change(node_guid);
 create index idx_quest_choice_storyline on quest_choice(storyline_guid);
 create index idx_questline_storyline_storyline on questline_storyline(storyline_guid);
+"""
+# build-time scratch tables, dropped by prune()
+SCRATCH = """
+create table storyline_variable(storyline_guid int, name text, start_value text);
+create table quest_node(guid integer primary key, storyline_guid int, type text, quest_guid int, headline_text integer, text_text integer,
+  condition_id int, speaker_guid int);
+create table quest_edge(from_guid int, to_guid int, kind text, idx int, primary key(from_guid,to_guid,kind,idx)) without rowid;
 """
 
 if __name__ == "__main__":

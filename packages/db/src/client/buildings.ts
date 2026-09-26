@@ -1,15 +1,9 @@
-import { and, asc, count, eq, exists, inArray, sql } from 'drizzle-orm'
+import { and, asc, count, eq, exists, inArray } from 'drizzle-orm'
 
 import { db } from '../db'
-import {
-  type BuildingCategory,
-  type BuildingKind,
-  type BuildingType,
-  type Lang,
-} from '../enums'
+import { type BuildingKind, type Lang } from '../enums'
 import {
   attribute,
-  buff,
   buffModifier,
   buffProvidedNeed,
   building,
@@ -33,9 +27,8 @@ import {
   techUnlock,
 } from '../schema'
 import { attributeName } from './attribute-labels'
-import { kindLabel, kinds, typeLabel, types } from './building-labels'
+import { kindLabel, kinds } from './building-labels'
 import {
-  categoryIn,
   type Get,
   groupBy,
   localized,
@@ -49,8 +42,6 @@ import { unlockRequirements } from './unlock-requirements'
 export type BuildingFilter = {
   lang: Lang
   kinds?: Array<BuildingKind>
-  types?: Array<BuildingType>
-  categories?: Array<BuildingCategory>
   regions?: Array<number>
   /** DLC guids */
   dlcs?: Array<number>
@@ -61,8 +52,6 @@ export type BuildingFilter = {
 function buildingWhere(f: BuildingFilter) {
   return and(
     f.kinds?.length ? inArray(building.kind, f.kinds) : undefined,
-    f.types?.length ? inArray(building.type, f.types) : undefined,
-    f.categories?.length ? categoryIn(f.categories) : undefined,
     f.regions?.length ? inArray(building.regionId, f.regions) : undefined,
     f.dlcs?.length ? inArray(building.dlcGuid, f.dlcs) : undefined,
     f.tiers?.length
@@ -186,8 +175,7 @@ function effectRows(guids: Array<number>) {
     })
     .from(buildingEffect)
     .innerJoin(effectBuff, eq(effectBuff.effectGuid, buildingEffect.effectGuid))
-    .innerJoin(buff, eq(buff.guid, effectBuff.buffGuid))
-    .innerJoin(buffModifier, eq(buffModifier.buffGuid, buff.guid))
+    .innerJoin(buffModifier, eq(buffModifier.buffGuid, effectBuff.buffGuid))
     .leftJoin(attribute, eq(attribute.id, buffModifier.attributeId))
     .where(inArray(buildingEffect.buildingGuid, guids))
 }
@@ -331,7 +319,6 @@ async function queryBuildings(f: BuildingFilter & Page, id?: number) {
         streetRadius: building.streetRadius,
         template: building.template,
         transporterRange: factory.transporterRange,
-        type: building.type,
       })
       .from(building)
       .leftJoin(nameT, on(nameT, building.nameText, f.lang))
@@ -372,7 +359,6 @@ async function queryBuildings(f: BuildingFilter & Page, id?: number) {
       outputs: d.outputs(r.guid),
       /** construction phases of a monument, in order; empty for ordinary buildings */
       phases: d.phases(r.guid),
-      type: typeLabel(r.type, f.lang),
       unlockedBy: d.techs(r.guid),
       unlockRequirements:
         d.phases(r.guid)[0]?.unlockRequirements ?? d.requirements(r.guid),
@@ -402,25 +388,8 @@ async function list(f: BuildingFilter & Page) {
   return await queryBuildings(f)
 }
 
-/** distinct in-game building categories (Amenity, Pit, Quarry …) keyed by English name */
-async function categories({ lang }: { lang: Lang }) {
-  const catEn = localized('category_en')
-  const catT = localized('category')
-  return await db
-    .selectDistinct({
-      key: sql<BuildingCategory>`${catEn.value}`,
-      name: catT.value,
-    })
-    .from(building)
-    .innerJoin(catEn, on(catEn, building.categoryText, 'en'))
-    .innerJoin(catT, on(catT, building.categoryText, lang))
-    .orderBy(asc(catT.value))
-}
-
 export const buildings = {
-  categories,
   get,
   kinds,
   list,
-  types,
 }

@@ -43,7 +43,6 @@ export default async function Page({
       anno.items.list({
         allocations: filters.allocations ?? undefined,
         attributes: filters.attributes ?? undefined,
-        categories: filters.categories ?? undefined,
         dlcs: filters.dlcs ?? undefined,
         lang,
         niches: filters.niches ?? undefined,

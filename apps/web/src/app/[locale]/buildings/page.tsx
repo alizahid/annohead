@@ -43,7 +43,6 @@ export default async function Page({
       page: filters.page ?? undefined,
       regions: filters.regions ?? undefined,
       tiers: filters.tiers ?? undefined,
-      types: filters.type ?? undefined,
     }),
   ])
 

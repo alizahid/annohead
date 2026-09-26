@@ -13,7 +13,6 @@ export async function unlockRequirements(guids: Array<number>, lang: Lang) {
       conditionId: condition.id,
       guid: unlock.sourceGuid,
       negate: condition.negate,
-      sourceKind: unlock.sourceKind,
       type: condition.template,
     })
     .from(unlock)

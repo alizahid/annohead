@@ -1,16 +1,8 @@
-import { and, eq, exists, inArray, sql } from 'drizzle-orm'
+import { and, eq, sql } from 'drizzle-orm'
 import { alias, type SQLiteColumn } from 'drizzle-orm/sqlite-core'
 
-import { db } from '../db'
-import { type BuildingCategory, type Lang, langNames } from '../enums'
-import {
-  attribute,
-  buff,
-  buffModifier,
-  building,
-  region,
-  translation,
-} from '../schema'
+import { type Lang, langNames } from '../enums'
+import { attribute, buffModifier, region, translation } from '../schema'
 
 export type Page = {
   page?: number
@@ -36,26 +28,10 @@ export function on(
 ) {
   return and(eq(t.lineId, lineId), eq(t.langId, langId(lang)))
 }
-/** `building.category_text` is one of `keys` (English category names, see `buildings.categories`). */
-export function categoryIn(keys: Array<BuildingCategory>) {
-  const catEn = localized('category_en')
-  return exists(
-    db
-      .select({
-        one: sql`1`,
-      })
-      .from(catEn)
-      .where(
-        and(on(catEn, building.categoryText, 'en'), inArray(catEn.value, keys)),
-      ),
-  )
-}
-
 /** `region` columns for a nested select; `key` is typed by the generated enum */
 export const regionColumns = {
   id: region.id,
   key: region.key,
-  name: region.name,
 }
 
 export function paginate({ page = 1, perPage = PER_PAGE }: Page) {
@@ -75,10 +51,10 @@ export function groupBy<T, K extends keyof T>(rows: Array<T>, key: K) {
   return (k: T[K]) => map.get(k) ?? []
 }
 
-/** one `buff_modifier` row with its attribute key; join buff + buffModifier + attribute first */
+/** one `buff_modifier` row with its attribute key; join buffModifier + attribute first */
 export const modifierColumns = {
   attribute: attribute.key,
-  buffGuid: buff.guid,
+  buffGuid: buffModifier.buffGuid,
   // productivity is always a percentage in game, but its `Percental` flag is only set on negative values
   isPercent:
     sql`coalesce(${buffModifier.isPercent}, 0) or ${buffModifier.path} = 'FactoryUpgrade.ProductivityUpgrade'`.mapWith(

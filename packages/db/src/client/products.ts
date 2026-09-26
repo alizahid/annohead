@@ -93,7 +93,6 @@ function producerWhere(condition: SQL) {
 /** Products with the buildings that produce and consume them. */
 async function queryProducts(f: ProductFilter & Page, id?: number) {
   const nameT = localized('name')
-  const catT = localized('cat')
   const bName = localized('b_name')
   const where = and(
     id === undefined ? undefined : eq(product.guid, id),
@@ -148,8 +147,6 @@ async function queryProducts(f: ProductFilter & Page, id?: number) {
       .where(where),
     db
       .select({
-        basePrice: product.basePrice,
-        category: catT.value,
         guid: product.guid,
         icon: product.icon,
         kind: product.kind,
@@ -157,7 +154,6 @@ async function queryProducts(f: ProductFilter & Page, id?: number) {
       })
       .from(product)
       .leftJoin(nameT, on(nameT, product.nameText, f.lang))
-      .leftJoin(catT, on(catT, product.categoryText, f.lang))
       .where(where)
       .orderBy(asc(nameT.value), asc(product.guid))
       .limit(limit)

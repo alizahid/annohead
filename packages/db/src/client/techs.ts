@@ -5,7 +5,6 @@ import { db } from '../db'
 import { type Lang } from '../enums'
 import {
   attribute,
-  buff,
   buffFunctionalEffect,
   buffModifier,
   building,
@@ -57,7 +56,6 @@ async function queryTechs(f: TechFilter, id?: number) {
       gridY: tech.gridY,
       guid: tech.guid,
       icon: tech.icon,
-      image: tech.image,
       isGate: tech.isGate,
       knowledgeNeeded: tech.knowledgeNeeded,
       name: nameT.value,
@@ -77,7 +75,6 @@ async function queryTechs(f: TechFilter, id?: number) {
   const eName = localized('e_name')
   const eDesc = localized('e_desc')
   const uDesc = localized('u_desc')
-  const ubCategory = localized('ub_category')
   const tName = localized('t_name')
   const tbName = localized('tb_name')
   const mpName = localized('mp_name')
@@ -107,7 +104,6 @@ async function queryTechs(f: TechFilter, id?: number) {
       .select({
         /** the building the game describes this entry with; null for upgrades, units, goods … */
         buildingGuid: techUnlockReward.buildingGuid,
-        category: ubCategory.value,
         description: uDesc.value,
         guid: techUnlockReward.assetGuid,
         icon: techUnlockReward.icon,
@@ -118,8 +114,6 @@ async function queryTechs(f: TechFilter, id?: number) {
       .from(techUnlockReward)
       .leftJoin(rName, on(rName, techUnlockReward.nameText, f.lang))
       .leftJoin(uDesc, on(uDesc, techUnlockReward.descriptionText, f.lang))
-      .leftJoin(building, eq(building.guid, techUnlockReward.buildingGuid))
-      .leftJoin(ubCategory, on(ubCategory, building.categoryText, f.lang))
       .where(inArray(techUnlockReward.techGuid, guids))
       .orderBy(asc(techUnlockReward.idx)),
     db
@@ -173,8 +167,7 @@ async function queryTechs(f: TechFilter, id?: number) {
       })
       .from(techEffect)
       .innerJoin(effectBuff, eq(effectBuff.effectGuid, techEffect.effectGuid))
-      .innerJoin(buff, eq(buff.guid, effectBuff.buffGuid))
-      .innerJoin(buffModifier, eq(buffModifier.buffGuid, buff.guid))
+      .innerJoin(buffModifier, eq(buffModifier.buffGuid, effectBuff.buffGuid))
       .leftJoin(attribute, eq(attribute.id, buffModifier.attributeId))
       .leftJoin(product, eq(product.guid, buffModifier.productGuid))
       .leftJoin(mpName, on(mpName, product.nameText, f.lang))
@@ -196,8 +189,7 @@ async function queryTechs(f: TechFilter, id?: number) {
         nearbyBuff,
         eq(nearbyBuff.effectGuid, buffFunctionalEffect.effectGuid),
       )
-      .innerJoin(buff, eq(buff.guid, nearbyBuff.buffGuid))
-      .innerJoin(buffModifier, eq(buffModifier.buffGuid, buff.guid))
+      .innerJoin(buffModifier, eq(buffModifier.buffGuid, nearbyBuff.buffGuid))
       .leftJoin(attribute, eq(attribute.id, buffModifier.attributeId))
       .leftJoin(product, eq(product.guid, buffModifier.productGuid))
       .leftJoin(mpName, on(mpName, product.nameText, f.lang))
@@ -276,7 +268,6 @@ async function categories({ lang }: { lang: Lang }) {
       guid: techCategory.guid,
       icon: techCategory.icon,
       name: nameT.value,
-      type: techCategory.type,
       x: techCategory.x,
       y: techCategory.y,
     })

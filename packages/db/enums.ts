@@ -95,17 +95,6 @@ const dlcs = db
     []
   >('select distinct key from dlc where key is not null order by key')
   .all()
-// in-game building categories (Amenity, Pit, Quarry …) keyed by English text
-const buildingCategories = db
-  .query<
-    {
-      value: string
-    },
-    []
-  >(
-    "select distinct t.value from building b join translation t on t.line_id = b.category_text join lang l on l.id = t.lang_id where l.code = 'english' order by t.value",
-  )
-  .all()
 const langNames = langs.map((l) => `  '${l.code}': '${l.name}',`).join('\n')
 
 const out = [
@@ -128,10 +117,6 @@ const out = [
     'region',
     regions.map((r) => r.key),
   ),
-  block(
-    'building_category',
-    buildingCategories.map((c) => c.value),
-  ),
   `/** ISO code -> name of the game's texts file / lang table row */\nexport const langNames = {\n${langNames}\n} as const satisfies Record<Lang, string>\n`,
 ]
 writeFileSync('src/enums.ts', out.join('\n'))
@@ -142,22 +127,14 @@ const columnEnums: Record<string, Record<string, string>> = {
   attribute: {
     key: 'attribute',
   },
-  buff: {
-    sourceCategory: 'source_category',
-  },
   building: {
     kind: 'building_kind',
-    type: 'building_type',
   },
   condition: {
     template: 'condition_template',
   },
   dlc: {
     key: 'dlc',
-  },
-  effect: {
-    scope: 'effect_scope',
-    sourceCategory: 'source_category',
   },
   item: {
     allocation: 'allocation',
@@ -168,32 +145,14 @@ const columnEnums: Record<string, Record<string, string>> = {
   itemSource: {
     kind: 'item_source_kind',
   },
-  need: {
-    category: 'need_category',
-  },
-  participant: {
-    kind: 'participant_kind',
-  },
   product: {
     kind: 'product_kind',
   },
   productionChainCategory: {
     type: 'chain_type',
   },
-  quest: {
-    category: 'quest_category',
-  },
-  questNode: {
-    type: 'node_type',
-  },
-  questOption: {
-    category: 'option_category',
-  },
   region: {
     key: 'region',
-  },
-  storyline: {
-    system: 'storyline_system',
   },
 }
 let schema = readFileSync('src/schema.ts', 'utf8')

@@ -1,9 +1,7 @@
 import {
   allocationValues,
   attributeValues,
-  buildingCategoryValues,
   buildingKindValues,
-  buildingTypeValues,
   chainTypeValues,
   itemTypeValues,
   nicheValues,
@@ -49,7 +47,6 @@ export const buildingFilters = {
   page: parseAsInteger,
   regions: parseAsArrayOf(parseAsInteger),
   tiers: parseAsArrayOf(parseAsInteger),
-  type: parseAsArrayOf(parseAsStringLiteral(buildingTypeValues)),
 }
 
 export const parseBuildingFilters = createLoader(buildingFilters)
@@ -59,7 +56,6 @@ export type BuildingFilters = Awaited<ReturnType<typeof parseBuildingFilters>>
 export const itemFilters = {
   allocations: parseAsArrayOf(parseAsStringLiteral(allocationValues)),
   attributes: parseAsArrayOf(parseAsStringLiteral(attributeValues)),
-  categories: parseAsArrayOf(parseAsStringLiteral(buildingCategoryValues)),
   dlcs: parseAsArrayOf(parseAsInteger),
   niches: parseAsArrayOf(parseAsStringLiteral(nicheValues)),
   page: parseAsInteger,
