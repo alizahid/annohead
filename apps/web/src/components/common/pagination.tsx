@@ -1,7 +1,7 @@
 'use client'
 
 import { cn } from 'cn'
-import { range } from 'lodash'
+import { clamp, range } from 'lodash'
 import { useSearchParams } from 'next/navigation'
 
 import { NavLink, usePathname } from '@/intl/nav'
@@ -15,17 +15,17 @@ export function Pagination({ page, pages }: Props) {
   const path = usePathname()
   const search = useSearchParams()
 
-  const pagination = getPagination(pages)
+  const pagination = getPagination(pages, page ?? 1)
 
   if (pagination.length > 1) {
     return (
       <div className="flex justify-center gap-2">
         {pagination.map((index) => {
-          if (index === null) {
+          if (typeof index === 'string') {
             return (
               <div
                 className="pointer-events-none flex size-8 items-center justify-center rounded-lg bg-accent-2 text-sm"
-                key="separator"
+                key={index}
               >
                 &#8230;
               </div>
@@ -61,12 +61,20 @@ export function Pagination({ page, pages }: Props) {
   return null
 }
 
-function getPagination(pages: number) {
-  const pagination = range(1, pages + 1)
-
-  if (pagination.length > 10) {
-    return [...pagination.slice(0, 3), null, ...pagination.slice(-3)]
+function getPagination(pages: number, page: number) {
+  if (pages <= 7) {
+    return range(1, pages + 1)
   }
 
-  return pagination
+  const middle = clamp(page - 1, 3, pages - 4)
+
+  return [
+    1,
+    middle > 3 ? 'start' : 2,
+    middle,
+    middle + 1,
+    middle + 2,
+    middle + 2 < pages - 2 ? 'end' : pages - 1,
+    pages,
+  ] as const
 }
