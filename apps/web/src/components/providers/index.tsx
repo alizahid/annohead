@@ -1,6 +1,6 @@
 import { Tooltip } from '@base-ui/react'
+import { ThemeProvider } from '@wrksz/themes/next'
 import { NextIntlClientProvider } from 'next-intl'
-import { ThemeProvider } from 'next-themes'
 import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import { type ReactNode } from 'react'
 
