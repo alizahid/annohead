@@ -312,7 +312,7 @@ function Flow({ quest }: Props) {
 
 export function QuestFlow({ quest }: Props) {
   return (
-    <div className="h-[calc(100vh-(--spacing(8)))] overflow-hidden rounded-lg bg-gray-2">
+    <div className="h-[80vh] overflow-hidden rounded-lg bg-gray-2">
       <ReactFlowProvider>
         <Flow quest={quest} />
       </ReactFlowProvider>

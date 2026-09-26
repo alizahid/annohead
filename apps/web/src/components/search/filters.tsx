@@ -34,16 +34,16 @@ export function SearchFiltersCard() {
     >
       {SearchTypes.map((item) => (
         <Checkbox.Root
-          className="flex h-10 items-center gap-2 rounded-md px-2 outline-none ring-accent-8 transition-colors hover:bg-accent-4 focus-visible:ring-2 data-checked:bg-accent-5"
+          className="flex h-8 items-center gap-2 rounded-md pr-2 pl-1 outline-none ring-accent-8 transition-colors hover:bg-accent-4 focus-visible:ring-2 data-checked:bg-accent-5"
           key={item}
           value={item}
         >
           <Checkbox.Indicator
-            className="flex size-6 items-center justify-center rounded-full border border-gray-12 data-checked:border-0 data-checked:bg-gray-12"
+            className="mx-0.5 flex size-5 items-center justify-center rounded-full border border-gray-12 data-checked:border-0 data-checked:bg-gray-12"
             keepMounted
           />
 
-          <span className="font-bold">{t(item)}</span>
+          <span className="font-bold text-sm">{t(item)}</span>
         </Checkbox.Root>
       ))}
     </CheckboxGroup>

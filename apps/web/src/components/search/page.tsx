@@ -18,8 +18,8 @@ export function SearchPage({ data, filters }: Props) {
 
   return (
     <div className="flex flex-1 flex-col gap-12">
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col gap-8">
+        <div className="flex gap-4">
           <h1 className="text-4xl">{t('title')}</h1>
 
           {data.total > 0 ? (
