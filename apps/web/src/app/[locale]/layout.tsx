@@ -1,5 +1,6 @@
 import '@/styles/main.css'
 
+import { Analytics } from '@vercel/analytics/next'
 import { cn } from 'cn'
 import { type Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
@@ -39,6 +40,8 @@ export default async function Layout({
         <Providers>
           <MainLayout>{children}</MainLayout>
         </Providers>
+
+        <Analytics />
       </body>
     </html>
   )
