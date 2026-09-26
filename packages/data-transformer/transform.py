@@ -2033,6 +2033,12 @@ class T:
             self.db.execute(
                 "insert into translation values(?,?,?)", (int(lid), langs[lang], val)
             )
+        # lines left untranslated (debug cheat items) read as English instead of sorting first as blanks
+        self.db.execute(
+            "update translation set value = e.value from translation e"
+            " where e.line_id = translation.line_id and e.lang_id = ? and translation.value = ''",
+            (langs.get("english"),),
+        )
         self.slugs()
         # pools referenced by effects, flattened once
         for (pool,) in self.db.execute(
