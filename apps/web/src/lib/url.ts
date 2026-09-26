@@ -1,7 +1,7 @@
 import { type SearchType } from '@anno/db/search'
-import { kebabCase } from 'lodash'
 
-export function getUrl(type: SearchType, id: number, name?: string | null) {
+/** `slug` is the English one the DB stores, so a page has the same path in every language */
+export function getUrl(type: SearchType, id: number, slug?: string | null) {
   const base =
     type === 'building'
       ? 'buildings'
@@ -15,9 +15,5 @@ export function getUrl(type: SearchType, id: number, name?: string | null) {
               ? 'quests'
               : 'techs'
 
-  if (name) {
-    return `/${base}/${id}/${kebabCase(name)}`
-  }
-
-  return `/${base}/${id}/${type}`
+  return `/${base}/${id}/${slug ?? type}`
 }

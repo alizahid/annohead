@@ -25,6 +25,7 @@ import {
   residence,
   residenceNeed,
 } from '../schema'
+import { phrases } from './phrases'
 import {
   categoriesOf,
   type Get,
@@ -47,26 +48,17 @@ export type ProductFilter = {
   tiers?: Array<number>
 }
 
-/** products the trading post doesn't list; the game has no name for these groups */
-const kindNames: Record<Lang, Record<string, string>> = {
-  de: {
-    Meta: 'Reich',
-    Service: 'Dienstleistung',
-    Workforce: 'Arbeitskraft',
-  },
-  en: {
-    Meta: 'Empire',
-    Service: 'Service',
-    Workforce: 'Workforce',
-  },
-}
-
 /** Goods by the game's trading-post filter (Consumer Goods, Raw Materials …), then workforce, services and empire goods. */
 async function types({ lang }: { lang: Lang }) {
   return (await categoriesOf('product', product.guid, lang)).map(
     ({ key, ...c }) => ({
       ...c,
-      name: c.name ?? (key ? (kindNames[lang][key] ?? key) : null),
+      // products the trading post doesn't list; the game has no name for these groups
+      name:
+        c.name ??
+        (key
+          ? ((phrases[lang].productKinds as Record<string, string>)[key] ?? key)
+          : null),
     }),
   )
 }
@@ -147,6 +139,7 @@ async function queryProducts(f: ProductFilter & Page, id?: number) {
         guid: product.guid,
         icon: product.icon,
         name: nameT.value,
+        slug: product.slug,
       })
       .from(product)
       .leftJoin(nameT, on(nameT, product.nameText, f.lang))
@@ -165,6 +158,7 @@ async function queryProducts(f: ProductFilter & Page, id?: number) {
         name: bName.value,
         productGuid: table.productGuid,
         region: regionColumns,
+        slug: building.slug,
       })
       .from(table)
       .innerJoin(building, eq(building.guid, table.buildingGuid))

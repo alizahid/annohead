@@ -12,17 +12,27 @@ type Props = {
   icon?: string | null
   id: number
   name: string | null
+  /** English URL slug of the linked page */
+  slug: string | null
   type: SearchType
   value?: ReactNode | string | number | null
 }
 
-export function Link({ description, icon, id, name, type, value }: Props) {
+export function Link({
+  description,
+  icon,
+  id,
+  name,
+  slug,
+  type,
+  value,
+}: Props) {
   const f = useFormatter()
 
   return (
     <NavLink
       className="-mx-4 flex items-center justify-between gap-4 rounded-sm px-4 py-1 outline-none ring-accent-8 transition-colors hover:bg-accent-4 focus-visible:ring-2"
-      href={getUrl(type, id, name)}
+      href={getUrl(type, id, slug)}
     >
       <div className="flex flex-1 items-center gap-2">
         {icon ? <Icon className="size-6" icon={icon} /> : null}

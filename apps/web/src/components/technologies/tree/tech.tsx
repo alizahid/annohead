@@ -38,7 +38,7 @@ export function TechTreeNode({ data: { tech } }: NodeProps<TechNode>) {
               'flex size-full items-center justify-center rounded-full outline-none ring-accent-8 transition-colors hover:bg-accent-4 focus-visible:ring-2',
               tech.isGate ? 'bg-gray-5' : 'bg-gray-3',
             )}
-            href={getUrl('tech', tech.guid, tech.name)}
+            href={getUrl('tech', tech.guid, tech.slug)}
           />
         }
       >

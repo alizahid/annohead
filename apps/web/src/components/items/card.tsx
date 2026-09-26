@@ -15,7 +15,7 @@ export function ItemCard({ item }: Props) {
   return (
     <NavLink
       className="relative flex flex-col gap-4 rounded-lg p-4 outline-none ring-accent-8 hover:bg-accent-4 focus-visible:ring-2"
-      href={getUrl('item', item.guid, item.name)}
+      href={getUrl('item', item.guid, item.slug)}
     >
       <ItemIcon icon={item.icon} rarity={item.rarity?.key} />
 

@@ -102,6 +102,7 @@ function productRows(
       icon: product.icon,
       name: pName.value,
       owner,
+      slug: product.slug,
     })
     .from(table)
     .innerJoin(product, eq(product.guid, table.productGuid))
@@ -157,13 +158,6 @@ async function phaseRows(guids: Array<number>, lang: Lang) {
     ...r,
     costs: c(r.guid),
     maintenance: m(r.guid),
-    name:
-      r.buildingGuid === 3621 && r.phase === 2
-        ? {
-            de: 'Amphitheater: Grundstruktur',
-            en: 'Amphitheatre: Base Structure',
-          }[lang]
-        : r.name,
     unlockRequirements: u(r.guid),
   }))
 }
@@ -250,6 +244,7 @@ async function buildingDetails(guids: Array<number>, lang: Lang) {
         icon: tech.icon,
         knowledgeNeeded: tech.knowledgeNeeded,
         name: tName.value,
+        slug: tech.slug,
       })
       .from(techUnlock)
       .innerJoin(tech, eq(tech.guid, techUnlock.techGuid))
@@ -317,6 +312,7 @@ async function queryBuildings(f: BuildingFilter & Page, id?: number) {
         needsFuel: factory.needsFuel,
         radius: building.radius,
         region: regionColumns,
+        slug: building.slug,
         streetRadius: building.streetRadius,
         template: building.template,
         transporterRange: factory.transporterRange,

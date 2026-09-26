@@ -15,7 +15,7 @@ export function ChainCard({ chain }: Props) {
   return (
     <NavLink
       className="relative flex flex-col gap-4 rounded-lg p-4 outline-none ring-accent-8 hover:bg-accent-4 focus-visible:ring-2"
-      href={getUrl('chain', chain.guid, chain.name)}
+      href={getUrl('chain', chain.guid, chain.slug)}
     >
       {chain.icon ? <Icon className="size-16" icon={chain.icon} /> : null}
 

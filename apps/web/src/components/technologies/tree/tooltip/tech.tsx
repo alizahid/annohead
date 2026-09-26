@@ -35,7 +35,7 @@ export function TechCard({ tech }: Props) {
               description={item.description}
               href={
                 item.buildingGuid
-                  ? getUrl('building', item.buildingGuid, item.name)
+                  ? getUrl('building', item.buildingGuid, item.slug)
                   : undefined
               }
               icon={item.icon}

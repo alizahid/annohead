@@ -24,6 +24,8 @@ export type SearchFilter = {
 export type SearchHit = {
   type: SearchType
   guid: number
+  /** English URL slug, the same in every language */
+  slug: string | null
   icon: string | null
   name: string
   description: string | null
@@ -37,6 +39,7 @@ type Source = {
   type: SearchType
   table: SQLiteTable
   guid: SQLiteColumn
+  slug: SQLiteColumn
   icon: SQLiteColumn
   name: SQLiteColumn
   description?: SQLiteColumn
@@ -52,6 +55,7 @@ const sources: Array<Source> = [
     icon: building.icon,
     name: building.nameText,
     regions: sql`(select group_concat(key) from (select r.key from building_region br join region r on r.id = br.region_id where br.building_guid = ${building.guid} order by r.id))`,
+    slug: building.slug,
     table: building,
     type: 'building',
   },
@@ -61,6 +65,7 @@ const sources: Array<Source> = [
     icon: item.icon,
     name: item.nameText,
     rarity: item.rarity,
+    slug: item.slug,
     table: item,
     type: 'item',
   },
@@ -68,6 +73,7 @@ const sources: Array<Source> = [
     guid: product.guid,
     icon: product.icon,
     name: product.nameText,
+    slug: product.slug,
     table: product,
     type: 'product',
   },
@@ -76,6 +82,7 @@ const sources: Array<Source> = [
     guid: tech.guid,
     icon: tech.icon,
     name: tech.nameText,
+    slug: tech.slug,
     table: tech,
     type: 'tech',
   },
@@ -83,6 +90,7 @@ const sources: Array<Source> = [
     guid: questline.guid,
     icon: questline.icon,
     name: questline.titleText,
+    slug: questline.slug,
     table: questline,
     type: 'quest',
   },
@@ -91,6 +99,7 @@ const sources: Array<Source> = [
     icon: productionChain.icon,
     name: productionChain.nameText,
     regions: sql`(select key from region where id = ${productionChain.regionId})`,
+    slug: productionChain.slug,
     table: productionChain,
     type: 'chain',
   },
@@ -98,7 +107,7 @@ const sources: Array<Source> = [
 
 function select(s: Source, lang: Lang) {
   const none = sql`null`
-  return sql`select ${s.type} as type, ${s.guid} as guid, ${s.icon} as icon, n.value as name, d.value as description, ${s.rarity ?? none} as rarity, ${s.regions ?? none} as regions
+  return sql`select ${s.type} as type, ${s.guid} as guid, ${s.slug} as slug, ${s.icon} as icon, n.value as name, d.value as description, ${s.rarity ?? none} as rarity, ${s.regions ?? none} as regions
     from ${s.table}
     join translation n on n.line_id = ${s.name} and n.lang_id = ${langId(lang)}
     left join translation d on d.line_id = ${s.description ?? none} and d.lang_id = ${langId(lang)}`
@@ -117,7 +126,7 @@ function load(lang: Lang, types?: Array<SearchType>) {
       )})`
     : sql``
   return db.all<Row>(
-    sql`select type, min(guid) as guid, icon, name, description, rarity, regions
+    sql`select type, min(guid) as guid, min(slug) as slug, icon, name, description, rarity, regions
       from (${sql.join(
         sources.map((s) => select(s, lang)),
         sql` union all `,
@@ -127,6 +136,8 @@ function load(lang: Lang, types?: Array<SearchType>) {
 }
 
 const DIACRITICS = /\p{M}/gu
+// the game separates CJK words with zero-width spaces, which a typed query never has
+const INVISIBLE = /[\u200B-\u200D\uFEFF]/g
 const WORD_BREAK = /[^\p{L}\p{N}]+/u
 /** no typos in short words, one from 4 characters, two from 8 */
 const ONE_TYPO_LENGTH = 4
@@ -137,6 +148,7 @@ function fold(text: string) {
   return text
     .normalize('NFD')
     .replace(DIACRITICS, '')
+    .replace(INVISIBLE, '')
     .toLowerCase()
     .replaceAll('ß', 'ss')
 }
@@ -282,7 +294,7 @@ async function search(f: SearchFilter & Page) {
           ...row,
           name:
             row.type === 'quest'
-              ? (questlineName(row.name) ?? row.name)
+              ? (questlineName(row.name, f.lang) ?? row.name)
               : row.name,
           regions: regionValues.filter((r) => keys.includes(r)),
         }

@@ -14,7 +14,7 @@ export function QuestCard({ quest }: Props) {
   return (
     <NavLink
       className="relative flex flex-col gap-4 rounded-lg p-4 outline-none ring-accent-8 hover:bg-accent-4 focus-visible:ring-2"
-      href={getUrl('quest', quest.guid, quest.name)}
+      href={getUrl('quest', quest.guid, quest.slug)}
     >
       <Icon
         className="size-16"

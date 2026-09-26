@@ -61,6 +61,7 @@ async function queryTechs(f: TechFilter, id?: number) {
       name: nameT.value,
       region: regionColumns,
       showConnectionToCategory: tech.showConnectionToCategory,
+      slug: tech.slug,
     })
     .from(tech)
     .leftJoin(nameT, on(nameT, tech.nameText, f.lang))
@@ -109,9 +110,12 @@ async function queryTechs(f: TechFilter, id?: number) {
         icon: techUnlockReward.icon,
         idx: techUnlockReward.idx,
         name: rName.value,
+        /** English slug of `buildingGuid`, for linking to it */
+        slug: building.slug,
         techGuid: techUnlockReward.techGuid,
       })
       .from(techUnlockReward)
+      .leftJoin(building, eq(building.guid, techUnlockReward.buildingGuid))
       .leftJoin(rName, on(rName, techUnlockReward.nameText, f.lang))
       .leftJoin(uDesc, on(uDesc, techUnlockReward.descriptionText, f.lang))
       .where(inArray(techUnlockReward.techGuid, guids))
@@ -140,6 +144,8 @@ async function queryTechs(f: TechFilter, id?: number) {
         kind: effectTargetPool.kind,
         name: sql<string | null>`coalesce(${tbName.value}, ${tName.value})`,
         region: regionColumns,
+        /** English slug of `buildingGuid`, for linking to it */
+        slug: building.slug,
       })
       .from(techEffect)
       .innerJoin(

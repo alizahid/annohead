@@ -4,7 +4,6 @@ import { labels } from './labels'
 /** game order, not alphabetical */
 const rarityOrder = [
   'Common',
-  'Uncommon',
   'Rare',
   'Epic',
   'Legendary',

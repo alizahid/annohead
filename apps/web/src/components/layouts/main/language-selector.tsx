@@ -2,7 +2,7 @@
 
 import { Menu } from '@base-ui/react/menu'
 import Image from 'next/image'
-import { type Locale, useLocale, useTranslations } from 'next-intl'
+import { type Locale, useLocale } from 'next-intl'
 
 import { routing } from '@/intl'
 import { NavLink, usePathname } from '@/intl/nav'
@@ -10,8 +10,6 @@ import { NavLink, usePathname } from '@/intl/nav'
 export function LanguageSelector() {
   const path = usePathname()
   const locale = useLocale()
-
-  const t = useTranslations('component.layouts.main.language')
 
   return (
     <Menu.Root>
@@ -46,7 +44,7 @@ export function LanguageSelector() {
                     width={16}
                   />
 
-                  {t(item)}
+                  {names[item]}
                 </Menu.RadioItem>
               ))}
             </Menu.RadioGroup>
@@ -60,4 +58,30 @@ export function LanguageSelector() {
 const flags: Record<Locale, string> = {
   de: 'de',
   en: 'gb',
+  es: 'es',
+  fr: 'fr',
+  it: 'it',
+  ja: 'jp',
+  ko: 'kr',
+  pl: 'pl',
+  'pt-BR': 'br',
+  ru: 'ru',
+  'zh-Hans': 'cn',
+  'zh-Hant': 'tw',
+}
+
+/** each language in its own script, so readers find theirs whatever the page is in */
+const names: Record<Locale, string> = {
+  de: 'Deutsch',
+  en: 'English',
+  es: 'Español',
+  fr: 'Français',
+  it: 'Italiano',
+  ja: '日本語',
+  ko: '한국어',
+  pl: 'Polski',
+  'pt-BR': 'Português (Brasil)',
+  ru: 'Русский',
+  'zh-Hans': '简体中文',
+  'zh-Hant': '繁體中文',
 }

@@ -65,6 +65,7 @@ export function BuildingPage({ building }: Props) {
                   id={item.guid}
                   key={item.guid}
                   name={item.name}
+                  slug={item.slug}
                   type="product"
                   value={item.amount}
                 />
@@ -95,6 +96,7 @@ export function BuildingPage({ building }: Props) {
                   id={item.guid}
                   key={item.guid}
                   name={item.name}
+                  slug={item.slug}
                   type="product"
                   value={item.amount}
                 />
@@ -110,6 +112,7 @@ export function BuildingPage({ building }: Props) {
                   id={item.guid}
                   key={item.guid}
                   name={item.name}
+                  slug={item.slug}
                   type="product"
                   value={item.amount}
                 />
@@ -192,6 +195,7 @@ export function BuildingPage({ building }: Props) {
                   id={item.guid}
                   key={item.guid}
                   name={item.name}
+                  slug={item.slug}
                   type="tech"
                 />
               ))}
@@ -291,6 +295,7 @@ export function BuildingPage({ building }: Props) {
                     id={item.guid}
                     key={item.guid}
                     name={item.name}
+                    slug={item.slug}
                     type="product"
                     value={item.amount}
                   />

@@ -67,6 +67,7 @@ export function ItemPage({ item }: Props) {
                   id={target.guid}
                   key={target.guid}
                   name={target.name}
+                  slug={target.slug}
                   type="building"
                 />
               ))}
@@ -82,6 +83,7 @@ export function ItemPage({ item }: Props) {
                     id={source.questline ?? source.guid}
                     key={`${source.guid}:${source.kind}`}
                     name={source.name}
+                    slug={source.slug}
                     type={source.questline ? 'quest' : 'tech'}
                   />
                 ) : (

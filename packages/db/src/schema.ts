@@ -128,6 +128,8 @@ export const product = sqliteTable('product', {
   guid: integer().primaryKey(),
   icon: text(),
   nameText: integer('name_text'),
+  /** English URL slug, the same in every language */
+  slug: text(),
 })
 
 export const productRegion = sqliteTable(
@@ -168,6 +170,8 @@ export const building = sqliteTable('building', {
   nameText: integer('name_text'),
   radius: integer(),
   regionId: integer('region_id').references(() => region.id),
+  /** English URL slug, the same in every language */
+  slug: text(),
   streetRadius: integer('street_radius'),
   template: text(),
 })
@@ -317,6 +321,8 @@ export const productionChain = sqliteTable('production_chain', {
   icon: text(),
   nameText: integer('name_text'),
   regionId: integer('region_id').references(() => region.id),
+  /** English URL slug, the same in every language */
+  slug: text(),
 })
 
 export const productionChainNode = sqliteTable(
@@ -514,6 +520,8 @@ export const item = sqliteTable('item', {
   rarity: text({
     enum: rarityValues,
   }),
+  /** English URL slug, the same in every language */
+  slug: text(),
   tradePrice: real('trade_price'),
 })
 
@@ -583,6 +591,8 @@ export const tech = sqliteTable('tech', {
   showConnectionToCategory: integer('show_connection_to_category', {
     mode: 'boolean',
   }),
+  /** English URL slug, the same in every language */
+  slug: text(),
 })
 
 export const techUnlock = sqliteTable(
@@ -813,6 +823,8 @@ export const questline = sqliteTable('questline', {
   guid: integer().primaryKey(),
   icon: text(),
   regionId: integer('region_id').references(() => region.id),
+  /** English URL slug, the same in every language */
+  slug: text(),
   titleText: integer('title_text'),
 })
 

@@ -63,6 +63,7 @@ export function ProductPage({ product }: Props) {
                   id={item.guid}
                   key={item.guid}
                   name={item.name}
+                  slug={item.slug}
                   type="building"
                   value={
                     item.region?.key ? (
@@ -85,6 +86,7 @@ export function ProductPage({ product }: Props) {
                   id={item.guid}
                   key={item.guid}
                   name={item.name}
+                  slug={item.slug}
                   type="building"
                   value={
                     item.region?.key ? (

@@ -30,6 +30,7 @@ import {
 import { assetNames, describeConditions } from './conditions'
 import { type Labels, labels } from './labels'
 import { nameModifiers } from './modifiers'
+import { phrases } from './phrases'
 import { questQuestion, questText } from './quest-text'
 import {
   type Get,
@@ -51,11 +52,17 @@ export type QuestFilter = {
   dlcs?: Array<number>
 }
 
-const PART_SUFFIX = /\s*(?:[–-]\s*)?\b(?:Part|Teil)\s+[IVXL]+\b.*$/
+const partSuffixes = new Map<Lang, RegExp>()
 
 /** A questline is named after its first part: "The Mysterious Murmillo Part I" → "The Mysterious Murmillo" */
-export function questlineName(title: string | null) {
-  return title?.replace(PART_SUFFIX, '') ?? null
+export function questlineName(title: string | null, lang: Lang) {
+  let suffix = partSuffixes.get(lang)
+  if (!suffix) {
+    // "Part I", "– Teil I", ", partie I", "第1部" …: each language's pattern lives with its phrases
+    suffix = new RegExp(phrases[lang].partSuffix, 'iu')
+    partSuffixes.set(lang, suffix)
+  }
+  return title?.replace(suffix, '') ?? null
 }
 
 const partCount = db.$count(
@@ -110,6 +117,7 @@ async function queryQuestlines(f: QuestFilter & Page, id?: number) {
         name: titleT.value,
         parts: partCount,
         region: regionColumns,
+        slug: questline.slug,
       })
       .from(questline)
       .leftJoin(titleT, on(titleT, questline.titleText, f.lang))
@@ -131,7 +139,7 @@ async function queryQuestlines(f: QuestFilter & Page, id?: number) {
     rows: rows.map((row) => ({
       ...row,
       dlc: row.dlc?.guid ? row.dlc : null,
-      name: questlineName(row.name),
+      name: questlineName(row.name, f.lang),
       region: row.region?.id ? row.region : null,
     })),
     total,

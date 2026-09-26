@@ -14,7 +14,7 @@ export function BuildingCard({ building }: Props) {
   return (
     <NavLink
       className="relative flex flex-col gap-4 rounded-lg p-4 outline-none ring-accent-8 hover:bg-accent-4 focus-visible:ring-2"
-      href={getUrl('building', building.guid, building.name)}
+      href={getUrl('building', building.guid, building.slug)}
     >
       {building.icon ? <Icon className="size-16" icon={building.icon} /> : null}
 

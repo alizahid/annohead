@@ -155,10 +155,6 @@
         "footer": {
           "copyright": "© {year} Annohead. Alle Rechte vorbehalten."
         },
-        "language": {
-          "de": "Deutsch",
-          "en": "Englisch"
-        },
         "nav": {
           "buildings": "Gebäude",
           "chains": "Produktionsketten",

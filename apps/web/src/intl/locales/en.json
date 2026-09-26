@@ -155,10 +155,6 @@
         "footer": {
           "copyright": "© {year} Annohead. All rights reserved."
         },
-        "language": {
-          "de": "German",
-          "en": "English"
-        },
         "nav": {
           "buildings": "Buildings",
           "chains": "Production chains",

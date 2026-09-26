@@ -77,6 +77,7 @@ async function queryChains(f: ChainFilter & Page, id?: number) {
         icon: productionChain.icon,
         name: nameT.value,
         region: regionColumns,
+        slug: productionChain.slug,
       })
       .from(productionChain)
       .leftJoin(nameT, on(nameT, productionChain.nameText, f.lang))
@@ -104,6 +105,7 @@ async function queryChains(f: ChainFilter & Page, id?: number) {
       needsFuel: factory.needsFuel,
       parentId: productionChainNode.parentId,
       region: regionColumns,
+      slug: building.slug,
       tier: productionChainNode.tier,
     })
     .from(productionChainNode)

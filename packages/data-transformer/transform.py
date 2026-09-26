@@ -8,6 +8,7 @@ import os
 import re
 import sqlite3
 import sys
+import unicodedata
 from collections import defaultdict
 
 GUID = re.compile(r"^\d{4,}$")
@@ -120,6 +121,8 @@ LABEL_TABLES = [
     ("reputation", "ReputationFeature", "ReputationFeature.ReputationSpecialStates", "Name"),
     ("incident", "GeneralIncidentConfiguration", "GeneralIncidentConfiguration.IncidentTypesConfig", "Name"),
 ]
+# "The Mysterious Murmillo Part I" -> "The Mysterious Murmillo", as the client's English phrases do
+QUESTLINE_PART = re.compile(r"\s*(?:[–-]\s*)?\bPart\s+[IVXL]+\b.*$", re.IGNORECASE)
 # products the trading post filter doesn't list, filed under categories the game has no name for (client phrases)
 PRODUCT_KINDS = {"Workforce": -1, "Service": -2, "Meta": -3}
 # the game's placeholder for assets whose icon was cut ("Removed Icon")
@@ -492,7 +495,7 @@ class T:
             else:
                 kind = "Good"
             self.db.execute(
-                "insert into product values(?,?,?)",
+                "insert into product values(?,?,?,null)",
                 (a["guid"], self.text(a["text_id"]), self.icon(a["icon"])),
             )
             if kind != "Good":
@@ -576,7 +579,7 @@ class T:
                 continue
             b, std, es = D(v["Building"]), D(v["Standard"]), D(v.get("EffectSource"))
             self.db.execute(
-                "insert into building values(?,?,?,?,?,?,?,?,?,?)",
+                "insert into building values(?,?,?,?,?,?,?,?,?,?,null)",
                 (
                     a["guid"],
                     self.text(a["text_id"]),
@@ -654,7 +657,7 @@ class T:
             pc = D(a["v"].get("ProductionChain"))
             root = self.num(pc.get("Building"))
             self.db.execute(
-                "insert into production_chain values(?,?,?,?,?)",
+                "insert into production_chain values(?,?,?,?,?,null)",
                 (
                     a["guid"],
                     self.text(a["text_id"]),
@@ -964,7 +967,7 @@ class T:
                         self.insert_target(a["guid"], t["GUID"])
             boost = D(a["v"].get("ItemWithBoost"))
             self.db.execute(
-                "insert into item values(?,?,?,?,?,?,?,?,?,?,?)",
+                "insert into item values(?,?,?,?,?,?,?,?,?,?,?,null)",
                 (
                     a["guid"],
                     self.text(a["text_id"]),
@@ -1082,7 +1085,7 @@ class T:
             t = D(a["v"].get("Tech"))
             gp = D(t.get("GridPosition"))
             self.db.execute(
-                "insert into tech values(?,?,?,?,?,?,?,?,?,?,?,?)",
+                "insert into tech values(?,?,?,?,?,?,?,?,?,?,?,?,null)",
                 (
                     a["guid"],
                     self.text(t.get("TechName")),
@@ -1686,7 +1689,7 @@ class T:
             ]
             prefix = (names[first] or "").split(" ")[0]
             self.db.execute(
-                "insert into questline values(?,?,?,?,?)",
+                "insert into questline values(?,?,?,?,?,null)",
                 (
                     first,
                     name,
@@ -1905,6 +1908,33 @@ class T:
             """
         )
 
+    def slugs(self):
+        """English URL slugs for linkable pages, the same in every language so analytics groups them
+        ("Der mysteriöse Murmillo" and "謎のムルミロ戦士" both link to the-mysterious-murmillo)."""
+        english = dict(self.db.execute(
+            "select t.line_id, t.value from translation t join lang l on l.id = t.lang_id where l.code = 'english'"
+        ))
+
+        def slug(text):
+            text = unicodedata.normalize("NFKD", text or "").encode("ascii", "ignore").decode()
+            return re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-") or None
+
+        for table, column in (
+            ("building", "name_text"),
+            ("product", "name_text"),
+            ("item", "name_text"),
+            ("tech", "name_text"),
+            ("production_chain", "name_text"),
+            ("questline", "title_text"),
+        ):
+            rows = self.db.execute(f"select guid, {column} from {table}").fetchall()
+            for guid, tid in rows:
+                name = english.get(tid)
+                if table == "questline" and name:
+                    # a questline is named after its first part (client quests.ts questlineName)
+                    name = QUESTLINE_PART.sub("", name)
+                self.db.execute(f"update {table} set slug=? where guid=?", (slug(name), guid))
+
     def finish(self):
         # names of assets conditions point at, and of decision speakers, that have no table of their own
         # (provinces, volcano phases, narrative characters …)
@@ -1929,19 +1959,21 @@ class T:
             for (c,) in self.db.execute("select name from pragma_table_info(?) where name like '%\\_text' escape '\\'", (t,)).fetchall():
                 used |= {r for (r,) in self.db.execute(f"select distinct {c} from {t} where {c} is not null")}
         q = ",".join("?" * len(used))
-        langs = {}
+        # stable ids: English and German first (the site's first languages), then the rest alphabetically
+        present = {lang for (lang,) in self.src.execute("select distinct lang from texts")}
+        order = sorted(present & (self.langs or present), key=lambda x: (x not in ("english", "german"), x != "english", x))
+        langs = {lang: i for i, lang in enumerate(order, 1)}
+        self.db.executemany("insert into lang values(?,?)", [(i, lang) for lang, i in langs.items()])
         for lid, lang, val in self.src.execute(
             f"select line_id,lang,text from texts where line_id in ({q})",
             list(used),
         ):
-            if self.langs and lang not in self.langs:
-                continue
             if lang not in langs:
-                langs[lang] = len(langs) + 1
-                self.db.execute("insert into lang values(?,?)", (langs[lang], lang))
+                continue
             self.db.execute(
                 "insert into translation values(?,?,?)", (int(lid), langs[lang], val)
             )
+        self.slugs()
         # pools referenced by effects, flattened once
         for (pool,) in self.db.execute(
             "select distinct pool_guid from effect_target_pool"
@@ -1990,13 +2022,13 @@ create table enum_value(name text, value text, primary key(name,value));
 create table lang(id integer primary key, code text);
 create table translation(line_id integer, lang_id integer references lang(id), value text, primary key(line_id,lang_id)) without rowid;
 
-create table product(guid integer primary key, name_text integer, icon text);
+create table product(guid integer primary key, name_text integer, icon text, slug text);
 create table product_region(product_guid int references product(guid), region_id int references region(id), primary key(product_guid,region_id));
 create table need(guid integer primary key, product_guid int references product(guid));
 create table need_attribute(need_guid int references need(guid), attribute_id int references attribute(id), value real);
 
 create table building(guid integer primary key, name_text integer, description_text integer, icon text, template text,
-  category_text integer, region_id int references region(id), radius int, street_radius int, dlc_guid int references dlc(guid));
+  category_text integer, region_id int references region(id), radius int, street_radius int, dlc_guid int references dlc(guid), slug text);
 create table building_region(building_guid int references building(guid), region_id int references region(id), primary key(building_guid,region_id));
 create table building_cost(building_guid int references building(guid), product_guid int references product(guid), amount real);
 create table building_maintenance(building_guid int references building(guid), product_guid int references product(guid), amount real);
@@ -2009,7 +2041,7 @@ create table factory_input(building_guid int references building(guid), product_
 create table factory_output(building_guid int references building(guid), product_guid int references product(guid), amount real);
 create table residence(building_guid integer primary key references building(guid), population_level_guid int references population_level(guid));
 create table residence_need(building_guid int references building(guid), need_guid int references need(guid), consumption_rate real, buff_only int);
-create table production_chain(guid integer primary key, name_text integer, icon text, building_guid int references building(guid), region_id int references region(id));
+create table production_chain(guid integer primary key, name_text integer, icon text, building_guid int references building(guid), region_id int references region(id), slug text);
 create table production_chain_node(id integer primary key, chain_guid int references production_chain(guid), parent_id int, building_guid int, tier int);
 -- construction-menu tabs (kind menu: buildings and chains) and trading-post filter categories (kind product)
 create table category(guid integer primary key, kind text, name_text integer, key text, icon text, sort int);
@@ -2030,7 +2062,7 @@ create table buff_functional_effect(buff_guid int, effect_guid int);
 create table buff_provided_need(buff_guid int, need_guid int references need(guid), primary key(buff_guid,need_guid));
 
 create table item(guid integer primary key, name_text integer, description_text integer, icon text, rarity text, niche text,
-  allocation text, trade_price real, effect_guid int references effect(guid), boost_hint_text integer, dlc_guid int references dlc(guid));
+  allocation text, trade_price real, effect_guid int references effect(guid), boost_hint_text integer, dlc_guid int references dlc(guid), slug text);
 create table item_boost_buff(item_guid int references item(guid), buff_guid int);
 create table item_boost_condition(item_guid int references item(guid), condition_id int);
 create table item_source(item_guid int references item(guid), kind text, source_guid int, primary key(item_guid,kind,source_guid)) without rowid;
@@ -2038,7 +2070,7 @@ create table item_source(item_guid int references item(guid), kind text, source_
 create table tech_category(guid integer primary key, name_text integer, description_text integer, gate_guid int, icon text, artwork text, x int, y int, sort int);
 create table tech(guid integer primary key, name_text integer, description_text integer, icon text, knowledge_needed real, is_gate int, grid_x int, grid_y int,
   category_guid int references tech_category(guid), show_connection_to_category int,
-  region_id int references region(id), dlc_guid int references dlc(guid));
+  region_id int references region(id), dlc_guid int references dlc(guid), slug text);
 create table tech_unlock_reward(tech_guid int references tech(guid), idx int, asset_guid int, name_text integer, description_text integer, icon text, building_guid int references building(guid), primary key(tech_guid,idx)) without rowid;
 create table tech_unlock(tech_guid int references tech(guid), asset_guid int, primary key(tech_guid,asset_guid));
 create table tech_effect(tech_guid int references tech(guid), effect_guid int);
@@ -2057,7 +2089,7 @@ create table quest_variable_change(node_guid int, variable text, operation text,
 create table quest_choice(node_guid integer primary key, storyline_guid int references storyline(guid), kind text, position int,
   headline_text integer, text_text integer, condition_id int references condition(id), speaker_guid int);
 create table quest_choice_outcome(choice_guid int references quest_choice(node_guid), idx int, node_guid int, primary key(choice_guid, idx, node_guid)) without rowid;
-create table questline(guid integer primary key, title_text integer, icon text, region_id int references region(id), dlc_guid int references dlc(guid));
+create table questline(guid integer primary key, title_text integer, icon text, region_id int references region(id), dlc_guid int references dlc(guid), slug text);
 create table questline_storyline(questline_guid int references questline(guid), storyline_guid int references storyline(guid), idx int, primary key(questline_guid, storyline_guid)) without rowid;
 create table quest_reward(node_guid int, kind text, asset_guid int, amount real, amount_variable text,
   name_text integer, icon text, attribute text);

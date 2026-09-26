@@ -15,7 +15,7 @@ export function SearchCard({ item }: Props) {
   return (
     <NavLink
       className="flex gap-4 rounded-lg p-4 outline-none ring-accent-8 transition-colors hover:bg-accent-4 focus-visible:ring-2"
-      href={getUrl(item.type, item.guid, item.name)}
+      href={getUrl(item.type, item.guid, item.slug)}
     >
       <aside className="relative flex size-16 shrink-0">
         {item.type === 'item' ? (

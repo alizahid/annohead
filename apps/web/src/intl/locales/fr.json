@@ -1,0 +1,343 @@
+{
+  "annohead": "Annohead",
+  "common": {
+    "Celtic": "Albion",
+    "Egyptian": "Delta",
+    "Roman": "Latium",
+    "needsFuel": "Nécessite du charbon"
+  },
+  "component": {
+    "auth": {
+      "signIn": {
+        "action": {
+          "signUp": "Nouvel utilisateur ?",
+          "submit": "Se connecter"
+        },
+        "field": {
+          "password": {
+            "label": "Mot de passe",
+            "placeholder": "Sup3rS3cur3P@ssw0rd"
+          },
+          "username": {
+            "label": "Nom d'utilisateur",
+            "placeholder": "mildpanda"
+          }
+        }
+      },
+      "signUp": {
+        "action": {
+          "signIn": "Déjà un compte ?",
+          "submit": "S'inscrire"
+        },
+        "field": {
+          "password": {
+            "label": "Mot de passe",
+            "placeholder": "Sup3rS3cur3P@ssw0rd"
+          },
+          "username": {
+            "label": "Nom d'utilisateur",
+            "placeholder": "mildpanda"
+          }
+        }
+      }
+    },
+    "buildings": {
+      "filters": {
+        "dlcs": "DLC",
+        "regions": "Région",
+        "tiers": "Niveau de population",
+        "types": "Type"
+      },
+      "list": {
+        "empty": "Aucun résultat",
+        "title": "Bâtiments"
+      },
+      "page": {
+        "details": {
+          "buffs": "Besoins satisfaits",
+          "construction": "Coûts de construction",
+          "effects": "Effets de zone",
+          "inputs": "Ressources consommées",
+          "maintenance": "Entretien",
+          "outputs": "Production",
+          "title": "Détails",
+          "unlocked": "Débloqué par",
+          "workforce": "Main-d'œuvre requise"
+        },
+        "other": {
+          "baseProductivity": "Productivité de base",
+          "category": "Catégorie",
+          "cycleTime": "Durée du cycle",
+          "needsFuel": "Nécessite du charbon",
+          "radius": "Rayon",
+          "streetRadius": "Rayon routier",
+          "template": "Modèle",
+          "title": "Autres",
+          "transporterRange": "Portée des transporteurs"
+        },
+        "phases": {
+          "duration": "Durée",
+          "phase": "Phase",
+          "title": "Phases",
+          "unlock": "Conditions de déblocage"
+        }
+      }
+    },
+    "chains": {
+      "calculator": {
+        "baseProductivity": "Productivité de base",
+        "buildings": "× {required, number, required}",
+        "cycleTime": "Durée du cycle",
+        "inputs": "Ressources consommées",
+        "output": "Production",
+        "title": "Calculateur",
+        "tons": "{tons, number, tons} t / min"
+      },
+      "filters": {
+        "dlcs": "DLC",
+        "regions": "Région",
+        "types": "Type"
+      },
+      "list": {
+        "empty": "Aucun résultat",
+        "title": "Chaînes de production"
+      }
+    },
+    "comments": {
+      "form": {
+        "action": {
+          "submit": "Envoyer"
+        },
+        "field": {
+          "body": {
+            "placeholder": "Dites quelque chose de sympa"
+          }
+        }
+      },
+      "list": {
+        "empty": "Aucun commentaire pour l'instant",
+        "more": "Charger plus",
+        "signIn": "<link>Connectez-vous</link> pour participer à la discussion.",
+        "title": "Commentaires"
+      }
+    },
+    "items": {
+      "filters": {
+        "dlcs": "DLC",
+        "niches": "Domaine",
+        "rarities": "Rareté",
+        "types": "Type"
+      },
+      "list": {
+        "empty": "Aucun résultat",
+        "title": "Objets"
+      },
+      "page": {
+        "boost": {
+          "conditions": "Conditions",
+          "modifiers": "Modificateurs",
+          "title": "Bonus"
+        },
+        "details": {
+          "modifiers": "Modificateurs",
+          "sources": "Sources",
+          "targets": "Cibles"
+        },
+        "other": {
+          "title": "Autres",
+          "tradePrice": "Prix d'échange",
+          "type": "Type"
+        }
+      }
+    },
+    "layouts": {
+      "main": {
+        "footer": {
+          "copyright": "© {year} Annohead. Tous droits réservés."
+        },
+        "nav": {
+          "buildings": "Bâtiments",
+          "chains": "Chaînes de production",
+          "items": "Objets",
+          "products": "Marchandises",
+          "quests": "Quêtes",
+          "techs": "Technologies",
+          "title": "Base de données"
+        },
+        "title": "Annohead"
+      }
+    },
+    "products": {
+      "filters": {
+        "dlcs": "DLC",
+        "regions": "Région",
+        "tiers": "Niveau de population",
+        "types": "Catégorie"
+      },
+      "list": {
+        "empty": "Aucun résultat",
+        "title": "Marchandises"
+      },
+      "page": {
+        "consumed": "Consommé par",
+        "needed": "Requis par",
+        "produced": "Produit par",
+        "tons": "{tons, number, tons} t / min",
+        "wanted": "Demandé par"
+      }
+    },
+    "quests": {
+      "choice": {
+        "check": "Le jeu vérifie",
+        "cost": "Coûts",
+        "decision": "Décision",
+        "fails": "Sinon",
+        "holds": "Si oui",
+        "nothing": "Aucun effet durable",
+        "option": "Option {number}",
+        "outcomes": "Conséquence",
+        "requires": "Nécessite"
+      },
+      "filters": {
+        "dlcs": "DLC",
+        "regions": "Région"
+      },
+      "list": {
+        "empty": "Aucun résultat",
+        "title": "Quêtes"
+      },
+      "outcome": {
+        "duration": "{hours, plural, one {# heure} many {# heures} other {# heures}}",
+        "effect": "Effet",
+        "incident": "Déclenche un incident",
+        "incidentFallback": "Incident",
+        "lock": "Verrouillé",
+        "lockFallback": "Quelque chose",
+        "power": "Lutte de pouvoir",
+        "racer": "Amélioration de coureur",
+        "racerFallback": "Coureur",
+        "reputation": "Réputation",
+        "storyline": "Déclenche une suite",
+        "storylineFallback": "Un événement de suite",
+        "unlock": "Débloqué",
+        "unlockFallback": "Quelque chose",
+        "variable": "Mémorisé pour plus tard",
+        "xp": "Expérience"
+      },
+      "page": {
+        "empty": "Histoire uniquement, aucun choix dans cette partie.",
+        "part": "Partie {number}",
+        "requires": "Uniquement si : {requirements}",
+        "untitled": "Sans titre"
+      }
+    },
+    "search": {
+      "box": {
+        "placeholder": "Rechercher"
+      },
+      "filters": {
+        "all": "Tout",
+        "building": "Bâtiments",
+        "chain": "Chaînes de production",
+        "item": "Objets",
+        "product": "Marchandises",
+        "quest": "Quêtes",
+        "tech": "Technologies"
+      },
+      "page": {
+        "empty": "Aucun résultat",
+        "results": "{total, plural, =0 {Aucun résultat} =1 {1 résultat} one {# résultat} many {# résultats} other {# résultats}}",
+        "title": "Recherche"
+      }
+    },
+    "technologies": {
+      "page": {
+        "effects": {
+          "modifiers": "Modificateurs",
+          "targets": "Cibles",
+          "title": "Effets"
+        },
+        "other": {
+          "knowledgeNeeded": "Connaissance",
+          "title": "Autres"
+        },
+        "rewards": "Récompenses",
+        "unlocks": "Débloque"
+      },
+      "tree": {
+        "discovery": "Découverte",
+        "effects": "Effets",
+        "inspiration": "Inspiration",
+        "knowledge": "Connaissance",
+        "requirement": "Condition",
+        "rewards": "Récompenses",
+        "unlocks": "Débloque"
+      }
+    }
+  },
+  "hook": {
+    "auth": {
+      "error": {
+        "INVALID_CREDENTIALS": "Identifiants invalides",
+        "OTHER_ERROR": "Une erreur est survenue",
+        "PASSWORD_HAS_SURROUNDING_WHITESPACE": "Le mot de passe commence ou se termine par un espace",
+        "PASSWORD_TOO_COMMON": "Mot de passe trop courant",
+        "PASSWORD_TOO_LONG": "Mot de passe trop long (max. {max, plural, =0 {} =1 {1 caractère} one {# caractère} many {# caractères} other {# caractères}})",
+        "PASSWORD_TOO_SHORT": "Mot de passe trop court (min. {min, plural, =0 {} =1 {1 caractère} one {# caractère} many {# caractères} other {# caractères}})",
+        "RATE_LIMITED": "Trop de tentatives. Réessayez dans {seconds, plural, =0 {un moment} =1 {1 seconde} one {# seconde} many {# secondes} other {# secondes}}",
+        "USERNAME_HAS_INVALID_CHARACTERS": "Le nom d'utilisateur contient des caractères invalides",
+        "USERNAME_HAS_SURROUNDING_WHITESPACE": "Le nom d'utilisateur commence ou se termine par un espace",
+        "USERNAME_TAKEN": "Nom d'utilisateur déjà pris",
+        "USERNAME_TOO_SHORT": "Nom d'utilisateur trop court (min. {min, plural, =0 {} =1 {1 caractère} one {# caractère} many {# caractères} other {# caractères}})",
+        "USER_NOT_FOUND": "Utilisateur introuvable"
+      }
+    }
+  },
+  "page": {
+    "building": {
+      "fallback": "Bâtiment",
+      "title": "{name} × Bâtiments × Annohead"
+    },
+    "buildings": {
+      "title": "Bâtiments × Annohead"
+    },
+    "chain": {
+      "fallback": "Chaîne",
+      "title": "{name} × Chaînes de production × Annohead"
+    },
+    "chains": {
+      "title": "Chaînes de production × Annohead"
+    },
+    "item": {
+      "fallback": "Objet",
+      "title": "{name} × Objets × Annohead"
+    },
+    "items": {
+      "title": "Objets × Annohead"
+    },
+    "product": {
+      "fallback": "Marchandise",
+      "title": "{name} × Marchandises × Annohead"
+    },
+    "products": {
+      "title": "Marchandises × Annohead"
+    },
+    "quest": {
+      "fallback": "Quête",
+      "title": "{name} × Quêtes × Annohead"
+    },
+    "quests": {
+      "title": "Quêtes × Annohead"
+    },
+    "search": {
+      "title": "Recherche × Annohead"
+    },
+    "technologies": {
+      "title": "Technologies × Annohead"
+    },
+    "technology": {
+      "fallback": "Technologie",
+      "title": "{name} × Technologies × Annohead"
+    }
+  }
+}

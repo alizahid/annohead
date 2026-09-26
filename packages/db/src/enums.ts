@@ -101,7 +101,6 @@ export const rarityValues = [
   'Mythic',
   'Quest',
   'Rare',
-  'Uncommon',
   'Unique',
 ] as const
 export type Rarity = (typeof rarityValues)[number]
@@ -133,7 +132,20 @@ export const attributeValues = [
 ] as const
 export type Attribute = (typeof attributeValues)[number]
 
-export const langValues = ['en', 'de'] as const
+export const langValues = [
+  'en',
+  'de',
+  'pt-BR',
+  'fr',
+  'it',
+  'ja',
+  'ko',
+  'pl',
+  'ru',
+  'zh-Hans',
+  'es',
+  'zh-Hant',
+] as const
 export type Lang = (typeof langValues)[number]
 
 export const dlcValues = [
@@ -149,4 +161,14 @@ export type Region = (typeof regionValues)[number]
 export const langNames = {
   de: 'german',
   en: 'english',
+  es: 'spanish',
+  fr: 'french',
+  it: 'italian',
+  ja: 'japanese',
+  ko: 'korean',
+  pl: 'polish',
+  'pt-BR': 'brazilian',
+  ru: 'russian',
+  'zh-Hans': 'simplified_chinese',
+  'zh-Hant': 'traditional_chinese',
 } as const satisfies Record<Lang, string>

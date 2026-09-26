@@ -35,6 +35,7 @@ import {
   participant,
   poolMember,
   quest,
+  questline,
   questlineStoryline,
   storyline,
   tech,
@@ -115,6 +116,7 @@ async function itemDetails(guids: Array<number>, lang: Lang) {
         icon: building.icon,
         itemGuid: item.guid,
         name: bName.value,
+        slug: building.slug,
       })
       .from(item)
       .innerJoin(
@@ -195,6 +197,10 @@ async function itemDetails(guids: Array<number>, lang: Lang) {
         questline: sql<
           number | null
         >`(select ${questlineStoryline.questlineGuid} from ${questlineStoryline} where ${questlineStoryline.storylineGuid} = coalesce(${quest.storylineGuid}, case when ${itemSource.kind} = 'storyline' then ${itemSource.sourceGuid} end))`,
+        /** English slug of the questline, else of the tech, for linking to it */
+        slug: sql<
+          string | null
+        >`coalesce((select ${questline.slug} from ${questlineStoryline} join ${questline} on ${questline.guid} = ${questlineStoryline.questlineGuid} where ${questlineStoryline.storylineGuid} = coalesce(${quest.storylineGuid}, case when ${itemSource.kind} = 'storyline' then ${itemSource.sourceGuid} end)), ${tech.slug})`,
       })
       .from(itemSource)
       .leftJoin(participant, eq(participant.guid, itemSource.sourceGuid))
@@ -303,6 +309,7 @@ async function queryItems(f: ItemFilter & Page, id?: number) {
         name: nameT.value,
         niche: item.niche,
         rarity: item.rarity,
+        slug: item.slug,
         tradePrice: item.tradePrice,
       })
       .from(item)

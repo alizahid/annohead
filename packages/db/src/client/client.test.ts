@@ -1,6 +1,12 @@
 import { expect, test } from 'bun:test'
 
+import { langValues } from '../enums'
 import { anno } from './index'
+
+/** "Part I" in every game language */
+const PART_NUMBER = /\b(?:Part|Teil|Parte|partie|część|часть)\b|第.*部|\d부/iu
+// typed queries have no zero-width spaces, which the game puts between CJK words
+const INVISIBLE = /[\u200B-\u200D\uFEFF]/g
 
 test('specialists paginate and join effects', async () => {
   const { rows, total } = await anno.items.list({
@@ -370,7 +376,7 @@ test('Amphitheatre phases expose construction inputs, time, workforce and unlock
   })
   expect(building?.phases.map((phase) => phase.name)).toEqual([
     'Amphitheatre: Foundation',
-    'Amphitheatre: Base Structure',
+    'Amphitheatre: Foundation',
     'Amphitheatre: Outer Walls',
     'Amphitheatre: Arena',
   ])
@@ -749,7 +755,6 @@ test('item rarities, niches and allocations are named by the game', async () => 
   })
   expect(rarities.map((r) => r.key)).toEqual([
     'Common',
-    'Uncommon',
     'Rare',
     'Epic',
     'Legendary',
@@ -1077,3 +1082,26 @@ test('items the game never names and props nothing hands out are left out', asyn
   expect(rows.every((r) => r.name)).toBe(true)
   expect(rows.some((r) => r.icon?.includes('icon_3d_removed'))).toBe(false)
 })
+
+test.each([...langValues])(
+  'questline names drop the part number and search finds names in %s',
+  async (lang) => {
+    const murmillo = await anno.quests.get({
+      id: 50_806,
+      lang,
+    })
+    expect(murmillo?.name).toBeTruthy()
+    expect(murmillo?.name).not.toMatch(PART_NUMBER)
+    const spinner = await anno.buildings.get({
+      id: 3187,
+      lang,
+    })
+    // typed queries have no zero-width spaces, which the game puts between CJK words
+    const query = (spinner?.name ?? '').replace(INVISIBLE, '').slice(0, 4)
+    const { rows } = await anno.search({
+      lang,
+      query,
+    })
+    expect(rows.map((r) => r.guid)).toContain(3187)
+  },
+)

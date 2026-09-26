@@ -62,6 +62,7 @@ export function TechnologyPage({ tech }: Props) {
                     id={item.buildingGuid}
                     key={item.guid}
                     name={item.name}
+                    slug={item.slug}
                     type="building"
                   />
                 ) : (
@@ -103,6 +104,7 @@ export function TechnologyPage({ tech }: Props) {
                         id={target.buildingGuid}
                         key={target.buildingGuid}
                         name={target.name}
+                        slug={target.slug}
                         type="building"
                         value={
                           target.region?.key ? (

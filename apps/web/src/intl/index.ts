@@ -1,7 +1,9 @@
+import { langValues } from '@anno/db/enums'
 import { defineRouting } from 'next-intl/routing'
 
 export const routing = defineRouting({
   defaultLocale: 'en',
   localePrefix: 'as-needed',
-  locales: ['en', 'de'],
+  // every language the game ships; each needs a locales/<code>.json
+  locales: langValues,
 })
