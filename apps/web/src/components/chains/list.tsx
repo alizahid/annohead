@@ -2,7 +2,6 @@ import {
   type Chains,
   type ChainTypes,
   type Dlcs,
-  type PopulationTiers,
   type Regions,
 } from '@anno/db/client'
 import { useTranslations } from 'next-intl'
@@ -18,19 +17,11 @@ type Props = {
   chains: Chains
   dlcs: Dlcs
   filters: ChainFilters
-  regions: Regions
-  tiers: PopulationTiers
   types: ChainTypes
+  regions: Regions
 }
 
-export function ChainList({
-  chains,
-  dlcs,
-  filters,
-  regions,
-  tiers,
-  types,
-}: Props) {
+export function ChainList({ chains, dlcs, filters, types, regions }: Props) {
   const t = useTranslations('component.chains.list')
 
   return (
@@ -38,12 +29,7 @@ export function ChainList({
       <h1 className="text-4xl">{t('title')}</h1>
 
       <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
-        <ChainFiltersCard
-          dlcs={dlcs}
-          regions={regions}
-          tiers={tiers}
-          types={types}
-        />
+        <ChainFiltersCard dlcs={dlcs} regions={regions} types={types} />
 
         <div className="flex flex-1 flex-col gap-12">
           {chains.rows.length ? (

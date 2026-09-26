@@ -2,14 +2,7 @@ import { type SQL, sql } from 'drizzle-orm'
 import { type SQLiteColumn, type SQLiteTable } from 'drizzle-orm/sqlite-core'
 
 import { db } from '../db'
-import {
-  type BuildingKind,
-  type ItemType,
-  type Lang,
-  type Rarity,
-  type Region,
-  regionValues,
-} from '../enums'
+import { type Lang, type Rarity, type Region, regionValues } from '../enums'
 import {
   building,
   item,
@@ -34,8 +27,6 @@ export type SearchHit = {
   icon: string | null
   name: string
   description: string | null
-  /** building kind or item type */
-  category: BuildingKind | ItemType | null
   /** Item rarity; null for other entity types. */
   rarity: Rarity | null
   /** set for buildings and chains */
@@ -49,7 +40,6 @@ type Source = {
   icon: SQLiteColumn
   name: SQLiteColumn
   description?: SQLiteColumn
-  category?: SQLiteColumn
   rarity?: SQLiteColumn
   /** comma separated region keys */
   regions?: SQL
@@ -57,7 +47,6 @@ type Source = {
 
 const sources: Array<Source> = [
   {
-    category: building.kind,
     description: building.descriptionText,
     guid: building.guid,
     icon: building.icon,
@@ -67,7 +56,6 @@ const sources: Array<Source> = [
     type: 'building',
   },
   {
-    category: item.type,
     description: item.descriptionText,
     guid: item.guid,
     icon: item.icon,
@@ -110,7 +98,7 @@ const sources: Array<Source> = [
 
 function select(s: Source, lang: Lang) {
   const none = sql`null`
-  return sql`select ${s.type} as type, ${s.guid} as guid, ${s.icon} as icon, n.value as name, d.value as description, ${s.category ?? none} as category, ${s.rarity ?? none} as rarity, ${s.regions ?? none} as regions
+  return sql`select ${s.type} as type, ${s.guid} as guid, ${s.icon} as icon, n.value as name, d.value as description, ${s.rarity ?? none} as rarity, ${s.regions ?? none} as regions
     from ${s.table}
     join translation n on n.line_id = ${s.name} and n.lang_id = ${langId(lang)}
     left join translation d on d.line_id = ${s.description ?? none} and d.lang_id = ${langId(lang)}`
@@ -129,12 +117,12 @@ function load(lang: Lang, types?: Array<SearchType>) {
       )})`
     : sql``
   return db.all<Row>(
-    sql`select type, min(guid) as guid, icon, name, description, category, rarity, regions
+    sql`select type, min(guid) as guid, icon, name, description, rarity, regions
       from (${sql.join(
         sources.map((s) => select(s, lang)),
         sql` union all `,
       )}) ${filter}
-      group by type, name, description, category, rarity, regions`,
+      group by type, name, description, rarity, regions`,
   )
 }
 

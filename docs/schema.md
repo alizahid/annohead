@@ -219,6 +219,26 @@ above no longer ship:
   announced but not shipped), a region only when the game has a `Region` asset for it (Egyptian has none yet, though
   base buildings and goods already list it). Both appear on their own once a patch ships them.
 
+### Labels and categories (2026-09-26)
+
+Display names come from the game's own config tables, not hand-written ones, so every game language works:
+
+- `label(kind, key, name_text, icon)`: attribute (`NeedAttributeFeature`), rarity, niche and allocation
+  (`ItemBalancing.ItemConfig`), modifier (`buff_modifier.path` → `ItemKeywords`, or the infotip table
+  `ItemInfotipTextFeature.BuffUpgradeTextAndIcons` for per-weapon unit stats; the path → key map is `MODIFIER_TEXTS`
+  in transform.py and holds keys only), racer attribute (`RaceTrackConfig`), diplomacy state (`DiplomacyBalancing`),
+  reputation zone and state (`ReputationFeature`), incident (`GeneralIncidentConfiguration`). The transformer warns
+  about modifier paths without a game text.
+- `category(guid, kind, name_text, key, icon, sort)` + `category_member`: kind `menu` is the construction menu of
+  each released region (`ConstructionMenu.LinearBuildingsMenu`: tier tabs and the infrastructure tab's sub-tabs),
+  listing buildings, production chains (and their buildings) and nested categories; buildings only reached by
+  upgrading take the tab of what they upgrade from. Kind `product` is the trading-post filter (`ProductFilter`,
+  "All Goods" skipped); workforce, services and empire products get key-only categories the client names.
+  Categories that read the same in every language are merged. These replace building kinds, chain types,
+  product kinds and item types (items use `allocation`).
+- Hand-written text left in the client: condition and item-source phrasing ("Worship {name}", "Sold by {name}"),
+  statistics and war-state names the game never shows, quest placeholders, and the three unnamed product groups.
+
 ## Decisions (2026-09-09)
 
 1. **Storylines and quests are separate tables**, Wowhead-style. `storyline` = game `StoryLine` (the chain,

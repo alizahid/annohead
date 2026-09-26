@@ -21,6 +21,7 @@ import {
   phraseNeedsName,
   variableCheckLabel,
 } from './condition-labels'
+import { labels } from './labels'
 import { groupBy, localized, on } from './shared'
 
 /** Names of game assets a condition parameter or quest outcome may point at, by guid. */
@@ -131,14 +132,17 @@ export async function describeConditions<
       : [],
     'conditionId',
   )
-  const assets = await assetNames(
-    [
-      ...new Set(
-        rows.flatMap((row) => params(row.id).map((p) => Number(p.value))),
-      ),
-    ].filter((guid) => Number.isInteger(guid) && guid > 0),
-    lang,
-  )
+  const [assets, l] = await Promise.all([
+    assetNames(
+      [
+        ...new Set(
+          rows.flatMap((row) => params(row.id).map((p) => Number(p.value))),
+        ),
+      ].filter((guid) => Number.isInteger(guid) && guid > 0),
+      lang,
+    ),
+    labels(lang),
+  ])
   return rows.flatMap(({ id, negate, ...row }) => {
     // where the condition looks (a province, the counter's scope) is not what it is about
     const values = params(id)
@@ -188,6 +192,7 @@ export async function describeConditions<
               variant,
             },
             lang,
+            l,
           )
       return {
         ...row,

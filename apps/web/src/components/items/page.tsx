@@ -21,12 +21,9 @@ export function ItemPage({ item }: Props) {
     <div className="flex flex-col gap-12">
       <div className="flex flex-col gap-6 lg:flex-row lg:justify-between">
         <div className="flex flex-1 flex-col gap-4">
-          {item.type?.key === 'Captains' ||
-          item.type?.key === 'Specialist' ||
-          item.dlc?.key ? (
+          {(item.type && item.type.key !== 'None') || item.dlc?.key ? (
             <div className="flex gap-4">
-              {item.type?.key === 'Captains' ||
-              item.type?.key === 'Specialist' ? (
+              {item.type && item.type.key !== 'None' ? (
                 <Icon
                   className="size-6"
                   icon={getIcon(`type.${item.type.key}`)}
@@ -181,11 +178,10 @@ export function ItemPage({ item }: Props) {
 
         <div className="flex flex-col gap-6 empty:hidden">
           <DataList.Root title={t('other.title')}>
-            {item.allocation ? (
+            {item.type ? (
               <DataList.Item
-                code
                 name={t('other.allocation')}
-                value={item.allocation}
+                value={item.type.name}
               />
             ) : null}
 

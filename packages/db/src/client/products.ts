@@ -10,9 +10,10 @@ import {
 } from 'drizzle-orm'
 
 import { db } from '../db'
-import { type Lang, type ProductKind, productKindValues } from '../enums'
+import { type Lang } from '../enums'
 import {
   building,
+  categoryMember,
   dlc,
   factoryInput,
   factoryOutput,
@@ -25,8 +26,10 @@ import {
   residenceNeed,
 } from '../schema'
 import {
+  categoriesOf,
   type Get,
   groupBy,
+  inCategories,
   localized,
   on,
   type Page,
@@ -36,42 +39,36 @@ import {
 export type ProductFilter = {
   lang: Lang
   regions?: Array<number>
-  kinds?: Array<ProductKind>
+  /** category guids, see `products.types` */
+  types?: Array<number>
   /** DLC guids of a producing building */
   dlcs?: Array<number>
   /** population_level guids whose residences need the product */
   tiers?: Array<number>
 }
 
-const kindNames: Record<Lang, Record<ProductKind, string>> = {
+/** products the trading post doesn't list; the game has no name for these groups */
+const kindNames: Record<Lang, Record<string, string>> = {
   de: {
-    Good: 'Ware',
     Meta: 'Reich',
     Service: 'Dienstleistung',
     Workforce: 'Arbeitskraft',
   },
   en: {
-    Good: 'Good',
     Meta: 'Empire',
     Service: 'Service',
     Workforce: 'Workforce',
   },
 }
 
-function kindLabel(key: ProductKind | null, lang: Lang) {
-  return key === null
-    ? null
-    : {
-        key,
-        name: kindNames[lang][key],
-      }
-}
-
-function kinds({ lang }: { lang: Lang }) {
-  return productKindValues.map((key) => ({
-    key,
-    name: kindNames[lang][key],
-  }))
+/** Goods by the game's trading-post filter (Consumer Goods, Raw Materials …), then workforce, services and empire goods. */
+async function types({ lang }: { lang: Lang }) {
+  return (await categoriesOf('product', product.guid, lang)).map(
+    ({ key, ...c }) => ({
+      ...c,
+      name: c.name ?? (key ? (kindNames[lang][key] ?? key) : null),
+    }),
+  )
 }
 
 /** skips needs only switched on by a buff (IsOnlyAvailableThroughBuff) */
@@ -96,7 +93,7 @@ async function queryProducts(f: ProductFilter & Page, id?: number) {
   const bName = localized('b_name')
   const where = and(
     id === undefined ? undefined : eq(product.guid, id),
-    f.kinds?.length ? inArray(product.kind, f.kinds) : undefined,
+    f.types?.length ? inCategories(product.guid, f.types) : undefined,
     f.dlcs?.length
       ? producerWhere(inArray(building.dlcGuid, f.dlcs))
       : undefined,
@@ -149,7 +146,6 @@ async function queryProducts(f: ProductFilter & Page, id?: number) {
       .select({
         guid: product.guid,
         icon: product.icon,
-        kind: product.kind,
         name: nameT.value,
       })
       .from(product)
@@ -179,7 +175,7 @@ async function queryProducts(f: ProductFilter & Page, id?: number) {
   }
   const dlcT = localized('dlc_name')
   const tierT = localized('tier_name')
-  const [producedBy, consumedBy, regions, producerDlcs, tiers] =
+  const [producedBy, consumedBy, regions, producerDlcs, tiers, filed, named] =
     await Promise.all([
       usage(factoryOutput),
       usage(factoryInput),
@@ -231,6 +227,13 @@ async function queryProducts(f: ProductFilter & Page, id?: number) {
         .leftJoin(tierT, on(tierT, populationLevel.nameText, f.lang))
         .where(and(inArray(need.productGuid, guids), regularNeed))
         .orderBy(asc(populationLevel.regionId), asc(populationLevel.tier)),
+      db
+        .select()
+        .from(categoryMember)
+        .where(inArray(categoryMember.assetGuid, guids)),
+      types({
+        lang: f.lang,
+      }),
     ])
   const p = groupBy(producedBy, 'productGuid')
   const c = groupBy(consumedBy, 'productGuid')
@@ -269,9 +272,15 @@ async function queryProducts(f: ProductFilter & Page, id?: number) {
       ...tiersOf(row.guid),
       consumedBy: c(row.guid),
       dlc: productDlc(row.guid),
-      kind: kindLabel(row.kind, f.lang),
       producedBy: p(row.guid),
       regions: rg(row.guid).map((x) => x.region),
+      /** the game's goods category, or workforce, service or empire */
+      type:
+        named.find((category) =>
+          filed.some(
+            (m) => m.assetGuid === row.guid && m.categoryGuid === category.guid,
+          ),
+        ) ?? null,
     })),
     total,
   }
@@ -297,6 +306,6 @@ async function list(f: ProductFilter & Page) {
 
 export const products = {
   get,
-  kinds,
   list,
+  types,
 }

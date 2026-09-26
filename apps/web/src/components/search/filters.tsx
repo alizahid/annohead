@@ -23,14 +23,14 @@ export function SearchFiltersCard() {
       onValueChange={async (next) => {
         await setFilters({
           page: null,
-          type: isEqual(sortBy(next), sortBy(SearchTypes))
+          types: isEqual(sortBy(next), sortBy(SearchTypes))
             ? null
             : (next as Array<SearchType>),
         })
 
         router.refresh()
       }}
-      value={filters.type ?? SearchTypes.map(String)}
+      value={filters.types ?? SearchTypes.map(String)}
     >
       {SearchTypes.map((item) => (
         <Checkbox.Root

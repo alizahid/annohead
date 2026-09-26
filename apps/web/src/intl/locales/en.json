@@ -44,9 +44,9 @@
     "buildings": {
       "filters": {
         "dlcs": "DLC",
-        "kinds": "Type",
         "regions": "Region",
-        "tiers": "Population tier"
+        "tiers": "Population tier",
+        "types": "Type"
       },
       "list": {
         "empty": "Nothing found",
@@ -96,7 +96,6 @@
       "filters": {
         "dlcs": "DLC",
         "regions": "Region",
-        "tiers": "Population tier",
         "types": "Type"
       },
       "list": {
@@ -124,11 +123,10 @@
     },
     "items": {
       "filters": {
-        "allocations": "Allocation",
         "dlcs": "DLC",
         "niches": "Niche",
         "rarities": "Rarity",
-        "types": "Type"
+        "types": "Allocation"
       },
       "list": {
         "empty": "Nothing found",
@@ -176,9 +174,9 @@
     "products": {
       "filters": {
         "dlcs": "DLC",
-        "kinds": "Type",
         "regions": "Region",
-        "tiers": "Population tier"
+        "tiers": "Population tier",
+        "types": "Category"
       },
       "list": {
         "empty": "Nothing found",

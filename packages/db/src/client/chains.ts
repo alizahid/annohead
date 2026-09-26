@@ -1,19 +1,20 @@
-import { and, asc, count, eq, exists, inArray } from 'drizzle-orm'
+import { and, asc, count, eq, inArray } from 'drizzle-orm'
 
 import { db } from '../db'
-import { type ChainType, chainTypeValues, type Lang } from '../enums'
+import { type Lang } from '../enums'
 import {
   building,
   dlc,
   factory,
   productionChain,
-  productionChainCategory,
   productionChainNode,
   region,
 } from '../schema'
 import {
+  categoriesOf,
   type Get,
   groupBy,
+  inCategories,
   localized,
   on,
   type Page,
@@ -25,65 +26,13 @@ export type ChainFilter = {
   regions?: Array<number>
   /** DLC guids (of the chain's final building) */
   dlcs?: Array<number>
-  /** population_level guids whose construction menu lists the chain */
-  tiers?: Array<number>
-  types?: Array<ChainType>
+  /** construction-menu tabs listing the chain (category guids, see `chains.types`): a tier's tab, Materials … */
+  types?: Array<number>
 }
 
-const typeNames: Record<Lang, Record<ChainType, string>> = {
-  de: {
-    Consumer: 'Verbrauchsgüter',
-    Harbour: 'Hafen',
-    Material: 'Baumaterial',
-    Military: 'Militär',
-  },
-  en: {
-    Consumer: 'Consumer Goods',
-    Harbour: 'Harbour',
-    Material: 'Materials',
-    Military: 'Military',
-  },
-}
-
-/** Construction-menu tab icons; consumer chains live on per-tier tabs, so they borrow a need category's. */
-const typeIcons: Record<ChainType, string> = {
-  Consumer:
-    'data/ui/fhd/base/icon_content/need_categories/icon_3d_need_category_household.png',
-  Harbour:
-    'data/ui/fhd/base/icon_content/building/icon_3d_construction_category_harbour.png',
-  Material:
-    'data/ui/fhd/base/icon_content/building/icon_3d_construction_category_materials.png',
-  Military:
-    'data/ui/fhd/base/icon_content/building/icon_3d_construction_category_military.png',
-}
-
-function types({ lang }: { lang: Lang }) {
-  return chainTypeValues.map((key) => ({
-    icon: typeIcons[key],
-    key,
-    name: typeNames[lang][key],
-  }))
-}
-
-function inCategory(
-  column:
-    | typeof productionChainCategory.type
-    | typeof productionChainCategory.populationLevelGuid,
-  values: Array<ChainType> | Array<number>,
-) {
-  return exists(
-    db
-      .select({
-        chainGuid: productionChainCategory.chainGuid,
-      })
-      .from(productionChainCategory)
-      .where(
-        and(
-          eq(productionChainCategory.chainGuid, productionChain.guid),
-          inArray(column, values),
-        ),
-      ),
-  )
+/** The construction-menu tabs chains are filed under, in game order. */
+async function types({ lang }: { lang: Lang }) {
+  return await categoriesOf('menu', productionChain.guid, lang)
 }
 
 /** Production chains with their nodes as a flat parent/tier list. */
@@ -98,12 +47,7 @@ async function queryChains(f: ChainFilter & Page, id?: number) {
       ? inArray(productionChain.regionId, f.regions)
       : undefined,
     f.dlcs?.length ? inArray(building.dlcGuid, f.dlcs) : undefined,
-    f.tiers?.length
-      ? inCategory(productionChainCategory.populationLevelGuid, f.tiers)
-      : undefined,
-    f.types?.length
-      ? inCategory(productionChainCategory.type, f.types)
-      : undefined,
+    f.types?.length ? inCategories(productionChain.guid, f.types) : undefined,
   )
   const { limit, offset } = paginate(f)
   const [[{ total }], rows] = await Promise.all([

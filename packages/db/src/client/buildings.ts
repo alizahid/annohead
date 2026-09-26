@@ -1,7 +1,7 @@
 import { and, asc, count, eq, exists, inArray } from 'drizzle-orm'
 
 import { db } from '../db'
-import { type BuildingKind, type Lang } from '../enums'
+import { type Lang } from '../enums'
 import {
   attribute,
   buffModifier,
@@ -26,11 +26,12 @@ import {
   tech,
   techUnlock,
 } from '../schema'
-import { attributeName } from './attribute-labels'
-import { kindLabel, kinds } from './building-labels'
+import { labels } from './labels'
 import {
+  categoriesOf,
   type Get,
   groupBy,
+  inCategories,
   localized,
   modifierColumns,
   on,
@@ -41,7 +42,8 @@ import {
 import { unlockRequirements } from './unlock-requirements'
 export type BuildingFilter = {
   lang: Lang
-  kinds?: Array<BuildingKind>
+  /** construction-menu tabs (category guids, see `buildings.types`) */
+  types?: Array<number>
   regions?: Array<number>
   /** DLC guids */
   dlcs?: Array<number>
@@ -51,7 +53,7 @@ export type BuildingFilter = {
 
 function buildingWhere(f: BuildingFilter) {
   return and(
-    f.kinds?.length ? inArray(building.kind, f.kinds) : undefined,
+    f.types?.length ? inCategories(building.guid, f.types) : undefined,
     f.regions?.length ? inArray(building.regionId, f.regions) : undefined,
     f.dlcs?.length ? inArray(building.dlcGuid, f.dlcs) : undefined,
     f.tiers?.length
@@ -311,7 +313,6 @@ async function queryBuildings(f: BuildingFilter & Page, id?: number) {
         },
         guid: building.guid,
         icon: building.icon,
-        kind: building.kind,
         name: nameT.value,
         needsFuel: factory.needsFuel,
         radius: building.radius,
@@ -333,10 +334,13 @@ async function queryBuildings(f: BuildingFilter & Page, id?: number) {
       .limit(limit)
       .offset(offset),
   ])
-  const d = await buildingDetails(
-    rows.map((r) => r.guid),
-    f.lang,
-  )
+  const [d, l] = await Promise.all([
+    buildingDetails(
+      rows.map((r) => r.guid),
+      f.lang,
+    ),
+    labels(f.lang),
+  ])
   return {
     pages: Math.ceil(total / limit),
     rows: rows.map((r) => ({
@@ -344,17 +348,16 @@ async function queryBuildings(f: BuildingFilter & Page, id?: number) {
       /** Attributes residences gain from the service or produced goods. */
       buffs: d.buffs(r.guid).map((bonus) => ({
         ...bonus,
-        name: attributeName(bonus.attribute, f.lang),
+        name: l('attribute', bonus.attribute)?.name ?? null,
       })),
       costs: d.costs(r.guid),
       dlc: r.dlc?.guid ? r.dlc : null,
       /** area effects: attribute modifiers applied to nearby buildings */
       effects: d.effects(r.guid).map((effect) => ({
         ...effect,
-        name: attributeName(effect.attribute, f.lang),
+        name: l('attribute', effect.attribute)?.name ?? null,
       })),
       inputs: d.inputs(r.guid),
-      kind: kindLabel(r.kind, f.lang),
       maintenance: d.maintenance(r.guid),
       outputs: d.outputs(r.guid),
       /** construction phases of a monument, in order; empty for ordinary buildings */
@@ -388,8 +391,13 @@ async function list(f: BuildingFilter & Page) {
   return await queryBuildings(f)
 }
 
+/** The construction-menu tabs buildings are filed under (Liberti, Materials, Military Buildings …), in game order. */
+async function types({ lang }: { lang: Lang }) {
+  return await categoriesOf('menu', building.guid, lang)
+}
+
 export const buildings = {
   get,
-  kinds,
   list,
+  types,
 }

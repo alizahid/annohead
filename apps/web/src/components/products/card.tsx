@@ -21,8 +21,8 @@ export function ProductCard({ product }: Props) {
       <div className="flex flex-col">
         <div className="font-bold">{product.name}</div>
 
-        {product.kind ? (
-          <div className="text-gray-11 text-sm">{product.kind.name}</div>
+        {product.type ? (
+          <div className="text-gray-11 text-sm">{product.type.name}</div>
         ) : null}
       </div>
 

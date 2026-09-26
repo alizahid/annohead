@@ -23,21 +23,20 @@ export type { TechFilter } from './techs'
 
 export type Buildings = Awaited<ReturnType<typeof buildings.list>>
 export type Building = Awaited<ReturnType<typeof buildings.get>>
-export type BuildingKinds = Awaited<ReturnType<typeof buildings.kinds>>
+export type BuildingTypes = Awaited<ReturnType<typeof buildings.types>>
 export type Chains = Awaited<ReturnType<typeof chains.list>>
 export type Chain = Awaited<ReturnType<typeof chains.get>>
 export type ChainTypes = Awaited<ReturnType<typeof chains.types>>
 export type Dlcs = Awaited<ReturnType<typeof dlc.list>>
 export type Items = Awaited<ReturnType<typeof items.list>>
 export type Item = Awaited<ReturnType<typeof items.get>>
-export type ItemAllocations = Awaited<ReturnType<typeof items.allocations>>
+export type ItemTypes = Awaited<ReturnType<typeof items.types>>
 export type ItemNiches = Awaited<ReturnType<typeof items.niches>>
 export type ItemRarities = Awaited<ReturnType<typeof items.rarities>>
-export type ItemTypes = Awaited<ReturnType<typeof items.types>>
 export type PopulationTiers = Awaited<ReturnType<typeof populationTiers.list>>
 export type Products = Awaited<ReturnType<typeof products.list>>
 export type Product = Awaited<ReturnType<typeof products.get>>
-export type ProductKinds = Awaited<ReturnType<typeof products.kinds>>
+export type ProductTypes = Awaited<ReturnType<typeof products.types>>
 export type Quests = Awaited<ReturnType<typeof quests.list>>
 export type Quest = Awaited<ReturnType<typeof quests.get>>
 export type QuestPart = Quest['parts'][number]

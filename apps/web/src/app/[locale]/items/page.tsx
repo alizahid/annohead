@@ -23,39 +23,32 @@ export default async function Page({
 
   const filters = parseItemFilters(await searchParams)
 
-  const [dlcs, allocations, niches, rarities, types, items] = await Promise.all(
-    [
-      anno.dlc.list({
-        lang,
-      }),
-      anno.items.allocations({
-        lang,
-      }),
-      anno.items.niches({
-        lang,
-      }),
-      anno.items.rarities({
-        lang,
-      }),
-      anno.items.types({
-        lang,
-      }),
-      anno.items.list({
-        allocations: filters.allocations ?? undefined,
-        attributes: filters.attributes ?? undefined,
-        dlcs: filters.dlcs ?? undefined,
-        lang,
-        niches: filters.niches ?? undefined,
-        page: filters.page ?? undefined,
-        rarities: filters.rarities ?? undefined,
-        types: filters.types ?? undefined,
-      }),
-    ],
-  )
+  const [dlcs, types, niches, rarities, items] = await Promise.all([
+    anno.dlc.list({
+      lang,
+    }),
+    anno.items.types({
+      lang,
+    }),
+    anno.items.niches({
+      lang,
+    }),
+    anno.items.rarities({
+      lang,
+    }),
+    anno.items.list({
+      attributes: filters.attributes ?? undefined,
+      dlcs: filters.dlcs ?? undefined,
+      lang,
+      niches: filters.niches ?? undefined,
+      page: filters.page ?? undefined,
+      rarities: filters.rarities ?? undefined,
+      types: filters.types ?? undefined,
+    }),
+  ])
 
   return (
     <ItemList
-      allocations={allocations}
       dlcs={dlcs}
       filters={filters}
       items={items}

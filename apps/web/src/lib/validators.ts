@@ -1,11 +1,7 @@
 import {
   allocationValues,
   attributeValues,
-  buildingKindValues,
-  chainTypeValues,
-  itemTypeValues,
   nicheValues,
-  productKindValues,
   rarityValues,
 } from '@anno/db/enums'
 import { SearchTypes } from '@anno/db/search'
@@ -34,7 +30,7 @@ export function getId(id: string) {
 export const searchFilters = {
   page: parseAsInteger,
   query: parseAsString.withDefault(''),
-  type: parseAsArrayOf(parseAsStringLiteral(SearchTypes)),
+  types: parseAsArrayOf(parseAsStringLiteral(SearchTypes)),
 }
 
 export const parseSearchFilters = createLoader(searchFilters)
@@ -43,10 +39,10 @@ export type SearchFilters = Awaited<ReturnType<typeof parseSearchFilters>>
 
 export const buildingFilters = {
   dlcs: parseAsArrayOf(parseAsInteger),
-  kind: parseAsArrayOf(parseAsStringLiteral(buildingKindValues)),
   page: parseAsInteger,
   regions: parseAsArrayOf(parseAsInteger),
   tiers: parseAsArrayOf(parseAsInteger),
+  types: parseAsArrayOf(parseAsInteger),
 }
 
 export const parseBuildingFilters = createLoader(buildingFilters)
@@ -54,13 +50,12 @@ export const parseBuildingFilters = createLoader(buildingFilters)
 export type BuildingFilters = Awaited<ReturnType<typeof parseBuildingFilters>>
 
 export const itemFilters = {
-  allocations: parseAsArrayOf(parseAsStringLiteral(allocationValues)),
   attributes: parseAsArrayOf(parseAsStringLiteral(attributeValues)),
   dlcs: parseAsArrayOf(parseAsInteger),
   niches: parseAsArrayOf(parseAsStringLiteral(nicheValues)),
   page: parseAsInteger,
   rarities: parseAsArrayOf(parseAsStringLiteral(rarityValues)),
-  types: parseAsArrayOf(parseAsStringLiteral(itemTypeValues)),
+  types: parseAsArrayOf(parseAsStringLiteral(allocationValues)),
 }
 
 export const parseItemFilters = createLoader(itemFilters)
@@ -71,8 +66,7 @@ export const chainFilters = {
   dlcs: parseAsArrayOf(parseAsInteger),
   page: parseAsInteger,
   regions: parseAsArrayOf(parseAsInteger),
-  tiers: parseAsArrayOf(parseAsInteger),
-  type: parseAsArrayOf(parseAsStringLiteral(chainTypeValues)),
+  types: parseAsArrayOf(parseAsInteger),
 }
 
 export const parseChainFilters = createLoader(chainFilters)
@@ -81,10 +75,10 @@ export type ChainFilters = Awaited<ReturnType<typeof parseChainFilters>>
 
 export const productFilters = {
   dlcs: parseAsArrayOf(parseAsInteger),
-  kind: parseAsArrayOf(parseAsStringLiteral(productKindValues)),
   page: parseAsInteger,
   regions: parseAsArrayOf(parseAsInteger),
   tiers: parseAsArrayOf(parseAsInteger),
+  types: parseAsArrayOf(parseAsInteger),
 }
 
 export const parseProductFilters = createLoader(productFilters)

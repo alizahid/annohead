@@ -44,9 +44,9 @@
     "buildings": {
       "filters": {
         "dlcs": "DLC",
-        "kinds": "Typ",
         "regions": "Region",
-        "tiers": "Bevölkerungsstufe"
+        "tiers": "Bevölkerungsstufe",
+        "types": "Typ"
       },
       "list": {
         "empty": "Nichts gefunden",
@@ -96,7 +96,6 @@
       "filters": {
         "dlcs": "DLC",
         "regions": "Region",
-        "tiers": "Bevölkerungsstufe",
         "types": "Typ"
       },
       "list": {
@@ -124,11 +123,10 @@
     },
     "items": {
       "filters": {
-        "allocations": "Zuordnung",
         "dlcs": "DLC",
         "niches": "Nische",
         "rarities": "Seltenheit",
-        "types": "Typ"
+        "types": "Zuordnung"
       },
       "list": {
         "empty": "Nichts gefunden",
@@ -176,9 +174,9 @@
     "products": {
       "filters": {
         "dlcs": "DLC",
-        "kinds": "Typ",
         "regions": "Region",
-        "tiers": "Bevölkerungsstufe"
+        "tiers": "Bevölkerungsstufe",
+        "types": "Kategorie"
       },
       "list": {
         "empty": "Nichts gefunden",

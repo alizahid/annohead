@@ -23,7 +23,7 @@ export default async function Page({
 
   const filters = parseProductFilters(await searchParams)
 
-  const [dlcs, regions, tiers, kinds, products] = await Promise.all([
+  const [dlcs, regions, tiers, types, products] = await Promise.all([
     anno.dlc.list({
       lang,
     }),
@@ -33,16 +33,16 @@ export default async function Page({
     anno.populationTiers.list({
       lang,
     }),
-    anno.products.kinds({
+    anno.products.types({
       lang,
     }),
     anno.products.list({
       dlcs: filters.dlcs ?? undefined,
-      kinds: filters.kind ?? undefined,
       lang,
       page: filters.page ?? undefined,
       regions: filters.regions ?? undefined,
       tiers: filters.tiers ?? undefined,
+      types: filters.types ?? undefined,
     }),
   ])
 
@@ -50,10 +50,10 @@ export default async function Page({
     <ProductList
       dlcs={dlcs}
       filters={filters}
-      kinds={kinds}
       products={products}
       regions={regions}
       tiers={tiers}
+      types={types}
     />
   )
 }

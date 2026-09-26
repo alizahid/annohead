@@ -1,12 +1,11 @@
 'use client'
 
 import {
-  type BuildingKinds,
+  type BuildingTypes,
   type Dlcs,
   type PopulationTiers,
   type Regions,
 } from '@anno/db/client'
-import { type BuildingKind } from '@anno/db/enums'
 import { Checkbox } from '@base-ui/react/checkbox'
 import { CheckboxGroup } from '@base-ui/react/checkbox-group'
 import { orderBy } from 'lodash'
@@ -21,12 +20,12 @@ import { Icon } from '../common/icon'
 
 type Props = {
   dlcs: Dlcs
-  kinds: BuildingKinds
+  types: BuildingTypes
   regions: Regions
   tiers: PopulationTiers
 }
 
-export function BuildingFiltersCard({ dlcs, kinds, regions, tiers }: Props) {
+export function BuildingFiltersCard({ dlcs, types, regions, tiers }: Props) {
   const router = useRouter()
 
   const t = useTranslations('component.buildings.filters')
@@ -141,27 +140,34 @@ export function BuildingFiltersCard({ dlcs, kinds, regions, tiers }: Props) {
       </div>
 
       <div className="flex flex-col gap-4">
-        <h3>{t('kinds')}</h3>
+        <h3>{t('types')}</h3>
 
         <CheckboxGroup
           className="flex flex-col gap-2"
           onValueChange={async (next) => {
             await setFilters({
-              kind: next as Array<BuildingKind>,
               page: null,
+              types: next.map(Number),
             })
 
             router.refresh()
           }}
-          value={filters.kind ? filters.kind.map(String) : []}
+          value={filters.types ? filters.types.map(String) : []}
         >
-          {kinds.map((item) => (
+          {types.map((item) => (
             <Checkbox.Root
               className="flex h-8 items-center gap-2 rounded-md px-1 outline-none ring-accent-8 transition-colors hover:bg-accent-4 focus-visible:ring-2 data-checked:bg-accent-5"
-              key={item.key}
-              value={item.key}
+              key={item.guid}
+              value={String(item.guid)}
             >
-              <Icon className="size-6" icon={getIcon(`kind.${item.key}`)} />
+              {item.icon ? (
+                <Icon className="size-6" icon={item.icon} />
+              ) : (
+                <Checkbox.Indicator
+                  className="ml-0.5 flex size-5 items-center justify-center rounded-full border border-gray-12 data-checked:border-0 data-checked:bg-gray-12"
+                  keepMounted
+                />
+              )}
 
               <span className="font-bold text-sm">{item.name}</span>
             </Checkbox.Root>

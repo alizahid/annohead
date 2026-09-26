@@ -1,5 +1,5 @@
-import { type ConditionTemplate, type Lang } from '../enums'
-import { attributeName } from './attribute-labels'
+import { type ConditionTemplate, type LabelKind, type Lang } from '../enums'
+import { type Labels } from './labels'
 
 type Parts = {
   type: ConditionTemplate
@@ -15,9 +15,7 @@ type Parts = {
 const phrases: Record<Lang, Record<string, string>> = {
   de: {
     ConditionActiveEmperor: '{name} regiert als Kaiser',
-    'ConditionActiveIncidentCount:Inferno': 'Ein Großbrand wütet',
-    'ConditionActiveIncidentCount:Plague': 'Eine Seuche breitet sich aus',
-    'ConditionActiveIncidentCount:Rebellion': 'Eine Rebellion ist im Gange',
+    ConditionActiveIncidentCount: '{variant} aktiv',
     ConditionActiveSession: 'In {name}',
     ConditionAlwaysFalse: 'Nie',
     ConditionAlwaysTrue: 'Immer',
@@ -56,9 +54,7 @@ const phrases: Record<Lang, Record<string, string>> = {
   },
   en: {
     ConditionActiveEmperor: '{name} is the reigning emperor',
-    'ConditionActiveIncidentCount:Inferno': 'An inferno is raging',
-    'ConditionActiveIncidentCount:Plague': 'A plague is spreading',
-    'ConditionActiveIncidentCount:Rebellion': 'A rebellion is under way',
+    ConditionActiveIncidentCount: '{variant} active',
     ConditionActiveSession: 'In {name}',
     ConditionAlwaysFalse: 'Never',
     ConditionAlwaysTrue: 'Always',
@@ -98,20 +94,15 @@ const phrases: Record<Lang, Record<string, string>> = {
   },
 }
 
+/** Variants the game has no name for: statistics, war states … (the rest come from its own tables, see `VARIANT_KINDS`) */
 const variants: Record<Lang, Record<string, string>> = {
   de: {
     ActiveEmperorReputation: 'Ansehen beim Kaiser',
     AllAttributes: 'alle Eigenschaften',
-    Alliance: 'Bündnis',
     ArmyStrength: 'Heeresstärke',
-    Boost: 'Spurt',
-    ChallengeZone: 'Herausforderung',
     CloseToWin: 'Kurz vor dem Sieg',
-    Consistency: 'Beständigkeit',
     ContractsCompleted: 'Erfüllte Verträge',
-    DefensivePact: 'Verteidigungspakt',
     Dominating: 'Überlegen',
-    EffortZone: 'Bemühung',
     GoodsInStock: 'Waren im Lager',
     IncidentResolved: 'Gelöste Vorfälle',
     IslandSettled: 'Besiedelte Inseln',
@@ -120,31 +111,19 @@ const variants: Record<Lang, Record<string, string>> = {
     MoneyBalance: 'Vermögen',
     MonumentEventsFinished: 'Abgeschlossene Monument-Ereignisse',
     NavalStrength: 'Flottenstärke',
-    Peace: 'Frieden',
     PopularityMax: 'Höchste Beliebtheit',
-    PopulationByGroup: 'Bevölkerung',
     QuestComponentEnded: 'Questschritt abgeschlossen',
-    Rebellion: 'Rebellion',
     RebellionPending: 'Drohende Rebellion',
     ShipsSoldToParticipant: 'Verkaufte Schiffe',
-    Speed: 'Tempo',
-    Stamina: 'Ausdauer',
     Struggling: 'Bedrängt',
-    War: 'Krieg',
   },
   en: {
     ActiveEmperorReputation: 'Emperor reputation',
     AllAttributes: 'all attributes',
-    Alliance: 'Alliance',
     ArmyStrength: 'Army strength',
-    Boost: 'boost',
-    ChallengeZone: 'Challenge zone',
     CloseToWin: 'Close to victory',
-    Consistency: 'consistency',
     ContractsCompleted: 'Contracts completed',
-    DefensivePact: 'Defensive pact',
     Dominating: 'Dominating',
-    EffortZone: 'Effort zone',
     GoodsInStock: 'Goods in stock',
     IncidentResolved: 'Incidents resolved',
     IslandSettled: 'Islands settled',
@@ -153,39 +132,48 @@ const variants: Record<Lang, Record<string, string>> = {
     MoneyBalance: 'Money balance',
     MonumentEventsFinished: 'Monument events finished',
     NavalStrength: 'Naval strength',
-    Peace: 'Peace',
     PopularityMax: 'Maximum popularity',
-    PopulationByGroup: 'Population',
     QuestComponentEnded: 'Quest step completed',
-    Rebellion: 'Rebellion',
     RebellionPending: 'Rebellion pending',
     ShipsSoldToParticipant: 'Ships sold',
-    Speed: 'speed',
-    Stamina: 'stamina',
     Struggling: 'Struggling',
-    War: 'War',
   },
 }
 
-const TEMPLATE_PREFIX = /^Condition/
-
-/** Racer attributes share the condition variant labels: "speed", "stamina" … */
-export function racerAttributeLabel(attribute: string, lang: Lang) {
-  return variants[lang][attribute] ?? attribute
+/** Which game table names a template's variant: the emperor relation's Rebellion is the Rebel state, an incident's the Uprising */
+const VARIANT_KINDS: Partial<Record<ConditionTemplate, LabelKind>> = {
+  ConditionActiveIncidentCount: 'incident',
+  ConditionDiplomacyState: 'diplomacy',
+  ConditionEmperorRelation: 'reputation',
+  ConditionItemRacerAttribute: 'racer_attribute',
 }
+
+/** player counters that count an attribute's group */
+const ATTRIBUTE_ALIASES: Record<string, string> = {
+  PopulationByGroup: 'Population',
+}
+
+const TEMPLATE_PREFIX = /^Condition/
 
 const atMost: Record<Lang, string> = {
   de: 'höchstens',
   en: 'at most',
 }
 
-/** Attribute keys share their labels with the rest of the site; everything else comes from `variants`. */
-function variantLabel(variant: string, lang: Lang) {
+/** The game's name for each `;`-separated variant, else ours, else the raw key */
+function variantLabel(
+  type: ConditionTemplate,
+  variant: string,
+  lang: Lang,
+  l: Labels,
+) {
+  const kind = VARIANT_KINDS[type]
   return variant
     .split(';')
     .map(
       (v) =>
-        attributeName(v as Parameters<typeof attributeName>[0], lang) ??
+        (kind ? l(kind, v) : null)?.name ??
+        l('attribute', ATTRIBUTE_ALIASES[v] ?? v)?.name ??
         variants[lang][v] ??
         v,
     )
@@ -208,12 +196,13 @@ export function phraseNeedsName(
 export function conditionLabel(
   { type, name, variant, comparison }: Parts,
   lang: Lang,
+  l: Labels,
 ) {
   const label = (
     phrase(type, variant, lang) ?? type.replace(TEMPLATE_PREFIX, '')
   )
     .replace('{name}', name ?? '')
-    .replace('{variant}', variant ? variantLabel(variant, lang) : '')
+    .replace('{variant}', variant ? variantLabel(type, variant, lang, l) : '')
     .replace(/\s+/g, ' ')
     .trim()
   return comparison === 'AtMost' || comparison === 'LessThan'

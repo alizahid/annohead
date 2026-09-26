@@ -21,7 +21,7 @@ import {
   techResource,
   techUnlockReward,
 } from '../schema'
-import { modifierName } from './modifier-labels'
+import { labels, modifierName } from './labels'
 import {
   type Get,
   groupBy,
@@ -195,6 +195,7 @@ async function queryTechs(f: TechFilter, id?: number) {
       .leftJoin(mpName, on(mpName, product.nameText, f.lang))
       .where(inArray(techEffect.techGuid, guids)),
   ])
+  const l = await labels(f.lang)
   const res = groupBy(resources, 'techGuid')
   const unl = groupBy(unlocks, 'techGuid')
   const eff = groupBy(effects, 'techGuid')
@@ -220,7 +221,7 @@ async function queryTechs(f: TechFilter, id?: number) {
       ...e,
       modifiers: modifiers(e.guid).map((m) => ({
         ...m,
-        name: modifierName(m.path, m.attribute, f.lang),
+        name: modifierName(l, m.path, m.attribute),
       })),
       /** what the effect applies to, e.g. "Warehouses" */
       targets: targets(e.guid),

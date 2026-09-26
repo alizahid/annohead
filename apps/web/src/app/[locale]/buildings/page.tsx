@@ -23,7 +23,7 @@ export default async function Page({
 
   const filters = parseBuildingFilters(await searchParams)
 
-  const [dlcs, regions, tiers, kinds, buildings] = await Promise.all([
+  const [dlcs, regions, tiers, types, buildings] = await Promise.all([
     anno.dlc.list({
       lang,
     }),
@@ -33,16 +33,16 @@ export default async function Page({
     anno.populationTiers.list({
       lang,
     }),
-    anno.buildings.kinds({
+    anno.buildings.types({
       lang,
     }),
     anno.buildings.list({
       dlcs: filters.dlcs ?? undefined,
-      kinds: filters.kind ?? undefined,
       lang,
       page: filters.page ?? undefined,
       regions: filters.regions ?? undefined,
       tiers: filters.tiers ?? undefined,
+      types: filters.types ?? undefined,
     }),
   ])
 
@@ -51,9 +51,9 @@ export default async function Page({
       buildings={buildings}
       dlcs={dlcs}
       filters={filters}
-      kinds={kinds}
       regions={regions}
       tiers={tiers}
+      types={types}
     />
   )
 }

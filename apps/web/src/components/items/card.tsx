@@ -27,11 +27,9 @@ export function ItemCard({ item }: Props) {
         ) : null}
       </div>
 
-      {item.type?.key === 'Captains' ||
-      item.type?.key === 'Specialist' ||
-      item.dlc?.key ? (
+      {(item.type && item.type.key !== 'None') || item.dlc?.key ? (
         <div className="pointer-events-none absolute top-4 right-4 flex gap-2">
-          {item.type?.key === 'Captains' || item.type?.key === 'Specialist' ? (
+          {item.type && item.type.key !== 'None' ? (
             <Icon className="size-6" icon={getIcon(`type.${item.type.key}`)} />
           ) : null}
 

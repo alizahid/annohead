@@ -1,6 +1,5 @@
 import {
   type Dlcs,
-  type ItemAllocations,
   type ItemNiches,
   type ItemRarities,
   type Items,
@@ -16,23 +15,21 @@ import { ItemCard } from './card'
 import { ItemFiltersCard } from './filters'
 
 type Props = {
-  allocations: ItemAllocations
+  types: ItemTypes
   dlcs: Dlcs
   filters: ItemFilters
   items: Items
   niches: ItemNiches
   rarities: ItemRarities
-  types: ItemTypes
 }
 
 export function ItemList({
-  allocations,
+  types,
   dlcs,
   filters,
   items,
   niches,
   rarities,
-  types,
 }: Props) {
   const t = useTranslations('component.items.list')
 
@@ -42,7 +39,6 @@ export function ItemList({
 
       <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
         <ItemFiltersCard
-          allocations={allocations}
           dlcs={dlcs}
           niches={niches}
           rarities={rarities}

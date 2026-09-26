@@ -25,7 +25,7 @@ export default async function Page({
     lang: validateLocale(locale),
     page: filters.page ?? undefined,
     query: filters.query,
-    types: filters.type ?? undefined,
+    types: filters.types ?? undefined,
   })
 
   return <SearchPage data={data} filters={filters} />

@@ -1,6 +1,6 @@
 import {
-  type BuildingKinds,
   type Buildings,
+  type BuildingTypes,
   type Dlcs,
   type PopulationTiers,
   type Regions,
@@ -18,7 +18,7 @@ type Props = {
   buildings: Buildings
   dlcs: Dlcs
   filters: BuildingFilters
-  kinds: BuildingKinds
+  types: BuildingTypes
   regions: Regions
   tiers: PopulationTiers
 }
@@ -27,7 +27,7 @@ export function BuildingList({
   buildings,
   dlcs,
   filters,
-  kinds,
+  types,
   regions,
   tiers,
 }: Props) {
@@ -40,9 +40,9 @@ export function BuildingList({
       <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
         <BuildingFiltersCard
           dlcs={dlcs}
-          kinds={kinds}
           regions={regions}
           tiers={tiers}
+          types={types}
         />
 
         <div className="flex flex-1 flex-col gap-12">

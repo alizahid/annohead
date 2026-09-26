@@ -1,8 +1,8 @@
 import {
   type Dlcs,
   type PopulationTiers,
-  type ProductKinds,
   type Products,
+  type ProductTypes,
   type Regions,
 } from '@anno/db/client'
 import { useTranslations } from 'next-intl'
@@ -17,7 +17,7 @@ import { ProductFiltersCard } from './filters'
 type Props = {
   dlcs: Dlcs
   filters: ProductFilters
-  kinds: ProductKinds
+  types: ProductTypes
   products: Products
   regions: Regions
   tiers: PopulationTiers
@@ -26,7 +26,7 @@ type Props = {
 export function ProductList({
   dlcs,
   filters,
-  kinds,
+  types,
   products,
   regions,
   tiers,
@@ -40,9 +40,9 @@ export function ProductList({
       <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
         <ProductFiltersCard
           dlcs={dlcs}
-          kinds={kinds}
           regions={regions}
           tiers={tiers}
+          types={types}
         />
 
         <div className="flex flex-1 flex-col gap-12">

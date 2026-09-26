@@ -12,14 +12,12 @@ import {
 import {
   allocationValues,
   attributeValues,
-  buildingKindValues,
-  chainTypeValues,
+  categoryKindValues,
   conditionTemplateValues,
   dlcValues,
   itemSourceKindValues,
-  itemTypeValues,
+  labelKindValues,
   nicheValues,
-  productKindValues,
   racerAttributeValues,
   rarityValues,
   regionValues,
@@ -129,9 +127,6 @@ export const translation = sqliteTable(
 export const product = sqliteTable('product', {
   guid: integer().primaryKey(),
   icon: text(),
-  kind: text({
-    enum: productKindValues,
-  }),
   nameText: integer('name_text'),
 })
 
@@ -170,9 +165,6 @@ export const building = sqliteTable('building', {
   dlcGuid: integer('dlc_guid').references(() => dlc.guid),
   guid: integer().primaryKey(),
   icon: text(),
-  kind: text({
-    enum: buildingKindValues,
-  }),
   nameText: integer('name_text'),
   radius: integer(),
   regionId: integer('region_id').references(() => region.id),
@@ -339,19 +331,53 @@ export const productionChainNode = sqliteTable(
   (table) => [index('idx_production_chain_node_chain').on(table.chainGuid)],
 )
 
-/** Construction-menu tab a chain is filed under; `Consumer` rows carry the tier. */
-export const productionChainCategory = sqliteTable(
-  'production_chain_category',
+/** Construction-menu tabs (`menu`: buildings and chains) and trading-post filter categories (`product`) */
+export const category = sqliteTable('category', {
+  guid: integer().primaryKey(),
+  icon: text(),
+  /** products the trading post doesn't list (Workforce, Service, Meta); named by the client */
+  key: text(),
+  kind: text({
+    enum: categoryKindValues,
+  }),
+  nameText: integer('name_text'),
+  sort: integer(),
+})
+
+export const categoryMember = sqliteTable(
+  'category_member',
   {
-    chainGuid: integer('chain_guid').references(() => productionChain.guid),
-    populationLevelGuid: integer('population_level_guid').references(
-      () => populationLevel.guid,
-    ),
-    type: text({
-      enum: chainTypeValues,
-    }),
+    assetGuid: integer('asset_guid').notNull(),
+    categoryGuid: integer('category_guid')
+      .notNull()
+      .references(() => category.guid),
   },
-  (table) => [index('idx_production_chain_category_chain').on(table.chainGuid)],
+  (table) => [
+    index('idx_category_member_asset').on(table.assetGuid),
+    primaryKey({
+      columns: [table.categoryGuid, table.assetGuid],
+      name: 'category_member_category_guid_asset_guid_pk',
+    }),
+  ],
+)
+
+/** Game names of keys stored elsewhere: attribute, rarity, niche, allocation, modifier (`buff_modifier.path`) … */
+export const label = sqliteTable(
+  'label',
+  {
+    icon: text(),
+    key: text().notNull(),
+    kind: text({
+      enum: labelKindValues,
+    }).notNull(),
+    nameText: integer('name_text'),
+  },
+  (table) => [
+    primaryKey({
+      columns: [table.kind, table.key],
+      name: 'label_kind_key_pk',
+    }),
+  ],
 )
 
 export const effect = sqliteTable('effect', {
@@ -483,9 +509,6 @@ export const item = sqliteTable('item', {
     enum: rarityValues,
   }),
   tradePrice: real('trade_price'),
-  type: text({
-    enum: itemTypeValues,
-  }),
 })
 
 export const itemBoostBuff = sqliteTable(

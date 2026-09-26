@@ -2,17 +2,11 @@
 
 import {
   type Dlcs,
-  type ItemAllocations,
   type ItemNiches,
   type ItemRarities,
   type ItemTypes,
 } from '@anno/db/client'
-import {
-  type Allocation,
-  type ItemType,
-  type Niche,
-  type Rarity,
-} from '@anno/db/enums'
+import { type Allocation, type Niche, type Rarity } from '@anno/db/enums'
 import { Checkbox } from '@base-ui/react/checkbox'
 import { CheckboxGroup } from '@base-ui/react/checkbox-group'
 import { useTranslations } from 'next-intl'
@@ -25,20 +19,13 @@ import { itemFilters } from '@/lib/validators'
 import { Icon } from '../common/icon'
 
 type Props = {
-  allocations: ItemAllocations
+  types: ItemTypes
   dlcs: Dlcs
   niches: ItemNiches
   rarities: ItemRarities
-  types: ItemTypes
 }
 
-export function ItemFiltersCard({
-  allocations,
-  dlcs,
-  niches,
-  rarities,
-  types,
-}: Props) {
+export function ItemFiltersCard({ types, dlcs, niches, rarities }: Props) {
   const router = useRouter()
 
   const t = useTranslations('component.items.filters')
@@ -77,38 +64,6 @@ export function ItemFiltersCard({
       </div>
 
       <div className="flex flex-col gap-4">
-        <h3>{t('allocations')}</h3>
-
-        <CheckboxGroup
-          className="flex flex-col gap-2"
-          onValueChange={async (next) => {
-            await setFilters({
-              allocations: next as Array<Allocation>,
-              page: null,
-            })
-
-            router.refresh()
-          }}
-          value={filters.allocations ? filters.allocations.map(String) : []}
-        >
-          {allocations.map((item) => (
-            <Checkbox.Root
-              className="flex h-8 items-center gap-2 rounded-md px-1 outline-none ring-accent-8 transition-colors hover:bg-accent-4 focus-visible:ring-2 data-checked:bg-accent-5"
-              key={item.key}
-              value={item.key}
-            >
-              <Icon
-                className="size-6"
-                icon={getIcon(`allocation.${item.key}`)}
-              />
-
-              <span className="font-bold text-sm">{item.name}</span>
-            </Checkbox.Root>
-          ))}
-        </CheckboxGroup>
-      </div>
-
-      <div className="flex flex-col gap-4">
         <h3>{t('types')}</h3>
 
         <CheckboxGroup
@@ -116,7 +71,7 @@ export function ItemFiltersCard({
           onValueChange={async (next) => {
             await setFilters({
               page: null,
-              types: next as Array<ItemType>,
+              types: next as Array<Allocation>,
             })
 
             router.refresh()
@@ -129,10 +84,7 @@ export function ItemFiltersCard({
               key={item.key}
               value={item.key}
             >
-              <Checkbox.Indicator
-                className="ml-0.5 flex size-5 items-center justify-center rounded-full border border-gray-12 data-checked:border-0 data-checked:bg-gray-12"
-                keepMounted
-              />
+              <Icon className="size-6" icon={getIcon(`type.${item.key}`)} />
 
               <span className="font-bold text-sm">{item.name}</span>
             </Checkbox.Root>

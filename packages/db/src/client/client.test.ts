@@ -7,7 +7,7 @@ test('specialists paginate and join effects', async () => {
     lang: 'en',
     perPage: 5,
     rarities: ['Legendary'],
-    types: ['Specialist'],
+    types: ['Villa'],
   })
   expect(total).toBeGreaterThan(50)
   expect(rows).toHaveLength(5)
@@ -16,7 +16,7 @@ test('specialists paginate and join effects', async () => {
     page: 2,
     perPage: 5,
     rarities: ['Legendary'],
-    types: ['Specialist'],
+    types: ['Villa'],
   })
   expect(second.rows.map((r) => r.guid)).not.toContain(rows[0]?.guid)
 })
@@ -25,7 +25,7 @@ test('specialist filter by attribute', async () => {
   const { rows } = await anno.items.list({
     attributes: ['Health'],
     lang: 'en',
-    types: ['Specialist'],
+    types: ['Villa'],
   })
   expect(rows.length).toBeGreaterThan(0)
   for (const r of rows) {
@@ -35,9 +35,9 @@ test('specialist filter by attribute', async () => {
 
 test('buildings join costs, workforce and outputs', async () => {
   const { rows } = await anno.buildings.list({
-    kinds: ['Production'],
     lang: 'de',
     perPage: 10,
+    types: [41_362],
   })
   const bakery = rows.find((r) => r.outputs.length > 0)
   expect(bakery?.costs.length).toBeGreaterThan(0)
@@ -144,36 +144,29 @@ test('workforce filters avoid duplicate buildings and ignore empty filters', asy
 
 test.each([
   {
-    kindName: 'Production',
     lang: 'en',
+    military: 'Military Buildings',
   },
   {
-    kindName: 'Produktion',
     lang: 'de',
+    military: 'Militärgebäude',
   },
 ] as const)(
-  'building kind has localized names in $lang',
-  async ({ lang, kindName }) => {
-    const building = await anno.buildings.get({
-      id: 145_229,
+  'building types are the game construction tabs in $lang',
+  async ({ lang, military }) => {
+    const types = await anno.buildings.types({
       lang,
     })
-    expect(building?.kind).toEqual({
-      key: 'Production',
-      name: kindName,
-    })
+    expect(types[0]?.guid).toBe(41_362)
+    // the Roman and Celtic tabs read the same, so they are one
+    expect(types.filter((m) => m.name === military)).toHaveLength(1)
     const listed = await anno.buildings.list({
-      dlcs: [67_902],
-      kinds: ['Production'],
       lang,
       perPage: 1000,
+      types: [41_368],
     })
-    expect(listed.rows.find((row) => row.guid === 145_229)?.kind).toEqual(
-      building?.kind ?? null,
-    )
-    expect(listed.rows.every((row) => row.kind?.key === 'Production')).toBe(
-      true,
-    )
+    expect(listed.total).toBe(37)
+    expect(listed.rows.map((row) => row.guid)).toContain(2794)
   },
 )
 
@@ -256,9 +249,7 @@ test('buildings carry effects and buffs', async () => {
       value: 1,
     },
   ])
-  const kind: 'Production' | undefined =
-    lavender?.kind?.key === 'Production' ? lavender.kind.key : undefined
-  expect(kind).toBe('Production')
+  expect(lavender?.category).toBe('Plantation')
 })
 
 test('production buffs include output need fulfillment without duplicate needs', async () => {
@@ -478,15 +469,15 @@ test('products and techs', async () => {
   })
   expect(p.rows.find((r) => r.guid === 2137)?.name).toBe(bread?.name)
   const meta = await anno.products.list({
-    kinds: ['Meta'],
     lang: 'en',
+    types: [-3],
   })
   expect(meta.total).toBe(7)
   expect(
     (
       await anno.products.list({
-        kinds: ['Workforce'],
         lang: 'en',
+        types: [-1],
       })
     ).total,
   ).toBe(9)
@@ -528,24 +519,24 @@ test('products and techs', async () => {
   expect(roman.total).toBe(94)
   expect(roman.rows.every((r) => r.regions.some((x) => x.id === 1))).toBe(true)
   expect(
-    anno.products.kinds({
+    await anno.products.types({
       lang: 'de',
     }),
-  ).toContainEqual({
-    key: 'Service',
-    name: 'Dienstleistung',
-  })
-  // Barley is a good; Alder Council and workforce are not, despite the game's "Raw" transport type
-  const goods = await anno.products.list({
-    kinds: ['Good'],
+  ).toContainEqual(
+    expect.objectContaining({
+      guid: -2,
+      name: 'Dienstleistung',
+    }),
+  )
+  // Barley is filed by the trading post filter
+  const farmed = await anno.products.list({
     lang: 'en',
     perPage: 1000,
+    types: [29_303],
   })
-  expect(goods.rows.find((r) => r.guid === 2093)?.kind).toEqual({
-    key: 'Good',
-    name: 'Good',
-  })
-  expect(goods.rows.every((r) => r.kind?.key === 'Good')).toBe(true)
+  expect(farmed.rows.find((r) => r.guid === 2093)?.type?.name).toBe(
+    'Agricultural Goods',
+  )
   const armoursmithing = await anno.techs.get({
     id: 81_220,
     lang: 'en',
@@ -660,23 +651,23 @@ test('chains join final building and nodes', async () => {
   ).toBeNull()
 })
 
-test('chains filter by type, tier, region and dlc', async () => {
+test('chains filter by type, region and dlc', async () => {
   const military = await anno.chains.list({
     lang: 'en',
-    types: ['Military'],
+    types: [41_368],
   })
   expect(military.rows.map((r) => r.guid)).toContain(3253)
   expect(military.total).toBe(4)
   // Roman Celtic Wine is on both the Aldermen and Nobles menus
   const nobles = await anno.chains.list({
     lang: 'en',
-    tiers: [1504],
+    types: [41_327],
   })
   expect(nobles.rows.map((r) => r.guid)).toContain(6668)
   const roman = await anno.chains.list({
     lang: 'en',
     regions: [1],
-    types: ['Material'],
+    types: [42_434],
   })
   expect(roman.rows.every((r) => r.region?.id === 1)).toBe(true)
   expect(
@@ -688,10 +679,10 @@ test('chains filter by type, tier, region and dlc', async () => {
     ).total,
   ).toBe(0)
   expect(
-    anno.chains.types({
+    await anno.chains.types({
       lang: 'en',
     }),
-  ).toHaveLength(4)
+  ).toHaveLength(12)
 })
 
 test('search ranks name matches, dedupes variants, filters by type and paginates', async () => {
@@ -726,7 +717,7 @@ test('search ranks name matches, dedupes variants, filters by type and paginates
     types: ['item'],
   })
   expect(items.rows).toHaveLength(3)
-  expect(items.rows.every((r) => r.type === 'item' && r.category)).toBe(true)
+  expect(items.rows.every((r) => r.type === 'item')).toBe(true)
   const next = await anno.search({
     lang: 'en',
     page: 2,
@@ -752,8 +743,8 @@ test('search ranks name matches, dedupes variants, filters by type and paginates
   ).toBe(0)
 })
 
-test('item rarities and niches are localized filter options', () => {
-  const rarities = anno.items.rarities({
+test('item rarities, niches and allocations are named by the game', async () => {
+  const rarities = await anno.items.rarities({
     lang: 'en',
   })
   expect(rarities.map((r) => r.key)).toEqual([
@@ -766,28 +757,33 @@ test('item rarities and niches are localized filter options', () => {
     'Unique',
     'Quest',
   ])
-  const niches = anno.items.niches({
+  expect(rarities.find((r) => r.key === 'Mythic')?.name).toBe('Heroic')
+  const niches = await anno.items.niches({
     lang: 'de',
   })
   expect(niches.map((n) => n.key)).not.toContain('None')
   expect(niches.find((n) => n.key === 'Nautics')?.name).toBe('Seefahrt')
   expect(
-    anno.items
-      .allocations({
-        lang: 'en',
-      })
-      .map((a) => a.key),
-  ).toEqual(['None', 'Ship', 'Villa'])
-  expect(
-    anno.items
-      .types({
-        lang: 'de',
-      })
-      .find((t) => t.key === 'Captains')?.name,
-  ).toBe('Kapitäne')
+    await anno.items.types({
+      lang: 'de',
+    }),
+  ).toEqual([
+    {
+      key: 'None',
+      name: 'Item',
+    },
+    {
+      key: 'Ship',
+      name: 'Kapitän',
+    },
+    {
+      key: 'Villa',
+      name: 'Spezialist',
+    },
+  ])
 })
 
-test('item rarity, niche and type are localized label objects', async () => {
+test('item rarity, niche and allocation are localized label objects', async () => {
   const dorian = await anno.items.get({
     id: 41_350,
     lang: 'de',
@@ -798,8 +794,8 @@ test('item rarity, niche and type are localized label objects', async () => {
   })
   expect(dorian?.niche?.key).toBeTruthy()
   expect(dorian?.type).toEqual({
-    key: 'Specialist',
-    name: 'Spezialisten',
+    key: 'Villa',
+    name: 'Spezialist',
   })
 })
 
@@ -873,11 +869,11 @@ test('search tolerates typos, word order, case and diacritics', async () => {
 test.each([
   {
     lang: 'en',
-    names: ['Productivity', 'Required area', 'Workforce needed'],
+    names: ['Productivity', 'Required Area', 'Workforce Needed'],
   },
   {
     lang: 'de',
-    names: ['Produktivität', 'Benötigte Fläche', 'Benötigte Arbeitskraft'],
+    names: ['Produktivität', 'Erforderliche Fläche', 'Arbeitskräfte benötigt'],
   },
 ] as const)(
   'item modifiers and boosts are named in $lang',
@@ -1007,7 +1003,7 @@ test('item sources name the participant, festival or tech they come from', async
 test.each([
   {
     id: 107_337,
-    name: 'Emperor relation: Rebellion, Rebellion pending',
+    name: 'Emperor relation: Rebel, Rebellion pending',
     type: 'ConditionEmperorRelation',
   },
   {

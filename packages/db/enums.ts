@@ -127,8 +127,8 @@ const columnEnums: Record<string, Record<string, string>> = {
   attribute: {
     key: 'attribute',
   },
-  building: {
-    kind: 'building_kind',
+  category: {
+    kind: 'category_kind',
   },
   condition: {
     template: 'condition_template',
@@ -140,16 +140,12 @@ const columnEnums: Record<string, Record<string, string>> = {
     allocation: 'allocation',
     niche: 'niche',
     rarity: 'rarity',
-    type: 'item_type',
   },
   itemSource: {
     kind: 'item_source_kind',
   },
-  product: {
-    kind: 'product_kind',
-  },
-  productionChainCategory: {
-    type: 'chain_type',
+  label: {
+    kind: 'label_kind',
   },
   region: {
     key: 'region',

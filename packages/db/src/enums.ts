@@ -3,27 +3,8 @@
 export const allocationValues = ['None', 'Ship', 'Villa'] as const
 export type Allocation = (typeof allocationValues)[number]
 
-export const buildingKindValues = [
-  'Aqueduct',
-  'City Watch',
-  'Harbour',
-  'Marsh',
-  'Military',
-  'Monument',
-  'Production',
-  'Public Service',
-  'Residence',
-  'Road',
-] as const
-export type BuildingKind = (typeof buildingKindValues)[number]
-
-export const chainTypeValues = [
-  'Consumer',
-  'Harbour',
-  'Material',
-  'Military',
-] as const
-export type ChainType = (typeof chainTypeValues)[number]
+export const categoryKindValues = ['menu', 'product'] as const
+export type CategoryKind = (typeof categoryKindValues)[number]
 
 export const conditionTemplateValues = [
   'ConditionActiveEmperor',
@@ -78,13 +59,18 @@ export const itemSourceKindValues = [
 ] as const
 export type ItemSourceKind = (typeof itemSourceKindValues)[number]
 
-export const itemTypeValues = [
-  'Captains',
-  'NonSocketable',
-  'None',
-  'Specialist',
+export const labelKindValues = [
+  'allocation',
+  'attribute',
+  'diplomacy',
+  'incident',
+  'modifier',
+  'niche',
+  'racer_attribute',
+  'rarity',
+  'reputation',
 ] as const
-export type ItemType = (typeof itemTypeValues)[number]
+export type LabelKind = (typeof labelKindValues)[number]
 
 export const nicheValues = [
   'Agriculture',
@@ -99,14 +85,6 @@ export const nicheValues = [
   'Research',
 ] as const
 export type Niche = (typeof nicheValues)[number]
-
-export const productKindValues = [
-  'Good',
-  'Meta',
-  'Service',
-  'Workforce',
-] as const
-export type ProductKind = (typeof productKindValues)[number]
 
 export const racerAttributeValues = [
   'Boost',
@@ -152,7 +130,6 @@ export const attributeValues = [
   'Prestige',
   'Health',
   'FireSafety',
-  'AdditionalNeedAttributes',
 ] as const
 export type Attribute = (typeof attributeValues)[number]
 

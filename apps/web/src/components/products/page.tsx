@@ -40,8 +40,8 @@ export function ProductPage({ product }: Props) {
           ) : null}
 
           <div className="flex flex-col gap-2">
-            {product.kind ? (
-              <div className="text-gray-11 text-sm">{product.kind.name}</div>
+            {product.type ? (
+              <div className="text-gray-11 text-sm">{product.type.name}</div>
             ) : null}
 
             <h1 className="text-4xl leading-tight">{product.name}</h1>

@@ -13,7 +13,6 @@ import { db } from '../db'
 import {
   type Allocation,
   type Attribute,
-  type ItemType,
   type Lang,
   type Niche,
   type Rarity,
@@ -39,16 +38,8 @@ import {
   tech,
 } from '../schema'
 import { describeConditions } from './conditions'
-import {
-  allocations,
-  nicheLabel,
-  niches,
-  rarities,
-  rarityLabel,
-  typeLabel,
-  types,
-} from './item-labels'
-import { modifierName } from './modifier-labels'
+import { niches, rarities, types } from './item-labels'
+import { keyed, labels, modifierName } from './labels'
 import {
   type Get,
   groupBy,
@@ -64,8 +55,8 @@ export type ItemFilter = {
   lang: Lang
   rarities?: Array<Rarity>
   niches?: Array<Niche>
-  types?: Array<ItemType>
-  allocations?: Array<Allocation>
+  /** allocations, see `items.types` */
+  types?: Array<Allocation>
   /** DLC guids */
   dlcs?: Array<number>
   /** attribute keys (Money, Knowledge …) the item's effect modifies */
@@ -76,8 +67,7 @@ function itemWhere(f: ItemFilter): SQL | undefined {
   return and(
     f.rarities?.length ? inArray(item.rarity, f.rarities) : undefined,
     f.niches?.length ? inArray(item.niche, f.niches) : undefined,
-    f.types?.length ? inArray(item.type, f.types) : undefined,
-    f.allocations?.length ? inArray(item.allocation, f.allocations) : undefined,
+    f.types?.length ? inArray(item.allocation, f.types) : undefined,
     f.dlcs?.length ? inArray(item.dlcGuid, f.dlcs) : undefined,
     f.attributes?.length
       ? exists(
@@ -111,7 +101,6 @@ async function itemDetails(guids: Array<number>, lang: Lang) {
         guid: building.guid,
         icon: building.icon,
         itemGuid: item.guid,
-        kind: building.kind,
         name: bName.value,
       })
       .from(item)
@@ -239,7 +228,6 @@ async function queryItems(f: ItemFilter & Page, id?: number) {
         niche: item.niche,
         rarity: item.rarity,
         tradePrice: item.tradePrice,
-        type: item.type,
       })
       .from(item)
       .leftJoin(nameT, on(nameT, item.nameText, f.lang))
@@ -252,13 +240,16 @@ async function queryItems(f: ItemFilter & Page, id?: number) {
       .limit(limit)
       .offset(offset),
   ])
-  const d = await itemDetails(
-    rows.map((r) => r.guid),
-    f.lang,
-  )
+  const [d, l] = await Promise.all([
+    itemDetails(
+      rows.map((r) => r.guid),
+      f.lang,
+    ),
+    labels(f.lang),
+  ])
   return {
     pages: Math.ceil(total / limit),
-    rows: rows.map(({ hint, ...r }) => ({
+    rows: rows.map(({ allocation, hint, ...r }) => ({
       ...r,
       /** stronger modifiers that replace `modifiers` while every one of `conditions` holds; null without a boost */
       boost: d.boosts(r.guid).length
@@ -267,17 +258,17 @@ async function queryItems(f: ItemFilter & Page, id?: number) {
             hint,
             modifiers: d.boosts(r.guid).map((m) => ({
               ...m,
-              name: modifierName(m.path, m.attribute, f.lang),
+              name: modifierName(l, m.path, m.attribute),
             })),
           }
         : null,
       dlc: r.dlc?.guid ? r.dlc : null,
       modifiers: d.modifiers(r.guid).map((m) => ({
         ...m,
-        name: modifierName(m.path, m.attribute, f.lang),
+        name: modifierName(l, m.path, m.attribute),
       })),
-      niche: nicheLabel(r.niche, f.lang),
-      rarity: rarityLabel(r.rarity, f.lang),
+      niche: keyed(l, 'niche', r.niche),
+      rarity: keyed(l, 'rarity', r.rarity),
       /** where the item can be obtained: traders, contracts, ship drops, visitors, festivals, techs, quests */
       sources: d.sources(r.guid).map(({ itemGuid, name, ...source }) => ({
         ...source,
@@ -285,7 +276,8 @@ async function queryItems(f: ItemFilter & Page, id?: number) {
         name: sourceLabel(source.kind, name, f.lang),
       })),
       targets: d.targets(r.guid),
-      type: typeLabel(r.type, f.lang),
+      /** Specialist (villa), Captain (ship) or Item */
+      type: keyed(l, 'allocation', allocation),
     })),
     total,
   }
@@ -310,7 +302,6 @@ async function list(f: ItemFilter & Page) {
 }
 
 export const items = {
-  allocations,
   get,
   list,
   niches,

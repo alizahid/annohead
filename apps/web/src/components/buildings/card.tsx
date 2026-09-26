@@ -21,8 +21,8 @@ export function BuildingCard({ building }: Props) {
       <div className="flex flex-col">
         <div className="font-bold">{building.name}</div>
 
-        {building.kind ? (
-          <div className="text-gray-11 text-sm">{building.kind.name}</div>
+        {building.category ? (
+          <div className="text-gray-11 text-sm">{building.category}</div>
         ) : null}
       </div>
 

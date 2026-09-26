@@ -40,8 +40,8 @@ export function BuildingPage({ building }: Props) {
           ) : null}
 
           <div className="flex flex-col gap-2">
-            {building.kind ? (
-              <div className="text-gray-11 text-sm">{building.kind.name}</div>
+            {building.category ? (
+              <div className="text-gray-11 text-sm">{building.category}</div>
             ) : null}
 
             <h1 className="text-4xl leading-tight">{building.name}</h1>

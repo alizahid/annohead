@@ -1,7 +1,4 @@
 const icons = {
-  'allocation.None': '/img/anno/icon_2d_no_allocation_0.png',
-  'allocation.Ship': '/img/anno/icon_2d_item_ship_0.png',
-  'allocation.Villa': '/img/anno/icon_2d_item_villa_0.png',
   'attribute.AdditionalNeedAttributes': '/img/anno/icon_2d_mark_question_0.png',
   'attribute.Belief': '/img/anno/icon_2d_devotion_0.png',
   'attribute.FireSafety': '/img/anno/icon_2d_fire_safety_0.png',
@@ -46,7 +43,10 @@ const icons = {
   'tier.3': '/img/anno/icon_roman_numerals_3_0.png',
   'tier.4': '/img/anno/icon_roman_numerals_4_0.png',
   'type.Captains': '/img/anno/icon_2d_socket_item_0.png',
+  'type.None': '/img/anno/icon_2d_no_allocation_0.png',
+  'type.Ship': '/img/anno/icon_2d_item_ship_0.png',
   'type.Specialist': '/img/anno/icon_2d_item_none_0.png',
+  'type.Villa': '/img/anno/icon_2d_item_villa_0.png',
   'ui.building': '/img/anno/icon_2d_category_house.png',
   'ui.chain': '/img/anno/icon_2d_generic_construction_chain.png',
   'ui.item': '/img/anno/icon_2d_generic_item.png',

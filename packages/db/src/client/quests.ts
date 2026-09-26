@@ -24,12 +24,11 @@ import {
 } from '../schema'
 import {
   anyOfLabel,
-  racerAttributeLabel,
   variableChangeLabel,
   variableName,
 } from './condition-labels'
 import { assetNames, describeConditions } from './conditions'
-import { modifierName } from './modifier-labels'
+import { type Labels, labels, modifierName } from './labels'
 import { questQuestion, questText } from './quest-text'
 import {
   type Get,
@@ -244,14 +243,14 @@ function rewardValue(
   racerAttribute: string | null,
   amount: number | null,
   amountVariable: string | null,
-  lang: Lang,
+  l: Labels,
 ) {
   const levels =
     amountVariable === null
       ? `${amount !== null && amount < 0 ? '' : '+'}${amount ?? 1}`
       : `+ ${variableName(amountVariable)}`
   if (racerAttribute) {
-    return `${racerAttributeLabel(racerAttribute, lang)} ${levels}`
+    return `${l('racer_attribute', racerAttribute)?.name ?? racerAttribute} ${levels}`
   }
   return amountVariable ? variableName(amountVariable) : null
 }
@@ -300,7 +299,7 @@ async function outcomeRows(nodeGuids: Array<number>, lang: Lang) {
   )
   const tName = localized('t_name')
   const sName = localized('s_name')
-  const [assets, storylineNames, effects, modifiers, targets] =
+  const [assets, storylineNames, effects, modifiers, targets, l] =
     await Promise.all([
       assetNames(assetGuids, lang),
       db
@@ -337,6 +336,7 @@ async function outcomeRows(nodeGuids: Array<number>, lang: Lang) {
         .from(effectTargetPool)
         .leftJoin(tName, on(tName, effectTargetPool.nameText, lang))
         .where(inArray(effectTargetPool.effectGuid, effectGuids)),
+      labels(lang),
     ])
   const named = new Map(
     [...assets, ...storylineNames].map((a) => [a.guid, a] as const),
@@ -369,7 +369,7 @@ async function outcomeRows(nodeGuids: Array<number>, lang: Lang) {
           ? mods(assetGuid).map((m) => ({
               attribute: m.attribute,
               isPercent: m.isPercent,
-              name: modifierName(m.path, m.attribute, lang),
+              name: modifierName(l, m.path, m.attribute),
               value: m.value,
             }))
           : [],
@@ -379,7 +379,7 @@ async function outcomeRows(nodeGuids: Array<number>, lang: Lang) {
           ? tgts(assetGuid).map(({ effectGuid, ...target }) => target)
           : [],
         /** racer upgrades: "speed +1"; amounts read from a variable set by earlier choices: that variable */
-        value: rewardValue(racerAttribute, amount, amountVariable, lang),
+        value: rewardValue(racerAttribute, amount, amountVariable, l),
       }),
     ),
     ...changesOf(node).map((change) => ({

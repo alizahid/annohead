@@ -1,8 +1,16 @@
-import { and, eq, sql } from 'drizzle-orm'
+import { and, asc, eq, exists, inArray, sql } from 'drizzle-orm'
 import { alias, type SQLiteColumn } from 'drizzle-orm/sqlite-core'
 
-import { type Lang, langNames } from '../enums'
-import { attribute, buffModifier, region, translation } from '../schema'
+import { db } from '../db'
+import { type CategoryKind, type Lang, langNames } from '../enums'
+import {
+  attribute,
+  buffModifier,
+  category,
+  categoryMember,
+  region,
+  translation,
+} from '../schema'
 
 export type Page = {
   page?: number
@@ -32,6 +40,57 @@ export function on(
 export const regionColumns = {
   id: region.id,
   key: region.key,
+}
+
+/** the asset in `guid` is filed under one of the `category` guids (construction-menu tab, goods category) */
+export function inCategories(guid: SQLiteColumn, guids: Array<number>) {
+  return exists(
+    db
+      .select({
+        one: sql`1`,
+      })
+      .from(categoryMember)
+      .where(
+        and(
+          eq(categoryMember.assetGuid, guid),
+          inArray(categoryMember.categoryGuid, guids),
+        ),
+      ),
+  )
+}
+
+/** Categories of `kind` that hold at least one asset of `guid`'s table, in game order. */
+export async function categoriesOf(
+  kind: CategoryKind,
+  guid: SQLiteColumn,
+  lang: Lang,
+) {
+  const nameT = localized('category_name')
+  return await db
+    .select({
+      guid: category.guid,
+      icon: category.icon,
+      /** set instead of a name for categories the game doesn't name */
+      key: category.key,
+      name: nameT.value,
+    })
+    .from(category)
+    .leftJoin(nameT, on(nameT, category.nameText, lang))
+    .where(
+      and(
+        eq(category.kind, kind),
+        exists(
+          db
+            .select({
+              one: sql`1`,
+            })
+            .from(categoryMember)
+            .innerJoin(guid.table, eq(guid, categoryMember.assetGuid))
+            .where(eq(categoryMember.categoryGuid, category.guid)),
+        ),
+      ),
+    )
+    .orderBy(asc(category.sort), asc(category.guid))
 }
 
 export function paginate({ page = 1, perPage = PER_PAGE }: Page) {

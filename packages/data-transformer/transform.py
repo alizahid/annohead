@@ -20,22 +20,98 @@ PARTICIPANTS = (
     "Participant 3rdParty Emperor",
 )
 REGIONS = {"Roman": 1, "Celtic": 2, "Egyptian": 3}
-BUILDING_KIND = [  # (template regex, kind); first match wins
-    (r"^Production|^SlotFactory|^Slot_?Marsh|^Slot$", "Production"),
-    (r"Residence|VillaUrban", "Residence"),
-    (r"^CityInstitution", "City Watch"),
-    (r"^PublicService|MiniInstitution", "Public Service"),
-    (
-        r"Harbor|Harbour|RepairCrane|Warehouse|TradeBuilding|GuestHouse|Transporter",
-        "Harbour",
-    ),
-    (r"Military|Recruitment|UnitCamp", "Military"),
-    (r"^Monument|Hippodrome", "Monument"),
-    (r"Aqueduct", "Aqueduct"),
-    (r"Marsh|Irrigation|Canal", "Marsh"),
-    (r"^Street", "Road"),
+# where the game names each buff_modifier path: ItemKeywords (the item search keywords, one per upgrade property) or,
+# for the per-weapon unit stats it lumps together, the infotip table (ItemInfotipTextFeature.BuffUpgradeTextAndIcons)
+K, I = "ItemKeywords.", "ItemInfotipTextFeature.BuffUpgradeTextAndIcons."
+MODIFIER_TEXTS = {
+    "AqueductUpgrade.AqueductConsumedWaterUpgrade": K + "AqueductConsumedWaterUpgradeKey",
+    "AqueductUpgrade.AqueductWaterSupplyUpgrade": K + "AqueductWaterSupplyUpgradeKey",
+    "AreaBuff.RadiusEffectRangeUpgrade": K + "AreaRadiusEffectRangeKey",
+    "AreaMaintenanceUpgrade.LandTax": K + "AreaMaintenanceLandTaxKey",
+    "AreaMaintenanceUpgrade.Workforce.Amount": K + "AreaMaintenanceWorkforceKey",
+    "BuildingUpgrade.AttributeModifierInPercent": K + "BuildingTotalAttributeModifierInPercentKey",
+    "BuildingUpgrade.WorkforceModifierInPercent": K + "BuildingWorkforceModifierInPercentKey",
+    "CityInstitutionUpgrade.ResolverRangeUpgrade": K + "CityInstitutionResolverRangeUpgradeKey",
+    "CityInstitutionUpgrade.ResolverRepairDurationUpgrade": K + "CityInstitutionRepairDurationUpgradeKey",
+    "CityInstitutionUpgrade.ResolverResolveDurationUpgrade": K + "CityInstitutionResolveDurationUpgradeKey",
+    "CityInstitutionUpgrade.ResolverUnitCountUpgrade": K + "CityInstitutionResolverUnitCountUpgradeKey",
+    "DistributionUpgrade.AddDeltas": K + "DistributionAddDeltasKey",
+    "FactoryUpgrade.FuelDurationPercent": K + "FactoryFuelDurationKey",
+    "FactoryUpgrade.NeededAreaUpgrade": K + "FactoryNeededAreaPercentageUpgradeKey",
+    "FactoryUpgrade.ProductivityUpgrade": K + "FactoryProductivityUpgradeKey",
+    "HealthUpgrade.BaseHealthUpgrade": K + "HealthMaxHitpointsUpgradeKey",
+    "HealthUpgrade.EncampedUnitSelfHealMultiplierUpgrade": K + "HealthEncampedUnitSelfHealMultiplierKey",
+    "HealthUpgrade.SelfHealUpgrade": K + "HealthSelfHealUpgradeKey",
+    "IrrigationUpgrade.PipeCapacityUpgrade": K + "IrrigationPipeCapacityKey",
+    "ItemContainerUpgrade.SlotCountUpgrade": K + "ItemContainerSlotCountUpgradeKey",
+    "ItemContainerUpgrade.SocketCountUpgrade": K + "ItemContainerSocketCountUpgradeKey",
+    "MaintenanceUpgrade.EncampedUnitScalingFactorUpgrade": K + "EncampedUnitScalingFactorUpgradeKey",
+    "MaintenanceUpgrade.MaintenanceFactorUpgrade": K + "MaintenanceUpgradeKey",
+    "MaintenanceUpgrade.WorkforceMaintenanceFactorUpgrade": K + "MaintenanceWorkforceAmountUpgradeKey",
+    "ModuleOwnerUpgrade.ModuleLimitPercent": K + "ModuleOwnerModuleLimitPercentKey",
+    "MovementUpgrade.BuffBaseSpeedUpgrade": K + "MovementBaseSpeedKey",
+    "MovementUpgrade.BuffFavorableWindAngle": K + "MovementFavorableWindAngleUpgradeKey",
+    "MovementUpgrade.BuffReduceCargoImpactUpgrade": K + "MovementCargoImpactKey",
+    "MovementUpgrade.BuffReduceDamageImpactUpgrade": K + "MovementDamageImpactKey",
+    "MovementUpgrade.BuffReduceNegativeWindImpactUpgrade": K + "MovementNegativeWindImpactKey",
+    "MovementUpgrade.BuffTransferSpeedUpgrade": K + "MovementTransferSpeedUpgradeKey",
+    "RaceTrackUpgrades.TrainingChargesUpgrade": K + "TrainingChargesUpgradeKey",
+    "RecruitmentUpgrade.ConstructionCostInPercent": K + "RecruitmentConstructionCostInPercentKey",
+    "RecruitmentUpgrade.ConstructionSpeedInPercent": K + "RecruitmentConstructionSpeedInPercentKey",
+    "RecruitmentUpgrade.RecruitmentCostInPercent": K + "RecruitmentCostInPercentKey",
+    "RecruitmentUpgrade.RecruitmentSpeedInPercent": K + "RecruitmentSpeedInPercentKey",
+    "RepairCraneUpgrade.HealBuildingsPerMinuteUpgrade": K + "RepairCraneHealBuildingsPerMinuteKey",
+    "RepairCraneUpgrade.HealPerMinuteUpgrade": K + "RepairCraneHealPerMinuteKey",
+    "RepairCraneUpgrade.HealRadiusUpgrade": K + "RepairCraneHealRadiusUpgradeKey",
+    "RepairCraneUpgrade.MaximumRepairTargetsUpgrade": K + "RepairCraneMaximumRepairTargetsKey",
+    "ResidenceUpgrade.ConsumptionModifierInPercent": K + "ResidenceConsumptionModifierKey",
+    "ResidenceUpgrade.GoodConsumptionUpgrade.AmountInPercent": K + "ResidenceGoodConsumptionUpgradeKey",
+    "TradeShipUpgrade.ActiveTradePriceInPercent": K + "TradeShipActiveTradePriceInPercentKey",
+    "TradeShipUpgrade.LoadingSpeedUpgrade": K + "TradeShipLoadingSpeedKey",
+    "UnitUpgrade.AccuracyArcherModuleUpgrade": I + "BuffUnitAccuracyArcherModule.Text",
+    "UnitUpgrade.AccuracyBallistaModuleUpgrage": I + "BuffUnitAccuracyBallistaModule.Text",
+    "UnitUpgrade.AccuracyCatapultModuleUpgrage": I + "BuffUnitAccuracyCatapultModule.Text",
+    "UnitUpgrade.AccuracyUpgrade": K + "UnitAccuracyUpgradeKey",
+    "UnitUpgrade.ArmorUpgrade": K + "UnitArmorUpgradeKey",
+    "UnitUpgrade.AttackCone_BallistaModule": I + "BuffUnitAttackConeBallistaModule.Text",
+    "UnitUpgrade.AttackCone_CatapultModule": I + "BuffUnitAttackConeCatapultModule.Text",
+    "UnitUpgrade.AttackSpeedArcherModulePercentualUpgrade": I + "BuffUnitAttackSpeedArcherModulePercentual.Text",
+    "UnitUpgrade.AttackSpeedBallistaModulePercentualUpgrade": I + "BuffUnitAttackSpeedBallistaModulePercentual.Text",
+    "UnitUpgrade.AttackSpeedCatapultModulePercentualUpgrade": I + "BuffUnitAttackSpeedCatapultModulePercentual.Text",
+    "UnitUpgrade.AttackSpeedRangedPercentualUpgrade": I + "BuffUnitAttackSpeedRangedPercentual.Text",
+    "UnitUpgrade.AttackSpeedTorchPercentualUpgrade": I + "BuffUnitAttackSpeedTorchPercentual.Text",
+    "UnitUpgrade.DefenseUpgrade": K + "UnitDefenseUpgradeKey",
+    "UnitUpgrade.DiscoveryRadiusUpgrade": K + "UnitDiscoveryRadiusUpgradeKey",
+    "UnitUpgrade.DistanceAttackRangeArcherModulePercentualUpgrade": I + "BuffUnitDistanceAttackRangeArcherModulePercentual.Text",
+    "UnitUpgrade.DistanceAttackRangeBallistaModulePercentualUpgrade": I + "BuffUnitDistanceAttackRangeBallistaModulePercentual.Text",
+    "UnitUpgrade.DistanceAttackRangeCatapultModulePercentualUpgrade": I + "BuffUnitDistanceAttackRangeCatapultModulePercentual.Text",
+    "UnitUpgrade.DistanceAttackRangePercentualUpgrade": I + "BuffUnitDistanceAttackRangePercentual.Text",
+    "UnitUpgrade.MaximumMoraleUpgrade": K + "UnitMaximumMoraleUpgradeKey",
+    "UnitUpgrade.OffenseArcherModuleRangedUpgrade": I + "BuffUnitOffenseArcherModuleRanged.Text",
+    "UnitUpgrade.OffenseBallistaModuleRangedUpgrade": I + "BuffUnitOffenseBallistaModuleRanged.Text",
+    "UnitUpgrade.OffenseCatapultModuleRangedUpgrade": I + "BuffUnitOffenseCatapultModuleRanged.Text",
+    "UnitUpgrade.OffenseChargeUpgrade": I + "BuffUnitOffenseCharge.Text",
+    "UnitUpgrade.OffenseMeleeUpgrade": I + "BuffUnitOffenseMelee.Text",
+    "UnitUpgrade.OffenseRangedUpgrade": I + "BuffUnitOffenseRanged.Text",
+    "UnitUpgrade.RewardMoneyPerDestroyedShipUpgrade": K + "UnitRewardMoneyPerDestroyedShipUpgradeKey",
+    "UnitUpgrade.ShieldUpgrade": K + "UnitShieldUpgradeKey",
+    "WarehouseUpgrade.AdditionalLoadingSpeedInPercent": K + "WarehouseLoadingSpeedKey",
+}
+MESH_UPKEEP = re.compile(r"^AreaMaintenanceUpgrade\.MeshGraphUpkeep\.(\w+)\.UpgradePercent$")
+# game config tables of names, as (label kind, template, path to the keyed entries, field holding the text)
+LABEL_TABLES = [
+    ("attribute", "NeedAttributeFeature", "NeedAttributeFeature.NeedAttributeConfig", "Name"),
+    ("rarity", "ItemBalancing", "ItemConfig.RarityVisualization", "Text"),
+    ("niche", "ItemBalancing", "ItemConfig.NicheVisualization", "Text"),
+    ("allocation", "ItemBalancing", "ItemConfig.AllocationText", "Text"),
+    ("racer_attribute", "RaceTrackConfig", "RaceTrackConfig.ItemRacerAttributes", "Name"),
+    ("diplomacy", "DiplomacyBalancing", "DiplomacyConfig.DiplomacyStates", "DisplayName"),
+    ("reputation", "ReputationFeature", "ReputationFeature.ReputationZones", "ZoneName"),
+    ("reputation", "ReputationFeature", "ReputationFeature.ReputationSpecialStates", "Name"),
+    ("incident", "GeneralIncidentConfiguration", "GeneralIncidentConfiguration.IncidentTypesConfig", "Name"),
 ]
-CHAIN_TYPES = {"Materials": "Material", "Military": "Military", "Harbor": "Harbour"}
+# products the trading post filter doesn't list, filed under categories the game has no name for (client phrases)
+PRODUCT_KINDS = {"Workforce": -1, "Service": -2, "Meta": -3}
 EXCLUDED_BUILDINGS = r"^Ornamental|^PolygonObject|^Hedge|^QuestLighthouse|^DEPRECATED|^Pirate|^SimpleBuilding|^TestData"
 QUEST_TEMPLATES = {
     "StoryLine",
@@ -404,14 +480,13 @@ class T:
             else:
                 kind = "Good"
             self.db.execute(
-                "insert into product values(?,?,?,?)",
-                (
-                    a["guid"],
-                    self.text(a["text_id"]),
-                    self.icon(a["icon"]),
-                    self.enum("product_kind", kind),
-                ),
+                "insert into product values(?,?,?)",
+                (a["guid"], self.text(a["text_id"]), self.icon(a["icon"])),
             )
+            if kind != "Good":
+                self.db.execute(
+                    "insert into category_member values(?,?)", (PRODUCT_KINDS[kind], a["guid"])
+                )
             for r in str(p.get("AssociatedRegion") or "").split(";"):
                 if r in self.regions:
                     self.db.execute(
@@ -487,20 +562,15 @@ class T:
                 continue
             if "Monument" in v:  # construction phase, see phases()
                 continue
-            kind = next(
-                (k for rx, k in BUILDING_KIND if re.search(rx, a["template"] or "")),
-                "Other",
-            )
             b, std, es = D(v["Building"]), D(v["Standard"]), D(v.get("EffectSource"))
             self.db.execute(
-                "insert into building values(?,?,?,?,?,?,?,?,?,?,?)",
+                "insert into building values(?,?,?,?,?,?,?,?,?,?)",
                 (
                     a["guid"],
                     self.text(a["text_id"]),
                     self.text(std.get("InfoDescription")),
                     self.icon(a["icon"]),
                     a["template"],
-                    self.enum("building_kind", kind),
                     self.text(b.get("BuildingCategoryName")),
                     self.region(b.get("AssociatedRegions")),
                     self.num(es.get("RadiusDistance")),
@@ -591,28 +661,127 @@ class T:
         self.db.execute(
             "update production_chain set region_id=(select region_id from building b where b.guid=production_chain.building_guid)"
         )
-        # the construction menu files chains under a population tier (menu icon = its workforce icon) or a type tab
-        tiers = {
-            self.assets[wf]["icon"]: pl
-            for pl, wf in self.db.execute(
-                "select guid, workforce_product_guid from population_level"
+
+    # ---- construction menu and trading post filter -----------------------------------------------------------
+    def categories(self):
+        """Buildings and chains by construction-menu tab, goods by trading-post filter category.
+
+        Tabs come from the game's ConstructionMenu config: each region's tier tabs, and the named sub-tabs of its
+        infrastructure tab (the tab's own buildings go under the tab). A tab lists buildings, production chains (all
+        their buildings) and nested categories. Buildings only reached by upgrading (Plebeian Residence, Stone Wall)
+        share the tab of what they upgrade from. Tabs and filter categories that read the same in every language
+        (Roman and Celtic Military Buildings) are merged.
+        """
+        chains = defaultdict(set)
+        for c, b in self.db.execute("select chain_guid, building_guid from production_chain_node"):
+            chains[c].add(b)
+        buildings = {g for (g,) in self.db.execute("select guid from building")}
+
+        def listed(g):
+            return [self.num(b.get("Building")) for b in self.items(D(self.assets[g]["v"].get("ConstructionCategory")).get("BuildingList"))]
+
+        def is_category(g):
+            return D(self.assets.get(g)).get("template") == "ConstructionCategory"
+
+        def members(g, nested=True):
+            out = set()
+            for i in listed(g):
+                if i in buildings or i in chains:
+                    out.add(i)
+                if i in chains:
+                    out |= chains[i]
+                if nested and is_category(i):
+                    out |= members(i)
+            return out
+
+        merged = {}  # what a name reads in every language -> category guid
+
+        def category(kind, g, text_id, icon, sort):
+            same = tuple(r for (r,) in self.src.execute("select text from texts where line_id=? order by lang", (str(text_id),)))
+            key = (kind, same or g)
+            if key not in merged:
+                merged[key] = g
+                self.db.execute(
+                    "insert into category(guid, kind, name_text, icon, sort) values(?,?,?,?,?)",
+                    (g, self.enum("category_kind", kind), self.text(text_id), self.icon(icon), sort),
+                )
+            return merged[key]
+
+        menu = D(next(iter(self.by_template("ConstructionMenu")), {}).get("v")).get("ConstructionMenu", {})
+        tabs = []
+        for region in self.regions:
+            m = D(D(menu.get("LinearBuildingsMenu")).get(region))
+            infra = self.num(m.get("InfrastructureCategory"))
+            tabs += [(self.num(t.get("TierCategory")), True) for t in self.items(m.get("NeedCategories"))]
+            if infra in self.assets:
+                tabs.append((infra, False))
+                tabs += [(i, True) for i in listed(infra) if is_category(i) and self.assets[i]["text_id"]]
+        found = defaultdict(set)
+        for sort, (g, nested) in enumerate(tabs):
+            own = members(g, nested)
+            if own:
+                c = category("menu", g, self.assets[g]["text_id"], self.assets[g]["icon"], sort)
+                for m in own:
+                    found[m].add(c)
+        upgrades = defaultdict(set)
+        for a in self.assets.values():
+            for u in self.items(D(a["v"].get("Upgradable")).get("PossibleUpgrades")):
+                if self.num(u.get("UpgradeGUID")):
+                    upgrades[a["guid"]].add(self.num(u["UpgradeGUID"]))
+                    upgrades[self.num(u["UpgradeGUID"])].add(a["guid"])
+        pending = True
+        while pending:
+            pending = False
+            for b in buildings - set(found):
+                for o in upgrades[b]:
+                    if found.get(o):
+                        found[b] |= found[o]
+                        pending = True
+                        break
+        for m, cs in found.items():
+            for c in cs:
+                self.db.execute("insert or ignore into category_member values(?,?)", (c, m))
+        # goods: the trading post filter of each region and of the empire; its first category is "All Goods"
+        products = {g for (g,) in self.db.execute("select guid from product")}
+        for a in self.by_template("ProductFilter"):
+            for sort, c in enumerate(self.items(D(a["v"].get("ProductFilter")).get("Categories"))[1:]):
+                lst = self.assets.get(self.num(c.get("ProductList")))
+                icon = D(self.assets.get(self.num(c.get("Icon")))).get("icon")
+                g = category("product", self.num(c.get("ProductList")), c.get("Text"), icon, sort)
+                for it in self.items(D(D(lst).get("v")).get("ProductList", {}).get("List")):
+                    if self.num(it.get("Product")) in products:
+                        self.db.execute("insert or ignore into category_member values(?,?)", (g, self.num(it["Product"])))
+        for kind, g in PRODUCT_KINDS.items():
+            self.db.execute(
+                "insert into category(guid, kind, key, sort) values(?,?,?,?)", (g, "product", kind, 100 - g)
             )
-            if wf in self.assets
-        }
-        chains = {g for (g,) in self.db.execute("select guid from production_chain")}
-        for a in self.by_template("ConstructionCategory"):
-            name = a["name"] or ""
-            tier = tiers.get(a["icon"])
-            kind = "Consumer" if tier else CHAIN_TYPES.get(name.split(" ")[-1])
-            if not kind or "Pins" in name:  # "Pins Middle Materials" duplicates the Materials tab
-                continue
-            for b in self.items(D(a["v"].get("ConstructionCategory")).get("BuildingList")):
-                g = self.num(b.get("Building"))
-                if g in chains:
+
+    # ---- labels --------------------------------------------------------------------------------------------
+    def labels(self):
+        """Names the game gives keys we store (attributes, rarities, modifier paths, diplomacy states …), from its
+        own config tables; the client names everything else it shows with these."""
+
+        def config(template):
+            return D(next(iter(self.by_template(template)), {}).get("v"))
+
+        for kind, template, path, field in LABEL_TABLES:
+            for key, entry in D(dict_get(config(template), path)).items():
+                if D(entry).get(field):
+                    icon = D(entry).get("Icon") or D(entry).get("IconFilename")
+                    icon = D(self.assets.get(self.num(icon))).get("icon") if self.num(icon) else icon
                     self.db.execute(
-                        "insert or ignore into production_chain_category values(?,?,?)",
-                        (g, self.enum("chain_type", kind), tier),
+                        "insert or ignore into label values(?,?,?,?)",
+                        (self.enum("label_kind", kind), key, self.text(entry[field]), self.icon(icon)),
                     )
+        tables = {t: config(t) for t in ("ItemKeywords", "ItemInfotipTextFeature")}
+        for (path,) in self.db.execute("select distinct path from buff_modifier where attribute_id is null").fetchall():
+            mesh = MESH_UPKEEP.match(path)
+            ref = f"{K}AreaMaintenanceMeshGraphUpkeep.{mesh[1]}.Key" if mesh else MODIFIER_TEXTS.get(path)
+            tid = dict_get(tables.get(ref.split(".")[0], {}), ref) if ref else None
+            if not tid:
+                print(f"warning: no game text for modifier {path}", file=sys.stderr)
+                continue
+            self.db.execute("insert into label values(?,?,?,null)", (self.enum("label_kind", "modifier"), path, self.text(tid)))
 
     def _chain_nodes(self, chain, node, parent, tier):
         nid = self.db.execute(
@@ -692,26 +861,21 @@ class T:
                     ):
                         base = path[: -len(".Value")]
                         pct = 1 if dict_get(a["v"], base + ".Percental") == "1" else 0
-                        attr = re.search(
-                            r"AdditionalAttributes\.(\w+)|NeedAttributes\.(\w+)|BonusAttributes\.(\w+)",
-                            base,
-                        )
-                        attr_id = (
-                            self.attribute(next(g for g in attr.groups() if g))
-                            if attr
-                            else None
-                        )
+                        base = base.replace(".AmountOrPercent", "").replace(".ValueOrPercent", "")
+                        attr = re.search(r"(?:AdditionalAttributes|NeedAttributes|BonusAttributes)\.(\w+)$", base)
+                        attr_id = self.attribute(attr[1]) if attr else None
+                        # list entries (AreaMaintenanceUpgrade.Workforce[0].Amount) name their good
+                        product = self.num(D(dict_get(a["v"], base.rsplit(".", 1)[0])).get("Product")) if "[" in base else None
+                        base = re.sub(r"\[\d+\]", "", base)
                         self.db.execute(
                             "insert into buff_modifier values(?,?,?,?,?,?)",
                             (
                                 a["guid"],
-                                base.replace(".AmountOrPercent", "").replace(
-                                    ".ValueOrPercent", ""
-                                ),
+                                base,
                                 attr_id,
                                 self.num(val, 0),
                                 pct,
-                                None,
+                                product,
                             ),
                         )
                     elif path.endswith("AdditionalFunctionalEffect") and self.num(val):
@@ -753,7 +917,7 @@ class T:
                         self.insert_target(a["guid"], t["GUID"])
             boost = D(a["v"].get("ItemWithBoost"))
             self.db.execute(
-                "insert into item values(?,?,?,?,?,?,?,?,?,?,?,?)",
+                "insert into item values(?,?,?,?,?,?,?,?,?,?,?)",
                 (
                     a["guid"],
                     self.text(a["text_id"]),
@@ -761,7 +925,6 @@ class T:
                     self.icon(a["icon"]),
                     self.enum("rarity", it.get("Rarity")),
                     self.enum("niche", it.get("Niche")),
-                    self.enum("item_type", it.get("ItemType")),
                     self.enum("allocation", it.get("Allocation")),
                     self.num(it.get("TradePrice")),
                     eff_guid,
@@ -1690,7 +1853,6 @@ class T:
         )
 
     def finish(self):
-        self.prune()
         # names of assets conditions point at, and of decision speakers, that have no table of their own
         # (provinces, volcano phases, narrative characters …)
         for (value,) in self.db.execute(
@@ -1774,12 +1936,12 @@ create table enum_value(name text, value text, primary key(name,value));
 create table lang(id integer primary key, code text);
 create table translation(line_id integer, lang_id integer references lang(id), value text, primary key(line_id,lang_id)) without rowid;
 
-create table product(guid integer primary key, name_text integer, icon text, kind text);
+create table product(guid integer primary key, name_text integer, icon text);
 create table product_region(product_guid int references product(guid), region_id int references region(id), primary key(product_guid,region_id));
 create table need(guid integer primary key, product_guid int references product(guid));
 create table need_attribute(need_guid int references need(guid), attribute_id int references attribute(id), value real);
 
-create table building(guid integer primary key, name_text integer, description_text integer, icon text, template text, kind text,
+create table building(guid integer primary key, name_text integer, description_text integer, icon text, template text,
   category_text integer, region_id int references region(id), radius int, street_radius int, dlc_guid int references dlc(guid));
 create table building_region(building_guid int references building(guid), region_id int references region(id), primary key(building_guid,region_id));
 create table building_cost(building_guid int references building(guid), product_guid int references product(guid), amount real);
@@ -1795,7 +1957,11 @@ create table residence(building_guid integer primary key references building(gui
 create table residence_need(building_guid int references building(guid), need_guid int references need(guid), consumption_rate real, buff_only int);
 create table production_chain(guid integer primary key, name_text integer, icon text, building_guid int references building(guid), region_id int references region(id));
 create table production_chain_node(id integer primary key, chain_guid int references production_chain(guid), parent_id int, building_guid int, tier int);
-create table production_chain_category(chain_guid int references production_chain(guid), type text, population_level_guid int references population_level(guid), unique(chain_guid, type, population_level_guid));
+-- construction-menu tabs (kind menu: buildings and chains) and trading-post filter categories (kind product)
+create table category(guid integer primary key, kind text, name_text integer, key text, icon text, sort int);
+create table category_member(category_guid int references category(guid), asset_guid int, primary key(category_guid, asset_guid)) without rowid;
+-- game names of keys stored elsewhere: attribute, rarity, niche, allocation, modifier (buff_modifier.path) …
+create table label(kind text, key text, name_text integer, icon text, primary key(kind, key)) without rowid;
 
 create table effect(guid integer primary key, name_text integer, description_text integer, duration_ms int);
 create table effect_buff(effect_guid int references effect(guid), buff_guid int, primary key(effect_guid,buff_guid));
@@ -1807,7 +1973,7 @@ create table buff_modifier(buff_guid int, path text, attribute_id int references
 create table buff_functional_effect(buff_guid int, effect_guid int);
 create table buff_provided_need(buff_guid int, need_guid int references need(guid), primary key(buff_guid,need_guid));
 
-create table item(guid integer primary key, name_text integer, description_text integer, icon text, rarity text, niche text, type text,
+create table item(guid integer primary key, name_text integer, description_text integer, icon text, rarity text, niche text,
   allocation text, trade_price real, effect_guid int references effect(guid), boost_hint_text integer, dlc_guid int references dlc(guid));
 create table item_boost_buff(item_guid int references item(guid), buff_guid int);
 create table item_boost_condition(item_guid int references item(guid), condition_id int);
@@ -1853,7 +2019,7 @@ create index idx_factory_output_building on factory_output(building_guid);
 create index idx_factory_output_product on factory_output(product_guid);
 create index idx_residence_need_building on residence_need(building_guid);
 create index idx_production_chain_node_chain on production_chain_node(chain_guid);
-create index idx_production_chain_category_chain on production_chain_category(chain_guid);
+create index idx_category_member_asset on category_member(asset_guid);
 create index idx_buff_modifier_buff on buff_modifier(buff_guid);
 create index idx_buff_functional_effect_buff on buff_functional_effect(buff_guid);
 create index idx_item_boost_buff_item on item_boost_buff(item_guid);
@@ -1889,12 +2055,15 @@ if __name__ == "__main__":
         t.lookups,
         t.products,
         t.buildings,
+        t.categories,
         t.effects,
         t.items_,
         t.phases,  # before techs: unlocks resolve monument phases to their building
         t.techs,
         t.quests,
         t.sources,
+        t.prune,
+        t.labels,  # after prune: only paths still used
         t.finish,
     ):
         step()
