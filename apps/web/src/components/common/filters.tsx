@@ -35,7 +35,7 @@ export function FiltersCard<Type extends UseQueryStatesKeysMap>({
 
   return (
     <div className="flex flex-col gap-4">
-      <h3>{title}</h3>
+      <h3 className="font-bold">{title}</h3>
 
       <CheckboxGroup
         className="flex flex-col gap-2"
@@ -64,7 +64,7 @@ export function FiltersCard<Type extends UseQueryStatesKeysMap>({
               />
             )}
 
-            <span className="font-bold text-sm">{item.label}</span>
+            <span className="font-medium text-sm">{item.label}</span>
 
             {item.after}
           </Checkbox.Root>

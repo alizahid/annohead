@@ -253,7 +253,7 @@ export function BuildingPage({ building }: Props) {
 
       {building.phases.length ? (
         <div className="flex flex-col gap-4">
-          <h3 className="text-2xl">{t('phases.title')}</h3>
+          <h2 className="text-2xl">{t('phases.title')}</h2>
 
           <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
             {building.phases.map((phase) => (
