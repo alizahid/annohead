@@ -28,7 +28,8 @@ import {
   variableName,
 } from './condition-labels'
 import { assetNames, describeConditions } from './conditions'
-import { type Labels, labels, modifierName } from './labels'
+import { type Labels, labels } from './labels'
+import { nameModifiers } from './modifiers'
 import { questQuestion, questText } from './quest-text'
 import {
   type Get,
@@ -342,7 +343,7 @@ async function outcomeRows(nodeGuids: Array<number>, lang: Lang) {
     [...assets, ...storylineNames].map((a) => [a.guid, a] as const),
   )
   const duration = new Map(effects.map((e) => [e.guid, e.duration]))
-  const mods = groupBy(modifiers, 'effectGuid')
+  const mods = groupBy(await nameModifiers(modifiers, lang), 'effectGuid')
   const tgts = groupBy(targets, 'effectGuid')
   const rewardsOf = groupBy(rewards, 'nodeGuid')
   const changesOf = groupBy(changes, 'nodeGuid')
@@ -369,7 +370,7 @@ async function outcomeRows(nodeGuids: Array<number>, lang: Lang) {
           ? mods(assetGuid).map((m) => ({
               attribute: m.attribute,
               isPercent: m.isPercent,
-              name: modifierName(l, m.path, m.attribute),
+              name: m.name,
               value: m.value,
             }))
           : [],

@@ -457,9 +457,15 @@ export const poolMember = sqliteTable(
 export const buffModifier = sqliteTable(
   'buff_modifier',
   {
+    /** templated effects: the fertility added, or the input a new one replaces */
+    assetGuid: integer('asset_guid'),
     attributeId: integer('attribute_id').references(() => attribute.id),
     buffGuid: integer('buff_guid'),
+    /** templated effects: extra output every this many cycles */
+    cycles: integer(),
     isPercent: integer('is_percent'),
+    /** templated effects: the incident a building becomes immune to */
+    key: text(),
     path: text(),
     /** the good a per-product modifier changes, e.g. the workforce added to a villa */
     productGuid: integer('product_guid').references(() => product.guid),

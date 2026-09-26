@@ -1,7 +1,7 @@
 import { and, eq } from 'drizzle-orm'
 
 import { db } from '../db'
-import { type Attribute, type LabelKind, type Lang } from '../enums'
+import { type LabelKind, type Lang } from '../enums'
 import { label, translation } from '../schema'
 import { langId } from './shared'
 
@@ -58,15 +58,6 @@ export function labels(lang: Lang) {
     cache.set(lang, found)
   }
   return found
-}
-
-/** A modifier reads as its attribute ("Happiness") when it targets one, else as the game's name for its path */
-export function modifierName(
-  l: Labels,
-  path: string | null,
-  attribute: Attribute | null,
-) {
-  return l('attribute', attribute)?.name ?? l('modifier', path)?.name ?? path
 }
 
 /** `{ key, name }` for an enum value the game names; unnamed keys read as themselves */

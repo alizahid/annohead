@@ -8,6 +8,7 @@ import {
   type SQL,
   sql,
 } from 'drizzle-orm'
+import { alias } from 'drizzle-orm/sqlite-core'
 
 import { db } from '../db'
 import {
@@ -19,6 +20,7 @@ import {
 } from '../enums'
 import {
   attribute,
+  buffFunctionalEffect,
   buffModifier,
   building,
   condition,
@@ -39,7 +41,8 @@ import {
 } from '../schema'
 import { describeConditions } from './conditions'
 import { niches, rarities, types } from './item-labels'
-import { keyed, labels, modifierName } from './labels'
+import { keyed, labels } from './labels'
+import { nameModifiers } from './modifiers'
 import {
   type Get,
   groupBy,
@@ -95,7 +98,17 @@ function itemWhere(f: ItemFilter): SQL | undefined {
 async function itemDetails(guids: Array<number>, lang: Lang) {
   const bName = localized('b_name')
   const sName = localized('s_name')
-  const [targets, modifiers, boosts, sources, conditions] = await Promise.all([
+  // a buff can pass an area effect on to buildings near the targets (e.g. +1.5 Knowledge near Cookhouses)
+  const nearbyBuff = alias(effectBuff, 'nearby_buff')
+  const [
+    targets,
+    modifiers,
+    nearbyModifiers,
+    boosts,
+    nearbyBoosts,
+    sources,
+    conditions,
+  ] = await Promise.all([
     db
       .selectDistinct({
         guid: building.guid,
@@ -124,6 +137,24 @@ async function itemDetails(guids: Array<number>, lang: Lang) {
       .where(inArray(item.guid, guids)),
     db
       .select({
+        itemGuid: item.guid,
+        ...modifierColumns,
+      })
+      .from(item)
+      .innerJoin(effectBuff, eq(effectBuff.effectGuid, item.effectGuid))
+      .innerJoin(
+        buffFunctionalEffect,
+        eq(buffFunctionalEffect.buffGuid, effectBuff.buffGuid),
+      )
+      .innerJoin(
+        nearbyBuff,
+        eq(nearbyBuff.effectGuid, buffFunctionalEffect.effectGuid),
+      )
+      .innerJoin(buffModifier, eq(buffModifier.buffGuid, nearbyBuff.buffGuid))
+      .leftJoin(attribute, eq(attribute.id, buffModifier.attributeId))
+      .where(inArray(item.guid, guids)),
+    db
+      .select({
         itemGuid: itemBoostBuff.itemGuid,
         ...modifierColumns,
       })
@@ -132,6 +163,23 @@ async function itemDetails(guids: Array<number>, lang: Lang) {
         buffModifier,
         eq(buffModifier.buffGuid, itemBoostBuff.buffGuid),
       )
+      .leftJoin(attribute, eq(attribute.id, buffModifier.attributeId))
+      .where(inArray(itemBoostBuff.itemGuid, guids)),
+    db
+      .select({
+        itemGuid: itemBoostBuff.itemGuid,
+        ...modifierColumns,
+      })
+      .from(itemBoostBuff)
+      .innerJoin(
+        buffFunctionalEffect,
+        eq(buffFunctionalEffect.buffGuid, itemBoostBuff.buffGuid),
+      )
+      .innerJoin(
+        nearbyBuff,
+        eq(nearbyBuff.effectGuid, buffFunctionalEffect.effectGuid),
+      )
+      .innerJoin(buffModifier, eq(buffModifier.buffGuid, nearbyBuff.buffGuid))
       .leftJoin(attribute, eq(attribute.id, buffModifier.attributeId))
       .where(inArray(itemBoostBuff.itemGuid, guids)),
     db
@@ -167,10 +215,38 @@ async function itemDetails(guids: Array<number>, lang: Lang) {
       .where(inArray(itemSource.itemGuid, guids)),
     boostConditions(guids, lang),
   ])
+  const [named, namedBoosts] = await Promise.all([
+    nameModifiers(
+      [
+        ...modifiers.map((m) => ({
+          ...m,
+          nearby: false,
+        })),
+        ...nearbyModifiers.map((m) => ({
+          ...m,
+          nearby: true,
+        })),
+      ],
+      lang,
+    ),
+    nameModifiers(
+      [
+        ...boosts.map((m) => ({
+          ...m,
+          nearby: false,
+        })),
+        ...nearbyBoosts.map((m) => ({
+          ...m,
+          nearby: true,
+        })),
+      ],
+      lang,
+    ),
+  ])
   return {
-    boosts: groupBy(boosts, 'itemGuid'),
+    boosts: groupBy(namedBoosts, 'itemGuid'),
     conditions: groupBy(conditions, 'itemGuid'),
-    modifiers: groupBy(modifiers, 'itemGuid'),
+    modifiers: groupBy(named, 'itemGuid'),
     sources: groupBy(sources, 'itemGuid'),
     targets: groupBy(targets, 'itemGuid'),
   }
@@ -256,17 +332,11 @@ async function queryItems(f: ItemFilter & Page, id?: number) {
         ? {
             conditions: d.conditions(r.guid).map(({ itemGuid, ...c }) => c),
             hint,
-            modifiers: d.boosts(r.guid).map((m) => ({
-              ...m,
-              name: modifierName(l, m.path, m.attribute),
-            })),
+            modifiers: d.boosts(r.guid),
           }
         : null,
       dlc: r.dlc?.guid ? r.dlc : null,
-      modifiers: d.modifiers(r.guid).map((m) => ({
-        ...m,
-        name: modifierName(l, m.path, m.attribute),
-      })),
+      modifiers: d.modifiers(r.guid),
       niche: keyed(l, 'niche', r.niche),
       rarity: keyed(l, 'rarity', r.rarity),
       /** where the item can be obtained: traders, contracts, ship drops, visitors, festivals, techs, quests */

@@ -1027,3 +1027,53 @@ test.each([
     expect(item?.boost?.conditions[0]?.name).toBe(name)
   },
 )
+
+test('specialists show area effects and templated effects in the game wording', async () => {
+  const magnus = await anno.items.get({
+    id: 42_043,
+    lang: 'en',
+  })
+  expect(magnus?.modifiers).toContainEqual(
+    expect.objectContaining({
+      name: 'Knowledge Area Effect',
+      nearby: true,
+      value: 1.5,
+    }),
+  )
+  const waronheri = await anno.items.get({
+    id: 156_714,
+    lang: 'de',
+  })
+  expect(waronheri?.modifiers.map((m) => m.name)).toContain(
+    'Holz ersetzt Unterbau',
+  )
+  expect(
+    waronheri?.modifiers.find((m) => m.name === 'Holz ersetzt Unterbau')?.value,
+  ).toBeNull()
+  const casponia = await anno.items.get({
+    id: 51_282,
+    lang: 'en',
+  })
+  expect(casponia?.modifiers.map((m) => m.name)).toContain(
+    'Additional 1t Flax every 10 cycles',
+  )
+})
+
+test('items the game never names and props nothing hands out are left out', async () => {
+  // a campaign prop whose name line the game never wrote, and one no quest gives
+  const dropped = await Promise.all(
+    [39_801, 40_603].map((id) =>
+      anno.items.get({
+        id,
+        lang: 'en',
+      }),
+    ),
+  )
+  expect(dropped.every((item) => item === null)).toBe(true)
+  const { rows } = await anno.items.list({
+    lang: 'en',
+    perPage: 1000,
+  })
+  expect(rows.every((r) => r.name)).toBe(true)
+  expect(rows.some((r) => r.icon?.includes('icon_3d_removed'))).toBe(false)
+})

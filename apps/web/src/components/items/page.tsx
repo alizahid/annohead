@@ -106,7 +106,7 @@ export function ItemPage({ item }: Props) {
                       ? getIcon(`attribute.${modifier.attribute}`)
                       : null
                   }
-                  key={modifier.path}
+                  key={`${modifier.path}:${modifier.name}:${modifier.value}`}
                   name={modifier.name}
                   value={
                     modifier.value
@@ -157,7 +157,7 @@ export function ItemPage({ item }: Props) {
                       ? getIcon(`attribute.${boost.attribute}`)
                       : null
                   }
-                  key={boost.path}
+                  key={`${boost.path}:${boost.name}:${boost.value}`}
                   name={boost.name}
                   value={
                     boost.value

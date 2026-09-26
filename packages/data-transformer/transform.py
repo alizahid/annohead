@@ -96,6 +96,16 @@ MODIFIER_TEXTS = {
     "UnitUpgrade.RewardMoneyPerDestroyedShipUpgrade": K + "UnitRewardMoneyPerDestroyedShipUpgradeKey",
     "UnitUpgrade.ShieldUpgrade": K + "UnitShieldUpgradeKey",
     "WarehouseUpgrade.AdditionalLoadingSpeedInPercent": K + "WarehouseLoadingSpeedKey",
+    # templates, see _templated_modifiers(); the nearby entry wraps modifiers of an area effect a buff passes on
+    "BuildingUpgrade.AdditionalFunctionalEffect": I + "BuffAdditionalNeedAttributes.AttributeInRange",
+    "FactoryUpgrade.AddedFertility": I + "BuffFertility.Text",
+    "FactoryUpgrade.AdditionalOutput": I + "BuffAdditionalFactoryOutput.TextWithSpecifiedProduct",
+    "FactoryUpgrade.AdditionalOutput.EveryCycle": I + "BuffAdditionalFactoryOutput.TextWithSpecifiedProductEveryCycle",
+    "FactoryUpgrade.AdditionalOutput.Same": I + "BuffAdditionalFactoryOutput.ForceProductSameAsFactoryOutputText",
+    "FactoryUpgrade.AdditionalOutput.Same.EveryCycle": I + "BuffAdditionalFactoryOutput.ForceProductSameAsFactoryOutputEveryCycleText",
+    "BuildingUpgrade.AdditionalWorkforces": I + "BuffOutputWorkforce.AdditionalText",
+    "FactoryUpgrade.ReplaceInputs": I + "BuffFactoryInput.InputReplaceInputText",
+    "IncidentInfectableUpgrade.IncidentImmunity": I + "BuffInfectableImmunity.Text",
 }
 MESH_UPKEEP = re.compile(r"^AreaMaintenanceUpgrade\.MeshGraphUpkeep\.(\w+)\.UpgradePercent$")
 # game config tables of names, as (label kind, template, path to the keyed entries, field holding the text)
@@ -112,6 +122,8 @@ LABEL_TABLES = [
 ]
 # products the trading post filter doesn't list, filed under categories the game has no name for (client phrases)
 PRODUCT_KINDS = {"Workforce": -1, "Service": -2, "Meta": -3}
+# the game's placeholder for assets whose icon was cut ("Removed Icon")
+REMOVED_ICON = "/icon_3d_removed.png"
 EXCLUDED_BUILDINGS = r"^Ornamental|^PolygonObject|^Hedge|^QuestLighthouse|^DEPRECATED|^Pirate|^SimpleBuilding|^TestData"
 QUEST_TEMPLATES = {
     "StoryLine",
@@ -218,7 +230,7 @@ class T:
         if not path:
             return None
         k = path.replace("\\", "/").rsplit(".", 1)[0] + ".png"
-        if self.icons_dir and not os.path.exists(os.path.join(self.icons_dir, k)):
+        if k.endswith(REMOVED_ICON) or (self.icons_dir and not os.path.exists(os.path.join(self.icons_dir, k))):
             return None
         return k
 
@@ -774,7 +786,8 @@ class T:
                         (self.enum("label_kind", kind), key, self.text(entry[field]), self.icon(icon)),
                     )
         tables = {t: config(t) for t in ("ItemKeywords", "ItemInfotipTextFeature")}
-        for (path,) in self.db.execute("select distinct path from buff_modifier where attribute_id is null").fetchall():
+        paths = self.db.execute("select distinct path from buff_modifier where attribute_id is null").fetchall()
+        for (path,) in [*paths, ("BuildingUpgrade.AdditionalFunctionalEffect",)]:
             mesh = MESH_UPKEEP.match(path)
             ref = f"{K}AreaMaintenanceMeshGraphUpkeep.{mesh[1]}.Key" if mesh else MODIFIER_TEXTS.get(path)
             tid = dict_get(tables.get(ref.split(".")[0], {}), ref) if ref else None
@@ -847,13 +860,13 @@ class T:
                     ):
                         # a bare percentage, e.g. FactoryUpgrade.FuelDurationPercent = 20
                         self.db.execute(
-                            "insert into buff_modifier values(?,?,?,?,?,?)",
+                            "insert into buff_modifier(buff_guid, path, attribute_id, value, is_percent, product_guid) values(?,?,?,?,?,?)",
                             (a["guid"], re.sub(r"\[\d+\]", "", path), None, self.num(val), 1, product),
                         )
                     elif re.search(r"AddDeltas\[\d+\]\.Amount$", path) and self.num(val, 0):
                         # an added amount of a good, e.g. villa workforce
                         self.db.execute(
-                            "insert into buff_modifier values(?,?,?,?,?,?)",
+                            "insert into buff_modifier(buff_guid, path, attribute_id, value, is_percent, product_guid) values(?,?,?,?,?,?)",
                             (a["guid"], "DistributionUpgrade.AddDeltas", None, self.num(val), 0, product),
                         )
                     elif path.endswith(".Value") or path.endswith(
@@ -868,7 +881,7 @@ class T:
                         product = self.num(D(dict_get(a["v"], base.rsplit(".", 1)[0])).get("Product")) if "[" in base else None
                         base = re.sub(r"\[\d+\]", "", base)
                         self.db.execute(
-                            "insert into buff_modifier values(?,?,?,?,?,?)",
+                            "insert into buff_modifier(buff_guid, path, attribute_id, value, is_percent, product_guid) values(?,?,?,?,?,?)",
                             (
                                 a["guid"],
                                 base,
@@ -888,10 +901,44 @@ class T:
                             "insert or ignore into buff_provided_need values(?,?)",
                             (a["guid"], self.num(val)),
                         )
+            self._templated_modifiers(a)
+
+    def _templated_modifiers(self, a):
+        """Buff effects the game phrases with its item infotip templates ("Additional {}t {} every {} cycles"): rows
+        carry the template's arguments, the path names the template (see MODIFIER_TEXTS)."""
+        v = a["v"]
+        fu, bu = D(v.get("FactoryUpgrade")), D(v.get("BuildingUpgrade"))
+
+        def row(path, value=None, product=None, asset=None, cycles=None, key=None):
+            self.db.execute(
+                "insert into buff_modifier(buff_guid, path, value, is_percent, product_guid, asset_guid, cycles, key) values(?,?,?,0,?,?,?,?)",
+                (a["guid"], path, value, product, asset, cycles, key),
+            )
+
+        if self.num(fu.get("AddedFertility")):
+            row("FactoryUpgrade.AddedFertility", asset=self.num(fu["AddedFertility"]))
+        for o in self.items(fu.get("AdditionalOutput")):
+            cycles = self.num(o.get("AdditionalOutputCycle"), 1)
+            # no product, or ForceProductSameAsFactoryOutput: more of what the building makes
+            product = None if o.get("ForceProductSameAsFactoryOutput") == "1" else self.num(o.get("Product"))
+            path = "FactoryUpgrade.AdditionalOutput" + ("" if product else ".Same") + (".EveryCycle" if cycles == 1 else "")
+            row(path, self.num(o.get("Amount"), 1), product, cycles=cycles)
+        for w in self.items(bu.get("AdditionalWorkforces")):
+            if self.num(w.get("WorkforceGUID")):
+                row("BuildingUpgrade.AdditionalWorkforces", product=self.num(w["WorkforceGUID"]))
+        for r in self.items(fu.get("ReplaceInputs")):
+            if self.num(r.get("NewInput")) and self.num(r.get("OldInput")):
+                row("FactoryUpgrade.ReplaceInputs", product=self.num(r["NewInput"]), asset=self.num(r["OldInput"]))
+        for incident in str(D(v.get("IncidentInfectableUpgrade")).get("IncidentImmunity") or "").split(";"):
+            if incident:
+                row("IncidentInfectableUpgrade.IncidentImmunity", key=incident)
 
     # ---- items ---------------------------------------------------------------------------------------------
     def items_(self):
+        written = {int(r[0]) for r in self.src.execute("select distinct line_id from texts")}
         for a in self.by_template("Item", "ItemWithBoost", "ItemWithUI", "ItemQuest"):
+            if self.num(a["text_id"]) not in written:
+                continue  # the game never shows an item it has no name for (cut props, unused specialists, test items)
             it, e = D(a["v"].get("Item")), a["v"].get("Effect")
             eff_guid = (
                 a["guid"] if e else None
@@ -1817,6 +1864,11 @@ class T:
         self.db.executescript(
             """
             drop table quest_edge; drop table quest_node; drop table storyline_variable;
+            -- props (no villa or ship allocation) nothing hands out: campaign letters, trophies …
+            delete from item where allocation = 'None' and guid not in (select item_guid from item_source);
+            delete from item_boost_buff where item_guid not in (select guid from item);
+            delete from item_boost_condition where item_guid not in (select guid from item);
+            delete from condition where owner_kind = 'item' and owner_id not in (select guid from item);
             alter table quest drop column region_id;
             alter table storyline drop column request_text;
             -- questlines only
@@ -1839,7 +1891,8 @@ class T:
               select effect_guid guid from building_effect union select effect_guid from item where effect_guid is not null
               union select effect_guid from tech_effect union select asset_guid from quest_reward where kind = 'effect';
             insert into used_effect select bf.effect_guid from buff_functional_effect bf
-              join effect_buff eb on eb.buff_guid = bf.buff_guid where eb.effect_guid in (select guid from used_effect);
+              where bf.buff_guid in (select buff_guid from effect_buff where effect_guid in (select guid from used_effect)
+                union select buff_guid from item_boost_buff);
             delete from effect where guid not in (select guid from used_effect);
             delete from effect_buff where effect_guid not in (select guid from used_effect);
             delete from effect_target_pool where effect_guid not in (select guid from used_effect);
@@ -1856,7 +1909,8 @@ class T:
         # names of assets conditions point at, and of decision speakers, that have no table of their own
         # (provinces, volcano phases, narrative characters …)
         for (value,) in self.db.execute(
-            "select distinct value from condition_param union select speaker_guid from quest_choice where speaker_guid is not null"
+            """select distinct value from condition_param union select speaker_guid from quest_choice where speaker_guid is not null
+               union select asset_guid from buff_modifier where asset_guid is not null"""
         ).fetchall():
             a = self.assets.get(self.num(value))
             if a and a["text_id"]:
@@ -1969,7 +2023,9 @@ create table effect_target_pool(effect_guid int references effect(guid), pool_gu
 create table effect_target_building(effect_guid int references effect(guid), pool_guid int, building_guid int references building(guid), primary key(effect_guid,pool_guid,building_guid)) without rowid;
 create table pool_member(pool_guid int, asset_guid int, primary key(pool_guid,asset_guid)) without rowid;
 create view effect_target as select etp.effect_guid, pm.asset_guid building_guid from effect_target_pool etp join pool_member pm using(pool_guid);
-create table buff_modifier(buff_guid int, path text, attribute_id int references attribute(id), value real, is_percent int, product_guid int references product(guid));
+-- asset_guid, cycles, key: arguments of templated effects (fertility or replaced input, output cycles, incident)
+create table buff_modifier(buff_guid int, path text, attribute_id int references attribute(id), value real, is_percent int, product_guid int references product(guid),
+  asset_guid int, cycles int, key text);
 create table buff_functional_effect(buff_guid int, effect_guid int);
 create table buff_provided_need(buff_guid int, need_guid int references need(guid), primary key(buff_guid,need_guid));
 

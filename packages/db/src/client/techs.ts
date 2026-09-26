@@ -21,7 +21,7 @@ import {
   techResource,
   techUnlockReward,
 } from '../schema'
-import { labels, modifierName } from './labels'
+import { nameModifiers } from './modifiers'
 import {
   type Get,
   groupBy,
@@ -195,23 +195,25 @@ async function queryTechs(f: TechFilter, id?: number) {
       .leftJoin(mpName, on(mpName, product.nameText, f.lang))
       .where(inArray(techEffect.techGuid, guids)),
   ])
-  const l = await labels(f.lang)
   const res = groupBy(resources, 'techGuid')
   const unl = groupBy(unlocks, 'techGuid')
   const eff = groupBy(effects, 'techGuid')
   const targets = groupBy(effectTargets, 'effectGuid')
   const modifiers = groupBy(
-    [
-      ...effectModifiers.map((m) => ({
-        ...m,
-        nearby: false,
-      })),
-      ...nearbyModifiers.map((m) => ({
-        ...m,
-        /** applies to buildings near the targets, not to the targets themselves */
-        nearby: true,
-      })),
-    ],
+    await nameModifiers(
+      [
+        ...effectModifiers.map((m) => ({
+          ...m,
+          nearby: false,
+        })),
+        ...nearbyModifiers.map((m) => ({
+          ...m,
+          /** applies to buildings near the targets, not to the targets themselves */
+          nearby: true,
+        })),
+      ],
+      f.lang,
+    ),
     'effectGuid',
   )
   return rows.map((t) => ({
@@ -219,10 +221,7 @@ async function queryTechs(f: TechFilter, id?: number) {
     dlc: t.dlc?.guid ? t.dlc : null,
     effects: eff(t.guid).map((e) => ({
       ...e,
-      modifiers: modifiers(e.guid).map((m) => ({
-        ...m,
-        name: modifierName(l, m.path, m.attribute),
-      })),
+      modifiers: modifiers(e.guid),
       /** what the effect applies to, e.g. "Warehouses" */
       targets: targets(e.guid),
     })),

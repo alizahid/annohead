@@ -112,13 +112,16 @@ export function groupBy<T, K extends keyof T>(rows: Array<T>, key: K) {
 
 /** one `buff_modifier` row with its attribute key; join buffModifier + attribute first */
 export const modifierColumns = {
+  assetGuid: buffModifier.assetGuid,
   attribute: attribute.key,
   buffGuid: buffModifier.buffGuid,
+  cycles: buffModifier.cycles,
   // productivity is always a percentage in game, but its `Percental` flag is only set on negative values
   isPercent:
     sql`coalesce(${buffModifier.isPercent}, 0) or ${buffModifier.path} = 'FactoryUpgrade.ProductivityUpgrade'`.mapWith(
       Boolean,
     ),
+  key: buffModifier.key,
   path: buffModifier.path,
   productGuid: buffModifier.productGuid,
   value: buffModifier.value,
