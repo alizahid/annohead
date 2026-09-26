@@ -48,6 +48,5 @@ const colors: Record<Rarity, string> = {
   Mythic: '#f0a418',
   Quest: '#4a3860',
   Rare: '#3e5496',
-  Uncommon: '#659e2d',
   Unique: '#d4d406',
 }

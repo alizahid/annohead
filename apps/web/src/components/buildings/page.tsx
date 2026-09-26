@@ -124,7 +124,6 @@ export function BuildingPage({ building }: Props) {
                   icon={item.icon}
                   key={item.guid}
                   name={item.name}
-                  tier
                   value={item.amount}
                 />
               ))}
@@ -317,7 +316,6 @@ export function BuildingPage({ building }: Props) {
                     icon={item.icon}
                     key={item.guid}
                     name={item.name}
-                    tier
                     value={item.amount}
                   />
                 ))}
