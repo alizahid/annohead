@@ -66,7 +66,7 @@ export default function Home() {
         <div className="flex flex-col gap-8">
           {changelog.map((release) => (
             <section className="flex flex-col gap-4" key={String(release.date)}>
-              <h3 className="font-bold text-xl">
+              <h3 className="font-bold text-xl tabular-nums">
                 {f.dateTime(release.date, {
                   dateStyle: 'medium',
                 })}
