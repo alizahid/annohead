@@ -149,6 +149,11 @@
           "sources": "入手先",
           "targets": "対象"
         },
+        "charioteer": {
+          "initial": "初期値",
+          "potential": "潜在能力",
+          "title": "御者"
+        },
         "other": {
           "title": "その他",
           "tradePrice": "取引価格",

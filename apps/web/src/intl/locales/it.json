@@ -149,6 +149,11 @@
           "sources": "Fonti",
           "targets": "Bersagli"
         },
+        "charioteer": {
+          "initial": "Iniziale",
+          "potential": "Potenziale",
+          "title": "Auriga"
+        },
         "other": {
           "title": "Altro",
           "tradePrice": "Prezzo di scambio",

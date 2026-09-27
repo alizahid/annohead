@@ -149,6 +149,11 @@
           "sources": "Źródła",
           "targets": "Cele"
         },
+        "charioteer": {
+          "initial": "Początkowe",
+          "potential": "Potencjał",
+          "title": "Woźnica"
+        },
         "other": {
           "title": "Inne",
           "tradePrice": "Cena rynkowa",

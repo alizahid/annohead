@@ -149,6 +149,11 @@
           "sources": "Fontes",
           "targets": "Alvos"
         },
+        "charioteer": {
+          "initial": "Inicial",
+          "potential": "Potencial",
+          "title": "Auriga"
+        },
         "other": {
           "title": "Outros",
           "tradePrice": "Preço de troca",

@@ -238,8 +238,14 @@ Display names come from the game's own config tables, not hand-written ones, so 
   (`ItemBalancing.ItemConfig`), modifier (`buff_modifier.path` → `ItemKeywords`, or the infotip table
   `ItemInfotipTextFeature.BuffUpgradeTextAndIcons` for per-weapon unit stats; the path → key map is `MODIFIER_TEXTS`
   in transform.py and holds keys only), racer attribute (`RaceTrackConfig`), diplomacy state (`DiplomacyBalancing`),
-  reputation zone and state (`ReputationFeature`), incident (`GeneralIncidentConfiguration`). The transformer warns
-  about modifier paths without a game text.
+  reputation zone and state (`ReputationFeature`), incident (`GeneralIncidentConfiguration`), and item type
+  `Charioteer` ("Charioteers", a line only the Hippodrome infotips name, so `CHARIOTEERS_TEXT` holds its id). The
+  transformer warns about modifier paths without a game text.
+- `item_racer_attribute(item_guid, attribute, initial_min/max, potential_min/max)`: Hippodrome stat ranges from the
+  item's `RaceTrackConfig.ItemRacerPreset` (templates default every item to the Common preset; only specialists are kept, as the Hippodrome's socket takes
+  nothing else);
+  stats a preset leaves out fall back to `RaceTrackConfig.ItemRacerAttributes`, and potential is initial plus added
+  potential capped at `MaximumValue`. The game rolls actual stats per save, so only ranges ship.
 - `category(guid, kind, name_text, key, icon, sort)` + `category_member`: kind `menu` is the construction menu of
   each released region (`ConstructionMenu.LinearBuildingsMenu`: tier tabs and the infrastructure tab's sub-tabs),
   listing buildings, production chains (and their buildings) and nested categories; buildings only reached by

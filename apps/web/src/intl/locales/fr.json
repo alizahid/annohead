@@ -149,6 +149,11 @@
           "sources": "Sources",
           "targets": "Cibles"
         },
+        "charioteer": {
+          "initial": "Initial",
+          "potential": "Potentiel",
+          "title": "Aurige"
+        },
         "other": {
           "title": "Autres",
           "tradePrice": "Prix d'échange",

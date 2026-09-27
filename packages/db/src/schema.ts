@@ -617,6 +617,31 @@ export const itemSource = sqliteTable(
   ],
 )
 
+/** Hippodrome stat ranges from the item's racer preset; the game rolls the actual values per save */
+export const itemRacerAttribute = sqliteTable(
+  'item_racer_attribute',
+  {
+    attribute: text({
+      enum: racerAttributeValues,
+    }).notNull(),
+    /** a new charioteer starts between these */
+    initialMax: integer('initial_max').notNull(),
+    initialMin: integer('initial_min').notNull(),
+    itemGuid: integer('item_guid')
+      .notNull()
+      .references(() => item.guid),
+    /** and can train up to between these */
+    potentialMax: integer('potential_max').notNull(),
+    potentialMin: integer('potential_min').notNull(),
+  },
+  (table) => [
+    primaryKey({
+      columns: [table.itemGuid, table.attribute],
+      name: 'item_racer_attribute_item_guid_attribute_pk',
+    }),
+  ],
+)
+
 export const techCategory = sqliteTable('tech_category', {
   artwork: text(),
   descriptionText: integer('description_text'),

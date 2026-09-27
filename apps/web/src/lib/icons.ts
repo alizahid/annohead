@@ -43,6 +43,8 @@ const icons = {
   'tier.3': '/img/anno/icon_roman_numerals_3_0.png',
   'tier.4': '/img/anno/icon_roman_numerals_4_0.png',
   'type.Captains': '/img/anno/icon_2d_socket_item_0.png',
+  'type.Charioteer':
+    'data/ui/fhd/dlc02/icon_content/race_event/icon_2d_race_event_ended.png',
   'type.None': '/img/anno/icon_2d_no_allocation_0.png',
   'type.Ship': '/img/anno/icon_2d_item_ship_0.png',
   'type.Specialist': '/img/anno/icon_2d_item_none_0.png',

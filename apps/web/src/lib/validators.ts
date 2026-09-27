@@ -55,7 +55,9 @@ export const itemFilters = {
   niches: parseAsArrayOf(parseAsStringLiteral(nicheValues)),
   page: parseAsInteger,
   rarities: parseAsArrayOf(parseAsStringLiteral(rarityValues)),
-  types: parseAsArrayOf(parseAsStringLiteral(allocationValues)),
+  types: parseAsArrayOf(
+    parseAsStringLiteral([...allocationValues, 'Charioteer'] as const),
+  ),
 }
 
 export const parseItemFilters = createLoader(itemFilters)

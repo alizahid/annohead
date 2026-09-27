@@ -149,6 +149,11 @@
           "sources": "Источники",
           "targets": "Цели"
         },
+        "charioteer": {
+          "initial": "Начальные",
+          "potential": "Потенциал",
+          "title": "Колесничий"
+        },
         "other": {
           "title": "Прочее",
           "tradePrice": "Торговая цена",

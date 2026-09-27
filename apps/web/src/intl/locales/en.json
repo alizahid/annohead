@@ -149,6 +149,11 @@
           "sources": "Sources",
           "targets": "Targets"
         },
+        "charioteer": {
+          "initial": "Starting",
+          "potential": "Potential",
+          "title": "Charioteer"
+        },
         "other": {
           "title": "Other",
           "tradePrice": "Trade price",

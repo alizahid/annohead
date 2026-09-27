@@ -785,7 +785,54 @@ test('item rarities, niches and allocations are named by the game', async () => 
       key: 'Villa',
       name: 'Spezialist',
     },
+    {
+      key: 'Charioteer',
+      name: 'Wagenlenker',
+    },
   ])
+})
+
+test('specialists carry their racer preset stat ranges', async () => {
+  // Dorian races on the Epic preset: starts at 2–4, trains up to 4–10 (the cap)
+  const dorian = await anno.items.get({
+    id: 41_350,
+    lang: 'en',
+  })
+  expect(
+    dorian?.racer.map((s) => [
+      s.attribute.key,
+      s.attribute.name,
+      s.initialMin,
+      s.initialMax,
+      s.potentialMin,
+      s.potentialMax,
+    ]),
+  ).toEqual([
+    ['Speed', 'Speed', 2, 4, 4, 10],
+    ['Stamina', 'Stamina', 2, 4, 4, 10],
+    ['Boost', 'Sprint', 2, 4, 4, 10],
+    ['Consistency', 'Reliability', 2, 4, 4, 10],
+  ])
+  expect(dorian?.racer[0]?.attribute.icon).toContain('icon_2d_racer_speed')
+  const charioteers = await anno.items.list({
+    lang: 'en',
+    perPage: 1000,
+    types: ['Charioteer'],
+  })
+  expect(charioteers.total).toBeGreaterThan(400)
+  expect(charioteers.rows.every((r) => r.racer.length === 4)).toBe(true)
+  // the Hippodrome's socket only takes specialists
+  expect(charioteers.rows.every((r) => r.type?.key === 'Villa')).toBe(true)
+  // types combine like every other filter: any of them
+  const props = await anno.items.list({
+    lang: 'en',
+    types: ['None'],
+  })
+  const either = await anno.items.list({
+    lang: 'en',
+    types: ['None', 'Charioteer'],
+  })
+  expect(either.total).toBe(props.total + charioteers.total)
 })
 
 test('item rarity, niche and allocation are localized label objects', async () => {

@@ -1,4 +1,10 @@
-import { allocationValues, type Lang, type Niche, type Rarity } from '../enums'
+import {
+  type Allocation,
+  allocationValues,
+  type Lang,
+  type Niche,
+  type Rarity,
+} from '../enums'
 import { labels } from './labels'
 
 /** game order, not alphabetical */
@@ -25,12 +31,18 @@ const nicheOrder = [
   'Nautics',
 ] as const satisfies ReadonlyArray<Niche>
 
-/** Specialist (villa), Captain (ship) or Item: the game's allocation */
+/** the game's allocations, plus `Charioteer`: specialists that can race in the Hippodrome */
+const itemTypeValues = [...allocationValues, 'Charioteer'] as const
+export type ItemType = Allocation | 'Charioteer'
+
 export async function types({ lang }: { lang: Lang }) {
   const l = await labels(lang)
-  return allocationValues.map((key) => ({
+  return itemTypeValues.map((key) => ({
     key,
-    name: l('allocation', key)?.name ?? key,
+    name:
+      (key === 'Charioteer'
+        ? l('item_type', key)?.name
+        : l('allocation', key)?.name) ?? key,
   }))
 }
 

@@ -5,6 +5,7 @@ import {
   eq,
   exists,
   inArray,
+  or,
   type SQL,
   sql,
 } from 'drizzle-orm'
@@ -16,6 +17,7 @@ import {
   type Attribute,
   type Lang,
   type Niche,
+  type RacerAttribute,
   type Rarity,
 } from '../enums'
 import {
@@ -31,6 +33,7 @@ import {
   item,
   itemBoostBuff,
   itemBoostCondition,
+  itemRacerAttribute,
   itemSource,
   participant,
   poolMember,
@@ -41,7 +44,7 @@ import {
   tech,
 } from '../schema'
 import { describeConditions } from './conditions'
-import { niches, rarities, types } from './item-labels'
+import { type ItemType, niches, rarities, types } from './item-labels'
 import { keyed, labels } from './labels'
 import { nameModifiers } from './modifiers'
 import {
@@ -59,8 +62,8 @@ export type ItemFilter = {
   lang: Lang
   rarities?: Array<Rarity>
   niches?: Array<Niche>
-  /** allocations, see `items.types` */
-  types?: Array<Allocation>
+  /** allocations, or `Charioteer` for items that can race; see `items.types` */
+  types?: Array<ItemType>
   /** DLC guids */
   dlcs?: Array<number>
   /** attribute keys (Money, Knowledge …) the item's effect modifies */
@@ -71,7 +74,24 @@ function itemWhere(f: ItemFilter): SQL | undefined {
   return and(
     f.rarities?.length ? inArray(item.rarity, f.rarities) : undefined,
     f.niches?.length ? inArray(item.niche, f.niches) : undefined,
-    f.types?.length ? inArray(item.allocation, f.types) : undefined,
+    f.types?.length
+      ? or(
+          inArray(
+            item.allocation,
+            f.types.filter((t): t is Allocation => t !== 'Charioteer'),
+          ),
+          f.types.includes('Charioteer')
+            ? exists(
+                db
+                  .select({
+                    one: sql`1`,
+                  })
+                  .from(itemRacerAttribute)
+                  .where(eq(itemRacerAttribute.itemGuid, item.guid)),
+              )
+            : undefined,
+        )
+      : undefined,
     f.dlcs?.length ? inArray(item.dlcGuid, f.dlcs) : undefined,
     f.attributes?.length
       ? exists(
@@ -109,6 +129,7 @@ async function itemDetails(guids: Array<number>, lang: Lang) {
     nearbyBoosts,
     sources,
     conditions,
+    racer,
   ] = await Promise.all([
     db
       .selectDistinct({
@@ -220,6 +241,10 @@ async function itemDetails(guids: Array<number>, lang: Lang) {
       )
       .where(inArray(itemSource.itemGuid, guids)),
     boostConditions(guids, lang),
+    db
+      .select()
+      .from(itemRacerAttribute)
+      .where(inArray(itemRacerAttribute.itemGuid, guids)),
   ])
   const [named, namedBoosts] = await Promise.all([
     nameModifiers(
@@ -253,10 +278,25 @@ async function itemDetails(guids: Array<number>, lang: Lang) {
     boosts: groupBy(namedBoosts, 'itemGuid'),
     conditions: groupBy(conditions, 'itemGuid'),
     modifiers: groupBy(named, 'itemGuid'),
+    racer: groupBy(
+      racer.toSorted(
+        (a, b) =>
+          racerOrder.indexOf(a.attribute) - racerOrder.indexOf(b.attribute),
+      ),
+      'itemGuid',
+    ),
     sources: groupBy(sources, 'itemGuid'),
     targets: groupBy(targets, 'itemGuid'),
   }
 }
+
+/** the Hippodrome's order, not alphabetical */
+const racerOrder: ReadonlyArray<RacerAttribute> = [
+  'Speed',
+  'Stamina',
+  'Boost',
+  'Consistency',
+]
 
 /** The precondition for an item's boost (`ItemWithBoost.BoostCondition`); one flat node per item. */
 async function boostConditions(guids: Array<number>, lang: Lang) {
@@ -345,6 +385,15 @@ async function queryItems(f: ItemFilter & Page, id?: number) {
       dlc: r.dlc?.guid ? r.dlc : null,
       modifiers: d.modifiers(r.guid),
       niche: keyed(l, 'niche', r.niche),
+      /** Hippodrome stat ranges when the item can race; the game rolls the actual values per save */
+      racer: d.racer(r.guid).map(({ attribute: key, itemGuid, ...range }) => ({
+        ...range,
+        attribute: {
+          icon: l('racer_attribute', key)?.icon ?? null,
+          key,
+          name: l('racer_attribute', key)?.name ?? key,
+        },
+      })),
       rarity: keyed(l, 'rarity', r.rarity),
       /** where the item can be obtained: traders, contracts, ship drops, visitors, festivals, techs, quests */
       sources: d.sources(r.guid).map(({ itemGuid, name, ...source }) => ({

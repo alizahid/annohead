@@ -149,6 +149,11 @@
           "sources": "Quellen",
           "targets": "Ziele"
         },
+        "charioteer": {
+          "initial": "Start",
+          "potential": "Potenzial",
+          "title": "Wagenlenker"
+        },
         "other": {
           "title": "Sonstiges",
           "tradePrice": "Handelspreis",

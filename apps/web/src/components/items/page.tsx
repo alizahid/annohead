@@ -1,6 +1,7 @@
 import { type Item } from '@anno/db/client'
-import { useFormatter, useTranslations } from 'next-intl'
+import { useFormatter, useLocale, useTranslations } from 'next-intl'
 
+import { formatRange } from '@/intl/helpers'
 import { getIcon } from '@/lib/icons'
 import { getUrl } from '@/lib/url'
 
@@ -16,6 +17,7 @@ type Props = {
 }
 
 export function ItemPage({ item }: Props) {
+  const locale = useLocale()
   const t = useTranslations('component.items.page')
   const f = useFormatter()
 
@@ -171,6 +173,36 @@ export function ItemPage({ item }: Props) {
         </div>
 
         <div className="flex flex-col gap-6 empty:hidden">
+          {item.racer.length ? (
+            <DataList.Root title={t('charioteer.title')}>
+              <DataList.Label>{t('charioteer.initial')}</DataList.Label>
+
+              {item.racer.map((stat) => (
+                <DataList.Item
+                  icon={stat.attribute.icon}
+                  key={stat.attribute.key}
+                  name={stat.attribute.name}
+                  value={formatRange(locale, stat.initialMin, stat.initialMax)}
+                />
+              ))}
+
+              <DataList.Label>{t('charioteer.potential')}</DataList.Label>
+
+              {item.racer.map((stat) => (
+                <DataList.Item
+                  icon={stat.attribute.icon}
+                  key={stat.attribute.key}
+                  name={stat.attribute.name}
+                  value={formatRange(
+                    locale,
+                    stat.potentialMin,
+                    stat.potentialMax,
+                  )}
+                />
+              ))}
+            </DataList.Root>
+          ) : null}
+
           <DataList.Root title={t('other.title')}>
             {item.type ? (
               <DataList.Item name={t('other.type')} value={item.type.name} />

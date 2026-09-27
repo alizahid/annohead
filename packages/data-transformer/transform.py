@@ -121,6 +121,8 @@ LABEL_TABLES = [
     ("reputation", "ReputationFeature", "ReputationFeature.ReputationSpecialStates", "Name"),
     ("incident", "GeneralIncidentConfiguration", "GeneralIncidentConfiguration.IncidentTypesConfig", "Name"),
 ]
+# "Charioteers": only the Hippodrome's infotips (infotips.rda) name it, so no config table carries the line
+CHARIOTEERS_TEXT = -6913739351777274510
 # "The Mysterious Murmillo Part I" -> "The Mysterious Murmillo", as the client's English phrases do
 QUESTLINE_PART = re.compile(r"\s*(?:[–-]\s*)?\bPart\s+[IVXL]+\b.*$", re.IGNORECASE)
 # products the trading post filter doesn't list, filed under categories the game has no name for (client phrases)
@@ -847,6 +849,10 @@ class T:
                         "insert or ignore into label values(?,?,?,?)",
                         (self.enum("label_kind", kind), key, self.text(entry[field]), self.icon(icon)),
                     )
+        self.db.execute(
+            "insert into label values(?,?,?,?)",
+            (self.enum("label_kind", "item_type"), "Charioteer", CHARIOTEERS_TEXT, None),
+        )
         tables = {t: config(t) for t in ("ItemKeywords", "ItemInfotipTextFeature")}
         paths = self.db.execute("select distinct path from buff_modifier where attribute_id is null").fetchall()
         for (path,) in [*paths, ("BuildingUpgrade.AdditionalFunctionalEffect",)]:
@@ -998,6 +1004,10 @@ class T:
     # ---- items ---------------------------------------------------------------------------------------------
     def items_(self):
         written = {int(r[0]) for r in self.src.execute("select distinct line_id from texts")}
+        # a stat an item's racer preset doesn't overwrite keeps the Hippodrome default; none goes past MaximumValue
+        racer = D(D(D(next(iter(self.by_template("RaceTrackConfig")), {}).get("v")).get("RaceTrackConfig")).get(
+            "ItemRacerAttributes"
+        ))
         for a in self.by_template("Item", "ItemWithBoost", "ItemWithUI", "ItemQuest"):
             if self.num(a["text_id"]) not in written:
                 continue  # the game never shows an item it has no name for (cut props, unused specialists, test items)
@@ -1041,6 +1051,26 @@ class T:
                     self.item_dlc(it),
                 ),
             )
+            # templates give every item a racer preset, but the Hippodrome's socket only takes specialists
+            racer_preset = D(it.get("RaceTrackConfig")).get("ItemRacerPreset") if it.get("Allocation") == "Villa" else None
+            preset = D(D(self.assets.get(self.num(racer_preset))).get("v"))
+            overwrites = D(D(preset.get("ItemRacerPreset")).get("RacerAttributeOverwrites"))
+            for key, base in racer.items() if preset else ():
+                o, base = D(overwrites.get(key)), D(base)
+                lo = self.num(o.get("MinInitialValue"), self.num(base.get("MinimumInitialValue"), 0))
+                hi = self.num(o.get("MaxInitialValue"), self.num(base.get("MaximumInitialValue"), 0))
+                cap = self.num(base.get("MaximumValue"), 10)
+                self.db.execute(
+                    "insert into item_racer_attribute values(?,?,?,?,?,?)",
+                    (
+                        a["guid"],
+                        self.enum("racer_attribute", key),
+                        lo,
+                        hi,
+                        min(cap, lo + self.num(o.get("MinAddedPotential"), self.num(base.get("MinimumAddedPotential"), 0))),
+                        min(cap, hi + self.num(o.get("MaxAddedPotential"), self.num(base.get("MaximumAddedPotential"), 0))),
+                    ),
+                )
             for b in self.items(boost.get("BoostBuffs")):
                 if self.num(b.get("GUID")):
                     self.db.execute(
@@ -1930,6 +1960,7 @@ class T:
             delete from item where allocation = 'None' and guid not in (select item_guid from item_source);
             delete from item_boost_buff where item_guid not in (select guid from item);
             delete from item_boost_condition where item_guid not in (select guid from item);
+            delete from item_racer_attribute where item_guid not in (select guid from item);
             delete from condition where owner_kind = 'item' and owner_id not in (select guid from item);
             alter table quest drop column region_id;
             alter table storyline drop column request_text;
@@ -2137,6 +2168,10 @@ create table item(guid integer primary key, name_text integer, description_text 
 create table item_boost_buff(item_guid int references item(guid), buff_guid int);
 create table item_boost_condition(item_guid int references item(guid), condition_id int);
 create table item_source(item_guid int references item(guid), kind text, source_guid int, primary key(item_guid,kind,source_guid)) without rowid;
+-- Hippodrome stat ranges from the item's racer preset: a new charioteer starts between initial_min and initial_max and
+-- can train up to between potential_min and potential_max (the game rolls both per save)
+create table item_racer_attribute(item_guid int references item(guid), attribute text, initial_min int, initial_max int,
+  potential_min int, potential_max int, primary key(item_guid,attribute)) without rowid;
 
 create table tech_category(guid integer primary key, name_text integer, description_text integer, gate_guid int, icon text, artwork text, x int, y int, sort int);
 create table tech(guid integer primary key, name_text integer, description_text integer, icon text, knowledge_needed real, is_gate int, grid_x int, grid_y int,

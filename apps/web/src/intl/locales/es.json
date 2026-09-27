@@ -149,6 +149,11 @@
           "sources": "Fuentes",
           "targets": "Objetivos"
         },
+        "charioteer": {
+          "initial": "Inicial",
+          "potential": "Potencial",
+          "title": "Auriga"
+        },
         "other": {
           "title": "Otros",
           "tradePrice": "Precio de comercio",

@@ -149,6 +149,11 @@
           "sources": "來源",
           "targets": "目標"
         },
+        "charioteer": {
+          "initial": "初始",
+          "potential": "潛力",
+          "title": "戰車騎手"
+        },
         "other": {
           "title": "其他",
           "tradePrice": "交易價格",

@@ -149,6 +149,11 @@
           "sources": "来源",
           "targets": "目标"
         },
+        "charioteer": {
+          "initial": "初始",
+          "potential": "潜力",
+          "title": "战车手"
+        },
         "other": {
           "title": "其他",
           "tradePrice": "交易价格",

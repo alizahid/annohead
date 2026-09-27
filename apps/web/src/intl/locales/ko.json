@@ -149,6 +149,11 @@
           "sources": "획득처",
           "targets": "대상"
         },
+        "charioteer": {
+          "initial": "초기",
+          "potential": "잠재력",
+          "title": "전차 기수"
+        },
         "other": {
           "title": "기타",
           "tradePrice": "거래 가격",
