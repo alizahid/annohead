@@ -584,25 +584,30 @@ test('questline choices carry costs, requirements and outcomes', async () => {
   // adopting Favillus hands over his specialist and wins the neutral crowd
   const adopt = fate?.options[1]
   expect(adopt?.outcomes.find((o) => o.kind === 'goods')?.guid).toBe(50_890)
-  expect(adopt?.outcomes).toContainEqual(
+  expect(adopt?.sets).toContainEqual(
     expect.objectContaining({
-      kind: 'variable',
-      name: 'Neutral Favor',
-      value: '+1',
+      operation: 'Add',
+      value: '1',
+      variable: 'Colosseum_NeutralFavor',
     }),
   )
+  expect(adopt?.outcomes.some((o) => o.kind === 'variable')).toBe(false)
   expect(adopt?.next).toBe(50_883)
   // the favour tally picks the reward
   const tally = finale.find((c) => c.guid === 50_883)
   expect(tally?.kind).toBe('check')
-  expect(tally?.requirements.map((r) => r.name)).toEqual([
-    'Patrician Favor ≥ Neutral Favor',
-  ])
+  expect(tally?.test?.own).toEqual(
+    expect.objectContaining({
+      comparison: 'AtLeast',
+      other: 'Colosseum_NeutralFavor',
+      variable: 'Colosseum_PatricianFavor',
+    }),
+  )
+  // quest variables are for the walk to resolve, not requirements to read
+  expect(tally?.requirements).toEqual([])
   const reward = finale.find((c) => c.guid === 144_501)
-  expect(reward?.options[0]?.requirements.map((r) => r.name)).toEqual([
-    'Mega Reward = 1',
-    'Not: Killed Favillus',
-  ])
+  expect(reward?.options[0]?.requirements).toEqual([])
+  expect(reward?.options[0]?.test).not.toBeNull()
   const happiness = reward?.options[0]?.outcomes[0]
   expect(happiness?.kind).toBe('effect')
   expect(happiness?.modifiers).toEqual([

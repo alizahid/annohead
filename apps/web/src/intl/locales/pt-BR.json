@@ -203,12 +203,17 @@
         "check": "O jogo verifica",
         "cost": "Custos",
         "decision": "Decisão",
+        "earlier": "Depende das suas escolhas anteriores",
+        "end": "Fim da linha de missões",
         "fails": "Caso contrário",
         "holds": "Se sim",
+        "later": "Influencia o que vem depois",
         "nothing": "Sem efeito duradouro",
         "option": "Opção {number}",
         "outcomes": "Resultado",
-        "requires": "Requer"
+        "pick": "Escolha uma opção para ver aonde ela leva.",
+        "requires": "Requer",
+        "reset": "Redefinir"
       },
       "filters": {
         "dlcs": "DLC",
@@ -233,12 +238,10 @@
         "storylineFallback": "Um evento subsequente",
         "unlock": "Desbloqueado",
         "unlockFallback": "Algo",
-        "variable": "Lembrado para depois",
         "xp": "Experiência"
       },
       "page": {
         "empty": "Apenas história, sem escolhas nesta parte.",
-        "part": "Parte {number}",
         "requires": "Somente se: {requirements}",
         "untitled": "Sem título"
       }

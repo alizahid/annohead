@@ -1,9 +1,11 @@
 import { type QuestChoice } from '@anno/db/client'
 import { type Node, type NodeProps } from '@xyflow/react'
+import { cn } from 'cn'
 import { useTranslations } from 'next-intl'
 
 import { DataList } from '../../data-list'
 import { QuestHandle } from './handle'
+import { usePath } from './path'
 
 export type ChoiceNode = Node<
   {
@@ -12,11 +14,15 @@ export type ChoiceNode = Node<
   'choice'
 >
 
-export function QuestChoiceNode({ data: { choice } }: NodeProps<ChoiceNode>) {
+export function QuestChoiceNode({
+  data: { choice },
+  id,
+}: NodeProps<ChoiceNode>) {
   const t = useTranslations('component.quests.choice')
+  const { off } = usePath()
 
   return (
-    <div className="w-64">
+    <div className={cn('w-64 transition-opacity', off.has(id) && 'opacity-40')}>
       <QuestHandle type="target" />
 
       <DataList.Root
@@ -36,6 +42,10 @@ export function QuestChoiceNode({ data: { choice } }: NodeProps<ChoiceNode>) {
 
         {choice.question ? (
           <p className="whitespace-pre-line text-sm">{choice.question}</p>
+        ) : null}
+
+        {choice.kind === 'check' && !choice.requirements.length ? (
+          <p className="text-gray-11 text-sm">{t('earlier')}</p>
         ) : null}
 
         {choice.requirements.map((requirement) => (

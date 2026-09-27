@@ -7,6 +7,7 @@ import {
   attribute,
   buffModifier,
   condition,
+  conditionParam,
   dlc,
   effect,
   effectBuff,
@@ -22,16 +23,12 @@ import {
   storyline,
   storylineCondition,
 } from '../schema'
-import {
-  anyOfLabel,
-  variableChangeLabel,
-  variableName,
-} from './condition-labels'
-import { assetNames, describeConditions } from './conditions'
+import { anyOfLabel, variableName } from './condition-labels'
+import { assetNames, describeConditions, variableCheck } from './conditions'
 import { type Labels, labels } from './labels'
 import { nameModifiers } from './modifiers'
 import { phrases } from './phrases'
-import { questQuestion, questText } from './quest-text'
+import { questQuestion, questStory, questText } from './quest-text'
 import {
   type Get,
   groupBy,
@@ -149,7 +146,16 @@ async function queryQuestlines(f: QuestFilter & Page, id?: number) {
 // "part done" flags only sequence a questline's parts, which their order already shows
 const PART_DONE = /done$/i
 
-/** Requirements of options, branch checks and storylines, flattened per condition tree root. */
+/** A condition tree a questline walk can evaluate: the node's own test, and its sub-tests (all, or any one of them). */
+export type QuestTest = {
+  any: boolean
+  negate: boolean
+  /** true / false when known ahead, a quest variable comparison, or null when only the running game can tell (storage, session …) */
+  own: boolean | ReturnType<typeof variableCheck> | null
+  tests: Array<QuestTest>
+}
+
+/** Requirements of options, branch checks and storylines, flattened per condition tree root, and their `QuestTest`. */
 async function requirementRows(ownerGuids: Array<number>, lang: Lang) {
   const rows = ownerGuids.length
     ? await db
@@ -184,7 +190,20 @@ async function requirementRows(ownerGuids: Array<number>, lang: Lang) {
     ),
     'conditionId',
   )
+  const variableIds = rows
+    .filter((row) => row.type === 'ConditionCompareVariable')
+    .map((row) => row.id)
+  const params = groupBy(
+    variableIds.length
+      ? await db
+          .select()
+          .from(conditionParam)
+          .where(inArray(conditionParam.conditionId, variableIds))
+      : [],
+    'conditionId',
+  )
   const children = groupBy(rows, 'parentId')
+  const byId = new Map(rows.map((row) => [row.id, row]))
   const orderOf = new Map(rows.map((row) => [row.id, row.subOrder]))
   type Requirement = Omit<
     ReturnType<typeof described>[number],
@@ -193,11 +212,8 @@ async function requirementRows(ownerGuids: Array<number>, lang: Lang) {
   function own(id: number): Array<Requirement> {
     return (
       described(id)
-        // "part done" flags only sequence parts; conditions on assets the game never names are internal switches
-        .filter(
-          (row) =>
-            !((row.variable && PART_DONE.test(row.variable)) || row.unnamed),
-        )
+        // quest variables are resolved by the walk (`test`); conditions on assets the game never names are internal switches
+        .filter((row) => !(row.variable || row.unnamed))
         .map(
           ({ conditionId, type, unnamed, variable, ...requirement }) =>
             requirement,
@@ -235,17 +251,41 @@ async function requirementRows(ownerGuids: Array<number>, lang: Lang) {
     }
     return [...own(id), ...subs.flat()]
   }
-  // the game may check the same thing twice with different location scopes (the tagged island, then the current one),
-  // which read the same here
-  return (root: number) =>
-    collect(root).filter(
-      (requirement, index, list) =>
-        list.findIndex(
-          (other) =>
-            other.name === requirement.name &&
-            other.value === requirement.value,
-        ) === index,
-    )
+  function test(id: number): QuestTest {
+    const row = byId.get(id)
+    const check =
+      row?.type === 'ConditionCompareVariable'
+        ? variableCheck(params(id))
+        : null
+    let tested: QuestTest['own'] = null
+    if (row?.type === 'ConditionAlwaysTrue' || !row) {
+      tested = true
+    } else if (row.type === 'ConditionAlwaysFalse') {
+      tested = false
+    } else if (check) {
+      tested = PART_DONE.test(check.variable) ? true : check
+    }
+    return {
+      any: orderOf.get(id) === 'MutuallyExclusive',
+      negate: Boolean(row?.negate),
+      own: tested,
+      tests: children(id).map((child) => test(child.id)),
+    }
+  }
+  return {
+    // the game may check the same thing twice with different location scopes (the tagged island, then the current one),
+    // which read the same here
+    requirements: (root: number) =>
+      collect(root).filter(
+        (requirement, index, list) =>
+          list.findIndex(
+            (other) =>
+              other.name === requirement.name &&
+              other.value === requirement.value,
+          ) === index,
+      ),
+    test,
+  }
 }
 
 function rewardValue(
@@ -264,40 +304,31 @@ function rewardValue(
   return amountVariable ? variableName(amountVariable) : null
 }
 
-/** What quest nodes do that a player notices: rewards, buffs, reputation, unlocks, follow-up storylines, variables. */
+/** What quest nodes do that a player notices: rewards, buffs, reputation, unlocks, follow-up storylines. */
 async function outcomeRows(nodeGuids: Array<number>, lang: Lang) {
   const rName = localized('r_name')
-  const [rewards, changes] = nodeGuids.length
-    ? await Promise.all([
-        db
-          .select({
-            amount: questReward.amount,
-            amountVariable: questReward.amountVariable,
-            assetGuid: questReward.assetGuid,
-            attribute: questReward.attribute,
-            icon: questReward.icon,
-            kind: questReward.kind,
-            name: rName.value,
-            nodeGuid: questReward.nodeGuid,
-          })
-          .from(questReward)
-          .leftJoin(rName, on(rName, questReward.nameText, lang))
-          .where(
-            and(
-              inArray(questReward.nodeGuid, nodeGuids),
-              // the in-game message repeating a reward already listed
-              ne(questReward.kind, 'message_reward'),
-            ),
+  const rewards = nodeGuids.length
+    ? await db
+        .select({
+          amount: questReward.amount,
+          amountVariable: questReward.amountVariable,
+          assetGuid: questReward.assetGuid,
+          attribute: questReward.attribute,
+          icon: questReward.icon,
+          kind: questReward.kind,
+          name: rName.value,
+          nodeGuid: questReward.nodeGuid,
+        })
+        .from(questReward)
+        .leftJoin(rName, on(rName, questReward.nameText, lang))
+        .where(
+          and(
+            inArray(questReward.nodeGuid, nodeGuids),
+            // the in-game message repeating a reward already listed
+            ne(questReward.kind, 'message_reward'),
           ),
-        db
-          .select()
-          .from(questVariableChange)
-          .where(inArray(questVariableChange.nodeGuid, nodeGuids))
-          .then((rows) =>
-            rows.filter((row) => !PART_DONE.test(row.variable ?? '')),
-          ),
-      ])
-    : [[], []]
+        )
+    : []
   const assetGuids = [
     ...new Set(
       rewards.flatMap((reward) => (reward.assetGuid ? [reward.assetGuid] : [])),
@@ -354,9 +385,8 @@ async function outcomeRows(nodeGuids: Array<number>, lang: Lang) {
   const mods = groupBy(await nameModifiers(modifiers, lang), 'effectGuid')
   const tgts = groupBy(targets, 'effectGuid')
   const rewardsOf = groupBy(rewards, 'nodeGuid')
-  const changesOf = groupBy(changes, 'nodeGuid')
-  return (node: number) => [
-    ...rewardsOf(node).map(
+  return (node: number) =>
+    rewardsOf(node).map(
       ({
         assetGuid,
         attribute: racerAttribute,
@@ -390,20 +420,7 @@ async function outcomeRows(nodeGuids: Array<number>, lang: Lang) {
         /** racer upgrades: "speed +1"; amounts read from a variable set by earlier choices: that variable */
         value: rewardValue(racerAttribute, amount, amountVariable, l),
       }),
-    ),
-    ...changesOf(node).map((change) => ({
-      amount: null,
-      duration: null,
-      guid: null,
-      icon: null,
-      kind: 'variable',
-      modifiers: [],
-      name: variableName(change.variable ?? ''),
-      targets: [],
-      /** ready-to-render change: "+1", "= 2", "yes" */
-      value: variableChangeLabel(change, lang),
-    })),
-  ]
+    )
 }
 
 /** Choices of storylines: each decision's options (checks: holds / fails) with cost, requirements and outcomes. */
@@ -434,7 +451,7 @@ async function choiceRows(storylineGuids: Array<number>, lang: Lang) {
     .where(inArray(questChoice.storylineGuid, storylineGuids))
     .orderBy(asc(questChoice.storylineGuid), asc(questChoice.position))
   const guids = choices.map((c) => c.guid)
-  const [options, outcomes, requirements] = await Promise.all([
+  const [options, outcomes, { requirements, test }] = await Promise.all([
     db
       .select({
         conditionId: questOption.conditionId,
@@ -454,13 +471,30 @@ async function choiceRows(storylineGuids: Array<number>, lang: Lang) {
       .where(inArray(questChoiceOutcome.choiceGuid, guids)),
     requirementRows(guids, lang),
   ])
-  const [costs, results] = await Promise.all([
+  const nodeGuids = [...new Set(outcomes.map((o) => o.nodeGuid))]
+  const [costs, results, changes] = await Promise.all([
     assetNames(
       [...new Set(options.flatMap((o) => (o.costGuid ? [o.costGuid] : [])))],
       lang,
     ),
-    outcomeRows([...new Set(outcomes.map((o) => o.nodeGuid))], lang),
+    outcomeRows(nodeGuids, lang),
+    nodeGuids.length
+      ? db
+          .select({
+            nodeGuid: questVariableChange.nodeGuid,
+            operation: questVariableChange.operation,
+            value: questVariableChange.value,
+            valueVariable: questVariableChange.valueVariable,
+            variable: questVariableChange.variable,
+          })
+          .from(questVariableChange)
+          .where(inArray(questVariableChange.nodeGuid, nodeGuids))
+          .then((changed) =>
+            changed.filter((row) => !PART_DONE.test(row.variable ?? '')),
+          )
+      : [],
   ])
+  const changesOf = groupBy(changes, 'nodeGuid')
   const isChoice = new Set(guids)
   const reached = groupBy(
     outcomes.map((o) => ({
@@ -475,6 +509,8 @@ async function choiceRows(storylineGuids: Array<number>, lang: Lang) {
       /** the choice this option leads to next, if any */
       next: nodes.find((n) => isChoice.has(n)) ?? null,
       outcomes: nodes.flatMap(results),
+      /** quest variables the option writes, which later checks and parts read */
+      sets: nodes.flatMap(changesOf).map(({ nodeGuid, ...change }) => change),
     }
   }
   const opts = groupBy(options, 'decisionGuid')
@@ -487,6 +523,7 @@ async function choiceRows(storylineGuids: Array<number>, lang: Lang) {
             cost: null,
             idx,
             requirements: [] as ReturnType<typeof requirements>,
+            test: null as QuestTest | null,
             text: null as string | null,
             ...lead(choice.guid, idx),
           }))
@@ -513,6 +550,8 @@ async function choiceRows(storylineGuids: Array<number>, lang: Lang) {
                 requirements: optionCondition
                   ? requirements(optionCondition)
                   : [],
+                /** whether earlier choices offer the option at all */
+                test: optionCondition ? test(optionCondition) : null,
                 text: questText(option.text, lang),
                 ...lead(choice.guid, option.idx ?? 0),
               }
@@ -524,6 +563,10 @@ async function choiceRows(storylineGuids: Array<number>, lang: Lang) {
     requirements: conditionId ? requirements(conditionId) : [],
     /** who asks: an advisor, a resident, a trader */
     speaker: speaker?.guid ? speaker : null,
+    /** the rest of the screen's text: the story leading up to the question, with the game's <i> / <b> markup */
+    story: questStory(text, lang),
+    /** checks: what holds / fails branches on */
+    test: conditionId ? test(conditionId) : null,
   }))
   // a check nothing depends on (text variants for the governor's gender …) is noise, and so is one that only leads to noise
   const kept = new Set(rows.map((row) => row.guid))
@@ -532,7 +575,10 @@ async function choiceRows(storylineGuids: Array<number>, lang: Lang) {
     pruned = false
     for (const row of rows) {
       const matters = row.options.some(
-        (o) => o.outcomes.length || (o.next !== null && kept.has(o.next)),
+        (o) =>
+          o.outcomes.length ||
+          o.sets.length ||
+          (o.next !== null && kept.has(o.next)),
       )
       if (row.kind === 'check' && kept.has(row.guid) && !matters) {
         kept.delete(row.guid)
@@ -585,7 +631,7 @@ async function getQuestline({ id, lang }: Get) {
     .where(eq(questlineStoryline.questlineGuid, id))
     .orderBy(asc(questlineStoryline.idx))
   const guids = parts.map((part) => part.guid)
-  const [choices, requirements] = await Promise.all([
+  const [choices, { requirements, test }] = await Promise.all([
     choiceRows(guids, lang),
     requirementRows(guids, lang),
   ])
@@ -604,10 +650,17 @@ async function getQuestline({ id, lang }: Get) {
             : choice,
         ),
         name: questText(part.name, lang),
-        /** what earlier choices must have been for this part to start; "not yet played" guards left out */
+        /** what the game must have for this part to start; "not yet played" guards left out */
         requirements: conditionId
           ? requirements(conditionId).filter((r) => !r.negative)
           : [],
+        /** the story the part opens with: the text of the decision it is named after */
+        story:
+          choices(part.guid).find(
+            (choice) => choice.headline === questText(part.name, lang),
+          )?.story ?? null,
+        /** whether earlier choices lead to this part */
+        test: conditionId ? test(conditionId) : null,
       })),
     }
   )

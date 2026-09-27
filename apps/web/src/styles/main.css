@@ -112,3 +112,12 @@ h2 {
 .react-flow__controls-button {
   @apply outline-none focus-visible:ring-2 ring-accent-8 rounded-sm;
 }
+
+.react-flow__edge.on-path path {
+  stroke: var(--color-accent-9);
+  stroke-width: 3;
+}
+
+.react-flow__edge.off-path {
+  opacity: 0.3;
+}

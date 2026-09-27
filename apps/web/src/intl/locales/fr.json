@@ -203,12 +203,17 @@
         "check": "Le jeu vérifie",
         "cost": "Coûts",
         "decision": "Décision",
+        "earlier": "Dépend de vos choix précédents",
+        "end": "Fin de la série de quêtes",
         "fails": "Sinon",
         "holds": "Si oui",
+        "later": "Influence la suite",
         "nothing": "Aucun effet durable",
         "option": "Option {number}",
         "outcomes": "Conséquence",
-        "requires": "Nécessite"
+        "pick": "Choisissez une option pour voir où elle mène.",
+        "requires": "Nécessite",
+        "reset": "Réinitialiser"
       },
       "filters": {
         "dlcs": "DLC",
@@ -233,12 +238,10 @@
         "storylineFallback": "Un événement de suite",
         "unlock": "Débloqué",
         "unlockFallback": "Quelque chose",
-        "variable": "Mémorisé pour plus tard",
         "xp": "Expérience"
       },
       "page": {
         "empty": "Histoire uniquement, aucun choix dans cette partie.",
-        "part": "Partie {number}",
         "requires": "Uniquement si : {requirements}",
         "untitled": "Sans titre"
       }

@@ -203,12 +203,17 @@
         "check": "The game checks",
         "cost": "Costs",
         "decision": "Decision",
+        "earlier": "Decided by your earlier choices",
+        "end": "End of the questline",
         "fails": "Otherwise",
         "holds": "If so",
+        "later": "Shapes what comes later",
         "nothing": "No lasting effect",
         "option": "Option {number}",
         "outcomes": "Outcome",
-        "requires": "Requires"
+        "pick": "Pick an option to see where it leads.",
+        "requires": "Requires",
+        "reset": "Reset"
       },
       "filters": {
         "dlcs": "DLC",
@@ -233,12 +238,10 @@
         "storylineFallback": "A follow-up event",
         "unlock": "Unlocked",
         "unlockFallback": "Something",
-        "variable": "Remembered for later",
         "xp": "Experience"
       },
       "page": {
         "empty": "Story only, no choices in this part.",
-        "part": "Part {number}",
         "requires": "Only if: {requirements}",
         "untitled": "Untitled"
       }

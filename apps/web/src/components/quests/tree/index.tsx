@@ -1,22 +1,33 @@
 'use client'
 
 import { type Quest } from '@anno/db/client'
+import { type QuestPicks, walkQuest } from '@anno/db/walk'
 import { layout as dagre, Graph } from '@dagrejs/dagre'
 import {
   Controls,
   type Edge,
+  Panel,
   ReactFlow,
   ReactFlowProvider,
   useNodesInitialized,
   useNodesState,
   useReactFlow,
 } from '@xyflow/react'
+import { useTranslations } from 'next-intl'
 import { useEffect, useMemo, useState } from 'react'
 
 import { type BranchNode, QuestBranchNode } from './branch'
 import { type ChoiceNode, QuestChoiceNode } from './choice'
 import { type OptionNode, QuestOptionNode } from './option'
 import { type PartNode, QuestPartNode } from './part'
+import {
+  choiceId,
+  optionId,
+  PathContext,
+  partId,
+  type QuestPath,
+  tracePath,
+} from './path'
 
 const nodeTypes = {
   branch: QuestBranchNode,
@@ -43,30 +54,17 @@ type Size = {
   width: number
 }
 
-function partId(guid: number) {
-  return `part-${guid}`
-}
-
-function choiceId(guid: number) {
-  return `choice-${guid}`
-}
-
-function optionId(guid: number, idx: number | null) {
-  return `option-${guid}-${idx}`
-}
-
-function graph(quest: Quest) {
+function graph(quest: NonNullable<Quest>) {
   const nodes: Array<FlowNode> = []
   const edges: Array<Edge> = []
   const parts = new Set(quest.parts.map((part) => part.guid))
 
-  for (const [index, part] of quest.parts.entries()) {
+  for (const part of quest.parts) {
     const parentId = partId(part.guid)
     const choices = new Set(part.choices.map((choice) => choice.guid))
 
     nodes.push({
       data: {
-        index,
         part,
       },
       id: parentId,
@@ -91,6 +89,7 @@ function graph(quest: Quest) {
         const id = optionId(choice.guid, option.idx)
         const node = {
           data: {
+            choice: choice.guid,
             option,
           },
           id,
@@ -246,15 +245,83 @@ function extentOf(
   ]
 }
 
+/** Edges along the picked path stand out, edges into what it rules out fade; the path's jumps between parts are drawn too. */
+function pathEdges(
+  edges: Array<Edge>,
+  path: QuestPath,
+  walk: ReturnType<typeof walkQuest>,
+): Array<Edge> {
+  const jumps = walk.legs.slice(1).map((leg, index) => {
+    const previous = walk.legs[index]
+    const from = previous?.steps.findLast((step) => step.picked)
+    const source = from
+      ? optionId(from.choice.guid, from.picked?.idx ?? null)
+      : partId(previous?.part.guid ?? 0)
+    const target = partId(leg.part.guid)
+
+    return {
+      id: `${source}:${target}`,
+      source,
+      target,
+    }
+  })
+  const ids = new Set(edges.map((edge) => edge.id))
+
+  return [...edges, ...jumps.filter((jump) => !ids.has(jump.id))].map(
+    (edge) => {
+      if (path.on.has(edge.source) && path.on.has(edge.target)) {
+        return {
+          ...edge,
+          className: 'on-path',
+          zIndex: 1,
+        }
+      }
+
+      if (path.off.has(edge.target) || path.off.has(edge.source)) {
+        return {
+          ...edge,
+          className: 'off-path',
+        }
+      }
+
+      return edge
+    },
+  )
+}
+
 type Props = {
-  quest: Quest
+  quest: NonNullable<Quest>
 }
 
 function Flow({ quest }: Props) {
+  const t = useTranslations('component.quests.choice')
   const initial = useMemo(() => graph(quest), [quest])
+  const [picks, setPicks] = useState<QuestPicks>({})
+  const walk = useMemo(() => walkQuest(quest, picks), [quest, picks])
+  const path = useMemo(() => tracePath(quest, walk), [quest, walk])
+  const edges = useMemo(
+    () => pathEdges(initial.edges, path, walk),
+    [initial.edges, path, walk],
+  )
+  const context = useMemo(
+    () => ({
+      ...path,
+      pick: (choice: number, idx: number) =>
+        setPicks((current) => ({
+          ...current,
+          [choice]: idx,
+        })),
+    }),
+    [path],
+  )
+  // the decision the walk waits on
+  const pending = walk.done
+    ? null
+    : (walk.legs.at(-1)?.steps.at(-1)?.choice.guid ?? null)
+  const touched = Object.keys(picks).length > 0
   const [nodes, setNodes, onNodesChange] = useNodesState(initial.nodes)
   const measured = useNodesInitialized()
-  const { fitView } = useReactFlow()
+  const { fitView, getNodes, getZoom } = useReactFlow()
   const [ready, setReady] = useState(false)
   const extent = useMemo(
     () => (ready ? extentOf(nodes) : undefined),
@@ -286,27 +353,69 @@ function Flow({ quest }: Props) {
     }
   }, [ready, fitView, quest])
 
+  // after a pick, follow the path to the decision it leads to, keeping the zoom
+  useEffect(() => {
+    if (pending === null || !touched) {
+      return
+    }
+
+    const zoom = getZoom()
+    const focus = getNodes().filter(
+      (node) =>
+        node.id === choiceId(pending) ||
+        node.id.startsWith(`option-${pending}-`),
+    )
+
+    requestAnimationFrame(async () => {
+      await fitView({
+        duration: 400,
+        maxZoom: zoom,
+        minZoom: zoom,
+        nodes: focus,
+      })
+    })
+  }, [pending, touched, fitView, getNodes, getZoom])
+
   return (
-    <ReactFlow
-      className={ready ? undefined : 'invisible'}
-      edges={initial.edges}
-      edgesFocusable={false}
-      elementsSelectable={false}
-      maxZoom={2}
-      minZoom={0.2}
-      nodes={nodes}
-      nodesConnectable={false}
-      nodesDraggable={false}
-      nodesFocusable={false}
-      nodeTypes={nodeTypes}
-      onNodesChange={onNodesChange}
-      proOptions={{
-        hideAttribution: true,
-      }}
-      translateExtent={extent}
-    >
-      <Controls showInteractive={false} />
-    </ReactFlow>
+    <PathContext value={context}>
+      <ReactFlow
+        className={ready ? undefined : 'invisible'}
+        edges={edges}
+        edgesFocusable={false}
+        elementsSelectable={false}
+        maxZoom={2}
+        minZoom={0.2}
+        nodes={nodes}
+        nodesConnectable={false}
+        nodesDraggable={false}
+        nodesFocusable={false}
+        nodeTypes={nodeTypes}
+        onNodesChange={onNodesChange}
+        proOptions={{
+          hideAttribution: true,
+        }}
+        translateExtent={extent}
+      >
+        <Controls showInteractive={false} />
+
+        <Panel
+          className="flex items-center gap-3 rounded-sm bg-gray-4 px-3 py-2 text-sm"
+          position="top-left"
+        >
+          {t(walk.done ? 'end' : 'pick')}
+
+          {Object.keys(picks).length ? (
+            <button
+              className="font-bold text-accent-11 outline-none ring-accent-8 focus-visible:ring-2"
+              onClick={() => setPicks({})}
+              type="button"
+            >
+              {t('reset')}
+            </button>
+          ) : null}
+        </Panel>
+      </ReactFlow>
+    </PathContext>
   )
 }
 

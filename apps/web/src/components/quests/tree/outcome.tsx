@@ -70,17 +70,6 @@ export function QuestOutcomeItem({ outcome }: Props) {
     )
   }
 
-  if (outcome.kind === 'variable') {
-    return (
-      <DataList.Item
-        code
-        description={t('variable')}
-        name={outcome.name}
-        value={outcome.value}
-      />
-    )
-  }
-
   if (
     outcome.kind === 'reputation' ||
     outcome.kind === 'xp' ||

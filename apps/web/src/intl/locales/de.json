@@ -203,12 +203,17 @@
         "check": "Das Spiel prüft",
         "cost": "Kosten",
         "decision": "Entscheidung",
+        "earlier": "Hängt von deinen früheren Entscheidungen ab",
+        "end": "Ende der Questreihe",
         "fails": "Andernfalls",
         "holds": "Falls ja",
+        "later": "Wirkt sich später aus",
         "nothing": "Keine bleibende Wirkung",
         "option": "Option {number}",
         "outcomes": "Ergebnis",
-        "requires": "Voraussetzung"
+        "pick": "Wähle eine Option, um zu sehen, wohin sie führt.",
+        "requires": "Voraussetzung",
+        "reset": "Zurücksetzen"
       },
       "filters": {
         "dlcs": "DLC",
@@ -233,12 +238,10 @@
         "storylineFallback": "Ein Folgeereignis",
         "unlock": "Freigeschaltet",
         "unlockFallback": "Etwas",
-        "variable": "Wird für später gemerkt",
         "xp": "Erfahrung"
       },
       "page": {
         "empty": "Nur Geschichte, keine Entscheidungen in diesem Teil.",
-        "part": "Teil {number}",
         "requires": "Nur wenn: {requirements}",
         "untitled": "Ohne Titel"
       }

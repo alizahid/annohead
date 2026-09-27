@@ -133,33 +133,6 @@ export function variableCheckLabel(
   return `${name} ${operators[comparison] ?? comparison} ${value}`
 }
 
-const changeSigns: Record<string, string> = {
-  Add: '+',
-  Multiply: '×',
-  Set: '= ',
-  Subtract: '−',
-}
-
-/** "+1", "= 2", "yes", or "= Other Variable" */
-export function variableChangeLabel(
-  {
-    operation,
-    value,
-    valueVariable,
-  }: {
-    operation: string | null
-    value: string | null
-    valueVariable: string | null
-  },
-  lang: Lang,
-) {
-  if (value === 'true' || value === 'false') {
-    return phrases[lang].words[value === 'true' ? 'yes' : 'no']
-  }
-  const sign = changeSigns[operation ?? 'Set'] ?? ''
-  return `${sign}${valueVariable ? variableName(valueVariable) : (value ?? '')}`
-}
-
 /** "Equites population: 150 or Nobles population: 150" */
 export function anyOfLabel(labels: Array<string>, lang: Lang) {
   return labels.join(` ${phrases[lang].words.or} `)

@@ -47,3 +47,18 @@ export function questQuestion(text: string | null, lang: Lang) {
     text.replace(LINE_BREAK, '\n').replace(TAG, '').match(QUESTION)?.at(-1)
   return question ? questText(question.replace(TAG, '').trim(), lang) : null
 }
+
+/** A decision screen's narrative: its text without the closing question `questQuestion` reads, markup kept. */
+export function questStory(text: string | null, lang: Lang) {
+  if (!text) {
+    return null
+  }
+  const bold = [...text.matchAll(BOLD)].at(-1)
+  const question = bold?.[0] ?? text.match(QUESTION)?.at(-1)
+  const cut = question ? text.lastIndexOf(question) : -1
+  const story =
+    cut < 0
+      ? text
+      : text.slice(0, cut) + text.slice(cut + (question?.length ?? 0))
+  return questText(story, lang)?.trim() || null
+}

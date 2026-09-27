@@ -203,12 +203,17 @@
         "check": "ゲームの判定",
         "cost": "コスト",
         "decision": "決断",
+        "earlier": "これまでの選択によって決まります",
+        "end": "クエストラインの終わり",
         "fails": "それ以外",
         "holds": "該当する場合",
+        "later": "この先の展開に影響します",
         "nothing": "持続効果なし",
         "option": "選択肢 {number}",
         "outcomes": "結果",
-        "requires": "必要条件"
+        "pick": "選択肢を選ぶと、その先の展開が表示されます。",
+        "requires": "必要条件",
+        "reset": "リセット"
       },
       "filters": {
         "dlcs": "DLC",
@@ -233,12 +238,10 @@
         "storylineFallback": "続きのイベント",
         "unlock": "アンロック",
         "unlockFallback": "何か",
-        "variable": "今後の展開に影響",
         "xp": "経験値"
       },
       "page": {
         "empty": "ストーリーのみ。このパートに選択肢はありません。",
-        "part": "パート {number}",
         "requires": "条件: {requirements}",
         "untitled": "無題"
       }

@@ -7,39 +7,54 @@ import { useTranslations } from 'next-intl'
 import { DataList } from '../../data-list'
 import { QuestHandle } from './handle'
 import { QuestOutcomeList } from './outcome'
+import { usePath } from './path'
 
 export type BranchNode = Node<
   {
+    choice: number
     option: QuestOption
   },
   'branch'
 >
 
-export function QuestBranchNode({ data: { option } }: NodeProps<BranchNode>) {
+export function QuestBranchNode({
+  data: { choice, option },
+  id,
+}: NodeProps<BranchNode>) {
   const t = useTranslations('component.quests.choice')
+  const { locked, off, on, pick } = usePath()
 
   const holds = option.idx === 0
   const label = t(holds ? 'holds' : 'fails')
 
   return (
-    <div className="flex items-center">
+    <div
+      className={cn(
+        'flex items-center transition-opacity',
+        off.has(id) && 'opacity-40',
+      )}
+    >
       <QuestHandle type="target" />
 
       <div className="flex size-14 shrink-0 items-center justify-center">
-        <div
+        <button
+          aria-label={label}
+          aria-pressed={on.has(id)}
           className={cn(
-            'flex size-10 rotate-45 items-center justify-center rounded-md text-white',
+            'pointer-events-auto flex size-10 rotate-45 items-center justify-center rounded-md text-white outline-none ring-accent-8 ring-offset-2 ring-offset-gray-2 focus-visible:ring-2 aria-pressed:ring-2 aria-pressed:ring-accent-9',
             holds ? 'bg-green-9' : 'bg-red-9',
           )}
-          role="img"
+          disabled={locked.has(id)}
+          onClick={() => pick(choice, option.idx ?? 0)}
           title={label}
+          type="button"
         >
           {holds ? (
             <CheckIcon className="size-5 -rotate-45" weight="bold" />
           ) : (
             <XIcon className="size-5 -rotate-45" weight="bold" />
           )}
-        </div>
+        </button>
       </div>
 
       {option.outcomes.length ? (

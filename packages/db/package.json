@@ -6,7 +6,8 @@
     ".": "./src/index.ts",
     "./client": "./src/client/index.ts",
     "./enums": "./src/enums.ts",
-    "./search": "./src/search.ts"
+    "./search": "./src/search.ts",
+    "./walk": "./src/walk.ts"
   },
   "scripts": {
     "pull": "drizzle-kit pull && rm -rf src/meta src/*.sql src/relations.ts && bun enums.ts && bun x ultracite fix src/schema.ts src/enums.ts",

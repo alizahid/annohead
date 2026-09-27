@@ -93,7 +93,7 @@ type Param = {
 const SCOPE_KEY = /^(ConditionLocationFilter|CounterScope)/
 
 /** `ConditionCompareVariable`: the game defaults an unset operator to AtLeast and an unset second value to false. */
-function variableCheck(params: Array<Param>) {
+export function variableCheck(params: Array<Param>) {
   const find = (test: (key: string) => boolean) =>
     params.find((p) => p.key !== null && test(p.key))?.value ?? null
   const bool = find((key) => key.endsWith('BoolValue'))
