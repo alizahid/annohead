@@ -45,6 +45,12 @@
             "placeholder": "mildpanda"
           }
         }
+      },
+      "steam": {
+        "action": {
+          "signIn": "使用 Steam 登入"
+        },
+        "error": "Steam 登入失敗"
       }
     },
     "buildings": {

@@ -12,6 +12,7 @@ import type * as auth from "../auth.js";
 import type * as comments_mutations from "../comments/mutations.js";
 import type * as comments_queries from "../comments/queries.js";
 import type * as decorators_comments from "../decorators/comments.js";
+import type * as lib_steam from "../lib/steam.js";
 import type * as users_internal from "../users/internal.js";
 import type * as users_queries from "../users/queries.js";
 
@@ -26,6 +27,7 @@ declare const fullApi: ApiFromModules<{
   "comments/mutations": typeof comments_mutations;
   "comments/queries": typeof comments_queries;
   "decorators/comments": typeof decorators_comments;
+  "lib/steam": typeof lib_steam;
   "users/internal": typeof users_internal;
   "users/queries": typeof users_queries;
 }>;

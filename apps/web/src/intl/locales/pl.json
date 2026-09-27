@@ -45,6 +45,12 @@
             "placeholder": "mildpanda"
           }
         }
+      },
+      "steam": {
+        "action": {
+          "signIn": "Zaloguj przez Steam"
+        },
+        "error": "Logowanie przez Steam nie powiodło się"
       }
     },
     "buildings": {

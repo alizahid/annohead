@@ -45,6 +45,12 @@
             "placeholder": "mildpanda"
           }
         }
+      },
+      "steam": {
+        "action": {
+          "signIn": "Steamでサインイン"
+        },
+        "error": "Steamでのサインインに失敗しました"
       }
     },
     "buildings": {

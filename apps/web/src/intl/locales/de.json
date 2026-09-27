@@ -45,6 +45,12 @@
             "placeholder": "mildpanda"
           }
         }
+      },
+      "steam": {
+        "action": {
+          "signIn": "Mit Steam anmelden"
+        },
+        "error": "Anmeldung mit Steam fehlgeschlagen"
       }
     },
     "buildings": {

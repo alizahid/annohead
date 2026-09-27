@@ -32,6 +32,8 @@ type Env = {
   readonly CONVEX_SITE_URL: string;
   readonly AUTH_JWKS: string;
   readonly AUTH_PRIVATE_KEY: string;
+  readonly SITE_URL: string;
+  readonly STEAM_API_KEY: string;
 };
 
 /**

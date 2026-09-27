@@ -13,7 +13,7 @@
     "skipLibCheck": true,
     "strict": true,
     "target": "esnext",
-    "types": ["node"]
+    "types": ["node", "bun"]
   },
   "exclude": ["./_generated"],
   "include": ["./**/*"]

@@ -104,6 +104,13 @@ export function useSignIn() {
         type: 'custom',
       })
     },
+    onError() {
+      // e.g. a password sign in with a Steam account's username
+      form.setError('password', {
+        message: t('OTHER_ERROR'),
+        type: 'custom',
+      })
+    },
   })
 
   const onSubmit = form.handleSubmit((data) => {

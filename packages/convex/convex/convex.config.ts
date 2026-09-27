@@ -8,6 +8,8 @@ const app = defineApp({
   env: {
     AUTH_JWKS: v.string(),
     AUTH_PRIVATE_KEY: v.string(),
+    SITE_URL: v.string(),
+    STEAM_API_KEY: v.string(),
   },
 })
 

@@ -9,6 +9,7 @@ import { NavLink } from '@/intl/nav'
 import { Button } from '../common/button'
 import { Field } from '../common/field'
 import { TextBox } from '../common/text-box'
+import { SteamSignIn } from './steam'
 
 export function SignIn() {
   const t = useTranslations('component.auth.signIn')
@@ -58,8 +59,10 @@ export function SignIn() {
           {t('action.submit')}
         </Button>
 
+        <SteamSignIn />
+
         <NavLink
-          className="text-gray-11 text-sm leading-tight"
+          className="text-center text-gray-11 text-sm leading-tight"
           href="/auth/sign-up"
         >
           {t('action.signUp')}

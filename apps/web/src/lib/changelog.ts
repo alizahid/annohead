@@ -7,6 +7,10 @@ type Release = {
 
 export const changelog: Array<Release> = [
   {
+    added: ['Sign in with your Steam account'],
+    date: new Date('2026-09-28'),
+  },
+  {
     added: [
       'Specialists show their Charioteer stats: the starting and potential range of each Hippodrome racer stat',
       'Items can be filtered by Charioteer',
