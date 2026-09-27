@@ -12,6 +12,10 @@ export const changelog: Array<Release> = [
       'Items can be filtered by Charioteer',
       'The quest flowchart is clickable. Picking an option lights up that path, fades what it rules out, and pans to the next decision',
       'Each quest part shows its opening story',
+      'The search box suggests matches as you type. Pick one to jump straight to its page, or press Enter for all results',
+    ],
+    changed: [
+      'Search is faster, and only suggests near-miss spellings when nothing matches what you typed',
     ],
     date: new Date('2026-09-27'),
   },

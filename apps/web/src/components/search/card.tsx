@@ -7,8 +7,8 @@ import { getUrl } from '@/lib/url'
 
 import { Icon } from '../common/icon'
 import { Tooltip } from '../common/tooltip'
-import { ItemIcon } from '../items/icon'
 import { RegionCard } from '../shared/region'
+import { SearchIcon } from './icon'
 
 type Props = {
   item: SearchHit
@@ -23,13 +23,7 @@ export function SearchCard({ item }: Props) {
       href={getUrl(item.type, item.guid, item.slug)}
     >
       <aside className="relative flex size-16 shrink-0">
-        {item.type === 'item' ? (
-          <ItemIcon className="size-16" icon={item.icon} rarity={item.rarity} />
-        ) : item.icon ? (
-          <Icon className="size-16" icon={item.icon} />
-        ) : (
-          <Icon className="size-16" icon={getIcon(`ui.${item.type}`)} />
-        )}
+        <SearchIcon className="size-16" item={item} />
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col gap-1">

@@ -6,7 +6,7 @@ import { populationTiers } from './population-tiers'
 import { products } from './products'
 import { quests } from './quests'
 import { regions } from './regions'
-import { search } from './search'
+import { search, suggest } from './search'
 import { techs } from './techs'
 import { units } from './units'
 
@@ -47,6 +47,7 @@ export type QuestOption = QuestChoice['options'][number]
 export type QuestOutcome = QuestOption['outcomes'][number]
 export type Regions = Awaited<ReturnType<typeof regions.list>>
 export type SearchResults = Awaited<ReturnType<typeof search>>
+export type Suggestions = Awaited<ReturnType<typeof suggest>>
 export type Techs = Awaited<ReturnType<typeof techs.list>>
 export type Tech = Awaited<ReturnType<typeof techs.get>>
 export type TechCategories = Awaited<ReturnType<typeof techs.categories>>
@@ -64,6 +65,7 @@ export const anno = {
   quests,
   regions,
   search,
+  suggest,
   techs,
   units,
 }

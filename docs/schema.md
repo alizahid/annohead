@@ -262,6 +262,17 @@ Display names come from the game's own config tables, not hand-written ones, so 
 - All 12 game languages ship (`lang` ids: English 1, German 2, the rest alphabetical); the DB grows from 2.4 MB with
   English and German to 6.4 MB, all of it in `translation`.
 
+### Search (2026-09-27)
+
+- `search_entry(guid, type, slug, icon, rarity, regions, name_text, description_text)`: every searchable entity
+  (building, item, product, tech, questline, chain, unit) once; `regions` is comma-separated region keys.
+- `search(id, lang_id, guid, key)`: the entity once per language, `key` its name folded (lowercase, no diacritics or
+  zero-width spaces, ß → ss; transform.py `fold()` and client search.ts `fold()` must agree). Variants that read the
+  same in a language (Infantry Camp ×2) share one row pointing at the lowest guid.
+- `search_fts`: FTS5 trigram index over `search.key` (external content, `detail='none'`, `columnsize=0`) that finds
+  names containing a word of 3+ characters with `like '%word%'`; fts5 checks candidates against `search.key`, and the
+  client ranks them. +1.2 MB. The macOS `sqlite3` CLI lacks fts5, so query `search_fts` from Python or libsql.
+
 ## Decisions (2026-09-09)
 
 1. **Storylines and quests are separate tables**, Wowhead-style. `storyline` = game `StoryLine` (the chain,

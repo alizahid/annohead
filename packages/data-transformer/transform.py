@@ -122,6 +122,8 @@ LABEL_TABLES = [
     ("incident", "GeneralIncidentConfiguration", "GeneralIncidentConfiguration.IncidentTypesConfig", "Name"),
 ]
 # "The Mysterious Murmillo Part I" -> "The Mysterious Murmillo", as the client's English phrases do
+# the game separates CJK words with zero-width spaces, which a typed query never has
+INVISIBLE = re.compile("[\u200b-\u200d\ufeff]")
 QUESTLINE_PART = re.compile(r"\s*(?:[–-]\s*)?\bPart\s+[IVXL]+\b.*$", re.IGNORECASE)
 # products the trading post filter doesn't list, filed under categories the game has no name for (client phrases)
 PRODUCT_KINDS = {"Workforce": -1, "Service": -2, "Meta": -3}
@@ -2020,6 +2022,35 @@ class T:
                     name = QUESTLINE_PART.sub("", name)
                 self.db.execute(f"update {table} set slug=? where guid=?", (slug(name), guid))
 
+    def search(self):
+        """Each searchable entity once per language under its folded name, for the trigram index client search.ts
+        queries. Variants that read the same (Infantry Camp ×2) collapse to the lowest guid."""
+        self.db.create_function("fold", 1, fold, deterministic=True)
+        self.db.executescript(
+            """
+            create temp table search_source as
+              select 'building' type, b.guid, b.slug, b.icon, null rarity, b.name_text, b.description_text,
+                (select group_concat(key) from (select r.key from building_region br join region r on r.id = br.region_id
+                  where br.building_guid = b.guid order by r.id)) regions from building b
+              union all select 'item', guid, slug, icon, rarity, name_text, description_text, null from item
+              union all select 'product', guid, slug, icon, null, name_text, null, null from product
+              union all select 'tech', guid, slug, icon, null, name_text, description_text, null from tech
+              union all select 'quest', guid, slug, icon, null, title_text, null, null from questline
+              union all select 'chain', c.guid, c.slug, c.icon, null, c.name_text, null,
+                (select key from region where id = c.region_id) from production_chain c
+              union all select 'unit', u.guid, u.slug, u.icon, null, u.name_text, u.description_text,
+                (select key from region where id = u.region_id) from unit u;
+            insert into search(lang_id, guid, key)
+              select n.lang_id, min(s.guid), fold(n.value) from search_source s
+              join translation n on n.line_id = s.name_text
+              left join translation d on d.line_id = s.description_text and d.lang_id = n.lang_id
+              group by n.lang_id, s.type, n.value, d.value, s.rarity, s.regions order by 1, 3;
+            insert into search_entry select guid, type, slug, icon, rarity, regions, name_text, description_text
+              from search_source where guid in (select guid from search);
+            insert into search_fts(search_fts) values('rebuild');
+            """
+        )
+
     def finish(self):
         # names of assets conditions point at, and of decision speakers, that have no table of their own
         # (provinces, volcano phases, narrative characters …)
@@ -2065,6 +2096,7 @@ class T:
             (langs.get("english"),),
         )
         self.slugs()
+        self.search()
         # pools referenced by effects, flattened once
         for (pool,) in self.db.execute(
             "select distinct pool_guid from effect_target_pool"
@@ -2080,6 +2112,12 @@ class T:
             print(
                 f"{t:<28}{self.db.execute(f'select count(*) from {t}').fetchone()[0]:>8}"
             )
+
+
+def fold(text):
+    """Lowercase without diacritics, as client search.ts folds a query: "BÄCKEREI" and "backerei" both read backerei."""
+    text = "".join(c for c in unicodedata.normalize("NFD", text) if not unicodedata.category(c).startswith("M"))
+    return INVISIBLE.sub("", text).lower().replace("ß", "ss")
 
 
 def D(x):
@@ -2225,6 +2263,13 @@ create index idx_quest_reward_node on quest_reward(node_guid);
 create index idx_quest_variable_change_node on quest_variable_change(node_guid);
 create index idx_quest_choice_storyline on quest_choice(storyline_guid);
 create index idx_questline_storyline_storyline on questline_storyline(storyline_guid);
+
+-- site search (client search.ts): the trigram index narrows a query to names containing it, detail=none keeps it small
+-- (fts5 checks the match against search.key itself)
+create table search_entry(guid integer primary key, type text, slug text, icon text, rarity text, regions text,
+  name_text integer, description_text integer);
+create table search(id integer primary key, lang_id integer references lang(id), guid integer references search_entry(guid), key text);
+create virtual table search_fts using fts5(key, content='search', content_rowid='id', tokenize='trigram', detail='none', columnsize=0);
 """
 # build-time scratch tables, dropped by prune()
 SCRATCH = """

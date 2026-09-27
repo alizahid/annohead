@@ -1,18 +1,8 @@
 import { type SQL, sql } from 'drizzle-orm'
-import { type SQLiteColumn, type SQLiteTable } from 'drizzle-orm/sqlite-core'
 
 import { db } from '../db'
 import { type Lang, type Rarity, type Region, regionValues } from '../enums'
-import {
-  building,
-  item,
-  product,
-  productionChain,
-  questline,
-  tech,
-  unit,
-} from '../schema'
-import { type SearchType } from '../search'
+import { type SearchType, SearchTypes } from '../search'
 import { questlineName } from './quests'
 import { langId, type Page, paginate } from './shared'
 
@@ -36,114 +26,78 @@ export type SearchHit = {
   regions: Array<Region>
 }
 
-type Source = {
-  type: SearchType
-  table: SQLiteTable
-  guid: SQLiteColumn
-  slug: SQLiteColumn
-  icon: SQLiteColumn
-  name: SQLiteColumn
-  description?: SQLiteColumn
-  rarity?: SQLiteColumn
-  /** comma separated region keys */
-  regions?: SQL
-}
-
-const sources: Array<Source> = [
-  {
-    description: building.descriptionText,
-    guid: building.guid,
-    icon: building.icon,
-    name: building.nameText,
-    regions: sql`(select group_concat(key) from (select r.key from building_region br join region r on r.id = br.region_id where br.building_guid = ${building.guid} order by r.id))`,
-    slug: building.slug,
-    table: building,
-    type: 'building',
-  },
-  {
-    description: item.descriptionText,
-    guid: item.guid,
-    icon: item.icon,
-    name: item.nameText,
-    rarity: item.rarity,
-    slug: item.slug,
-    table: item,
-    type: 'item',
-  },
-  {
-    guid: product.guid,
-    icon: product.icon,
-    name: product.nameText,
-    slug: product.slug,
-    table: product,
-    type: 'product',
-  },
-  {
-    description: tech.descriptionText,
-    guid: tech.guid,
-    icon: tech.icon,
-    name: tech.nameText,
-    slug: tech.slug,
-    table: tech,
-    type: 'tech',
-  },
-  {
-    guid: questline.guid,
-    icon: questline.icon,
-    name: questline.titleText,
-    slug: questline.slug,
-    table: questline,
-    type: 'quest',
-  },
-  {
-    guid: productionChain.guid,
-    icon: productionChain.icon,
-    name: productionChain.nameText,
-    regions: sql`(select key from region where id = ${productionChain.regionId})`,
-    slug: productionChain.slug,
-    table: productionChain,
-    type: 'chain',
-  },
-  {
-    description: unit.descriptionText,
-    guid: unit.guid,
-    icon: unit.icon,
-    name: unit.nameText,
-    regions: sql`(select key from region where id = ${unit.regionId})`,
-    slug: unit.slug,
-    table: unit,
-    type: 'unit',
-  },
-]
-
-function select(s: Source, lang: Lang) {
-  const none = sql`null`
-  return sql`select ${s.type} as type, ${s.guid} as guid, ${s.slug} as slug, ${s.icon} as icon, n.value as name, d.value as description, ${s.rarity ?? none} as rarity, ${s.regions ?? none} as regions
-    from ${s.table}
-    join translation n on n.line_id = ${s.name} and n.lang_id = ${langId(lang)}
-    left join translation d on d.line_id = ${s.description ?? none} and d.lang_id = ${langId(lang)}`
-}
-
 type Row = Omit<SearchHit, 'regions'> & {
+  id: number
   regions: string | null
 }
 
-/** Every searchable row in one language; variants that read the same (Infantry Camp ×2) collapse to the lowest guid. */
-function load(lang: Lang, types?: Array<SearchType>) {
-  const filter = types?.length
-    ? sql`where type in (${sql.join(
-        types.map((t) => sql`${t}`),
+/** a `search` row: one entity in one language, `key` its folded name (built by transform.py search()) */
+type Entry = {
+  id: number
+  key: string
+  type: SearchType
+  guid: number
+  name: string
+}
+
+const entryColumns = sql`s.id, s.key, e.type, e.guid, n.value as name`
+
+/** entries in the filter's language and types; `e` is the entity */
+function scope(f: SearchFilter) {
+  const types = f.types?.length
+    ? sql`and e.type in (${sql.join(
+        f.types.map((t) => sql`${t}`),
         sql`, `,
       )})`
     : sql``
+  return sql`s.lang_id = ${langId(f.lang)} ${types}`
+}
+
+function rows(f: SearchFilter, where: SQL) {
   return db.all<Row>(
-    sql`select type, min(guid) as guid, min(slug) as slug, icon, name, description, rarity, regions
-      from (${sql.join(
-        sources.map((s) => select(s, lang)),
-        sql` union all `,
-      )}) ${filter}
-      group by type, name, description, rarity, regions`,
+    sql`select s.id, e.type, e.guid, e.slug, e.icon, e.rarity, e.regions, n.value as name, d.value as description
+      from search s
+      join search_entry e on e.guid = s.guid
+      join translation n on n.line_id = e.name_text and n.lang_id = s.lang_id
+      left join translation d on d.line_id = e.description_text and d.lang_id = s.lang_id
+      where ${scope(f)} and ${where}`,
   )
+}
+
+function entries(f: SearchFilter, where: SQL) {
+  return db.all<Entry>(
+    sql`select ${entryColumns} from search s
+      join search_entry e on e.guid = s.guid
+      join translation n on n.line_id = e.name_text and n.lang_id = s.lang_id
+      where ${scope(f)} and ${where}`,
+  )
+}
+
+function allKeys(f: SearchFilter) {
+  return db.all<Pick<Entry, 'id' | 'key'>>(
+    sql`select s.id, s.key from search s join search_entry e on e.guid = s.guid where ${scope(f)}`,
+  )
+}
+
+function descriptions(f: SearchFilter) {
+  return db.all<
+    Entry & {
+      description: string
+    }
+  >(
+    sql`select ${entryColumns}, d.value as description from search s
+      join search_entry e on e.guid = s.guid
+      join translation n on n.line_id = e.name_text and n.lang_id = s.lang_id
+      join translation d on d.line_id = e.description_text and d.lang_id = s.lang_id
+      where ${scope(f)}`,
+  )
+}
+
+function ids(list: Iterable<number>) {
+  return sql`s.id in (${sql.join(
+    [...list].map((id) => sql`${id}`),
+    sql`, `,
+  )})`
 }
 
 const DIACRITICS = /\p{M}/gu
@@ -153,8 +107,10 @@ const WORD_BREAK = /[^\p{L}\p{N}]+/u
 /** no typos in short words, one from 4 characters, two from 8 */
 const ONE_TYPO_LENGTH = 4
 const TWO_TYPOS_LENGTH = 8
+/** shortest word the trigram index can look up */
+const TRIGRAM = 3
 
-/** lowercase without diacritics, so "backerei" and "BÄCKEREI" both find Bäckerei */
+/** lowercase without diacritics, so "backerei" and "BÄCKEREI" both find Bäckerei; transform.py fold() builds `key` the same way */
 function fold(text: string) {
   return text
     .normalize('NFD')
@@ -235,83 +191,154 @@ const Tier = {
   WordPrefix: 2,
 } as const
 
-/** [tier, typos] for a row, lower is better; null when it does not match */
-function score(row: Row, query: string, tokens: Array<string>) {
-  const name = fold(row.name)
+/** name tier for a folded name, lower is better; null when it does not contain every query word */
+function nameTier(name: string, query: string, tokens: Array<string>) {
   if (name === query) {
-    return [Tier.Exact, 0] as const
+    return Tier.Exact
   }
   if (name.startsWith(query)) {
-    return [Tier.Prefix, 0] as const
+    return Tier.Prefix
   }
   const nameWords = words(name)
   if (tokens.every((t) => nameWords.some((w) => w.startsWith(t)))) {
-    return [Tier.WordPrefix, 0] as const
+    return Tier.WordPrefix
   }
   if (name.includes(query)) {
-    return [Tier.Contains, 0] as const
-  }
-  const typos = fuzzy(tokens, nameWords)
-  if (typos !== null) {
-    return [Tier.Fuzzy, typos] as const
-  }
-  const description = fold(row.description ?? '')
-  if (tokens.every((t) => description.includes(t))) {
-    return [Tier.Description, 0] as const
+    return Tier.Contains
   }
   return null
 }
 
+type Hit = Entry & {
+  tier: number
+  typos: number
+}
+
 /**
- * Searches every entity type at once. Ranked exact name, name prefix, word prefix,
- * substring, typo tolerant word match, then description; word order, case and diacritics do not matter.
+ * Ranked exact name, name prefix, word prefix, substring, then description; typo tolerant name matches only when
+ * nothing matched as typed. Within a rank, types follow the filter order. Word order, case and diacritics do not matter.
  */
-// ponytail: loads and scores every row of the language per query (~1.5k rows, a few ms); precompute a search table
-// with fts5 trigrams in the transformer once that is too slow
-async function search(f: SearchFilter & Page) {
+async function match(f: SearchFilter, withDescriptions: boolean) {
   const query = fold(f.query.trim())
   const tokens = words(query)
-  const rows = await load(f.lang, f.types)
-  const hits: Array<{
-    row: Row
-    tier: number
-    typos: number
-  }> = []
-  for (const row of rows) {
-    const scored = tokens.length ? score(row, query, tokens) : ([0, 0] as const)
-    if (scored) {
-      hits.push({
-        row,
-        tier: scored[0],
-        typos: scored[1],
-      })
+  const hits = new Map<number, Hit>()
+  const add = (entry: Entry, tier: number, typos = 0) =>
+    hits.set(entry.id, {
+      ...entry,
+      tier,
+      typos,
+    })
+  if (tokens.length === 0) {
+    for (const entry of await entries(f, sql`1`)) {
+      add(entry, Tier.Exact)
+    }
+    return rank(hits, f.lang)
+  }
+  // the trigram index narrows to names containing every word; it can't look up words under 3 characters, and
+  // scanning it for them reads every language, so those check this language's keys instead
+  const contains = (column: SQL, list: Array<string>) =>
+    list.length
+      ? sql.join(
+          list.map((t) => sql`${column} like ${`%${t}%`}`),
+          sql` and `,
+        )
+      : sql`1`
+  const long = tokens.filter((t) => t.length >= TRIGRAM)
+  const named = await entries(
+    f,
+    sql`${contains(
+      sql`s.key`,
+      tokens.filter((t) => t.length < TRIGRAM),
+    )} and ${
+      long.length
+        ? sql`s.id in (select rowid from search_fts where ${contains(sql`search_fts.key`, long)})`
+        : sql`1`
+    }`,
+  )
+  for (const entry of named) {
+    const tier = nameTier(entry.key, query, tokens)
+    if (tier !== null) {
+      add(entry, tier)
     }
   }
-  hits.sort(
+  if (hits.size === 0) {
+    // typos are scored on keys alone; only the few close ones need their names
+    const close = new Map<number, number>()
+    for (const { id, key } of await allKeys(f)) {
+      const typos = fuzzy(tokens, words(key))
+      if (typos !== null) {
+        close.set(id, typos)
+      }
+    }
+    if (close.size) {
+      for (const entry of await entries(f, ids(close.keys()))) {
+        add(entry, Tier.Fuzzy, close.get(entry.id))
+      }
+    }
+  }
+  if (withDescriptions) {
+    for (const entry of await descriptions(f)) {
+      const text = fold(entry.description)
+      if (!hits.has(entry.id) && tokens.every((t) => text.includes(t))) {
+        add(entry, Tier.Description)
+      }
+    }
+  }
+  return rank(hits, f.lang)
+}
+
+function rank(hits: Map<number, Hit>, lang: Lang) {
+  return [...hits.values()].sort(
     (a, b) =>
       a.tier - b.tier ||
       a.typos - b.typos ||
-      a.row.name.localeCompare(b.row.name, f.lang) ||
-      a.row.guid - b.row.guid,
+      SearchTypes.indexOf(a.type) - SearchTypes.indexOf(b.type) ||
+      a.name.localeCompare(b.name, lang) ||
+      a.guid - b.guid,
   )
+}
+
+/** full results for the hits shown, in their order */
+async function load(f: SearchFilter, shown: Array<Hit>) {
+  const found = shown.length ? await rows(f, ids(shown.map((h) => h.id))) : []
+  const byId = new Map(found.map((row) => [row.id, row]))
+  return shown.flatMap((hit) => {
+    const row = byId.get(hit.id)
+    if (!row) {
+      return []
+    }
+    const { id: _, regions, ...rest } = row
+    const keys = regions?.split(',') ?? []
+    return {
+      ...rest,
+      name:
+        rest.type === 'quest'
+          ? (questlineName(rest.name, f.lang) ?? rest.name)
+          : rest.name,
+      regions: regionValues.filter((r) => keys.includes(r)),
+    } satisfies SearchHit
+  })
+}
+
+/** Searches every entity type at once, names and descriptions. */
+async function search(f: SearchFilter & Page) {
+  const hits = await match(f, true)
   const { limit, offset } = paginate(f)
   return {
     pages: Math.ceil(hits.length / limit),
-    rows: hits
-      .slice(offset, offset + limit)
-      .map(({ row: { regions, ...row } }): SearchHit => {
-        const keys = regions?.split(',') ?? []
-        return {
-          ...row,
-          name:
-            row.type === 'quest'
-              ? (questlineName(row.name, f.lang) ?? row.name)
-              : row.name,
-          regions: regionValues.filter((r) => keys.includes(r)),
-        }
-      }),
+    rows: await load(f, hits.slice(offset, offset + limit)),
     total: hits.length,
   }
 }
 
-export { search }
+const SUGGESTIONS = 8
+
+/** Autocomplete: the best name matches only, for every keystroke. */
+async function suggest(f: SearchFilter) {
+  if (!f.query.trim()) {
+    return []
+  }
+  return load(f, (await match(f, false)).slice(0, SUGGESTIONS))
+}
+
+export { search, suggest }
