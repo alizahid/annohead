@@ -369,6 +369,16 @@
     "items": {
       "title": "アイテム × Annohead"
     },
+    "landing": {
+      "changelog": {
+        "added": "追加",
+        "changed": "変更",
+        "fixed": "修正",
+        "title": "更新履歴"
+      },
+      "database": "データベース",
+      "language": "言語"
+    },
     "product": {
       "fallback": "品物",
       "title": "{name} × 品物 × Annohead"

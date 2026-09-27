@@ -369,6 +369,16 @@
     "items": {
       "title": "Объекты × Annohead"
     },
+    "landing": {
+      "changelog": {
+        "added": "Добавлено",
+        "changed": "Изменено",
+        "fixed": "Исправлено",
+        "title": "Список изменений"
+      },
+      "database": "База данных",
+      "language": "Язык"
+    },
     "product": {
       "fallback": "Товар",
       "title": "{name} × Товары × Annohead"

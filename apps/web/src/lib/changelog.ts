@@ -1,0 +1,85 @@
+type Release = {
+  date: Date
+  added?: Array<string>
+  changed?: Array<string>
+  fixed?: Array<string>
+}
+
+export const changelog: Array<Release> = [
+  {
+    added: [
+      'Specialists show their Charioteer stats: the starting and potential range of each Hippodrome racer stat',
+      'Items can be filtered by Charioteer',
+      'The quest flowchart is clickable. Picking an option lights up that path, fades what it rules out, and pans to the next decision',
+      'Each quest part shows its opening story',
+    ],
+    date: new Date('2026-09-27'),
+  },
+  {
+    added: [
+      'Goods list and pages',
+      'Quests list and pages. Each questline is drawn as a flowchart showing every choice and what it leads to: costs, requirements, buffs, specialists, reputation and follow-up parts',
+      'Units page for ships, troops and flagships',
+      'All 12 game languages, with a language picker',
+      'Specialists list every effect they have, including area effects on nearby buildings, extra output, extra workforce, input replacement and incident immunity',
+      'Tooltips on region, DLC and item type icons',
+    ],
+    changed: [
+      "Names and categories now come straight from the game's data, and buildings are grouped the way the in-game construction menu groups them",
+      'Goods are classified as Good, Service, Workforce or Meta',
+      'Content from unreleased DLCs is hidden, along with items the game never hands out',
+      "Text that isn't translated yet falls back to English",
+    ],
+    date: new Date('2026-09-26'),
+    fixed: [
+      'Pagination jumping past the first and last pages',
+      'Missing specialist icons',
+      'Wrong or missing names on some modifiers',
+      'Search in Chinese, Japanese and Korean',
+    ],
+  },
+  {
+    added: [
+      'Technology tree and technology pages',
+      'Production chain list and pages',
+      'Production chain calculator',
+    ],
+    date: new Date('2026-09-25'),
+  },
+  {
+    added: ['Items list and item pages'],
+    date: new Date('2026-09-22'),
+    fixed: ['Long text overflowing lists and search results'],
+  },
+  {
+    added: [
+      'Building pages',
+      'Building construction phases and unlock requirements',
+    ],
+    date: new Date('2026-09-20'),
+  },
+  {
+    added: [
+      'Accounts and comments',
+      'Search with filters',
+      'Buildings list with filters for DLC, region and population tier',
+      'German translation',
+    ],
+    date: new Date('2026-09-19'),
+    fixed: ['Search box not working on some pages'],
+  },
+  {
+    added: ['Annohead launched'],
+    changed: [
+      'Game data updated to the latest game patch',
+      'Monument construction phases are no longer listed as separate buildings',
+    ],
+    date: new Date('2026-09-18'),
+  },
+  {
+    added: [
+      'Game data extracted from Anno 117: buildings, production chains, items, goods, quests and technologies, with their icons',
+    ],
+    date: new Date('2026-09-09'),
+  },
+]

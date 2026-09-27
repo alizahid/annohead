@@ -369,6 +369,16 @@
     "items": {
       "title": "物品 × Annohead"
     },
+    "landing": {
+      "changelog": {
+        "added": "新增",
+        "changed": "变更",
+        "fixed": "修复",
+        "title": "更新日志"
+      },
+      "database": "数据库",
+      "language": "语言"
+    },
     "product": {
       "fallback": "货物",
       "title": "{name} × 货物 × Annohead"

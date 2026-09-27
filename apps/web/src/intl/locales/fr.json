@@ -369,6 +369,16 @@
     "items": {
       "title": "Objets × Annohead"
     },
+    "landing": {
+      "changelog": {
+        "added": "Ajouts",
+        "changed": "Modifications",
+        "fixed": "Corrections",
+        "title": "Journal des modifications"
+      },
+      "database": "Base de données",
+      "language": "Langue"
+    },
     "product": {
       "fallback": "Marchandise",
       "title": "{name} × Marchandises × Annohead"

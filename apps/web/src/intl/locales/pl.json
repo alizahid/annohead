@@ -369,6 +369,16 @@
     "items": {
       "title": "Przedmioty × Annohead"
     },
+    "landing": {
+      "changelog": {
+        "added": "Dodano",
+        "changed": "Zmieniono",
+        "fixed": "Naprawiono",
+        "title": "Lista zmian"
+      },
+      "database": "Baza danych",
+      "language": "Język"
+    },
     "product": {
       "fallback": "Towar",
       "title": "{name} × Towary × Annohead"

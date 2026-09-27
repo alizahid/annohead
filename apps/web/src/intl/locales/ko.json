@@ -369,6 +369,16 @@
     "items": {
       "title": "아이템 × Annohead"
     },
+    "landing": {
+      "changelog": {
+        "added": "추가",
+        "changed": "변경",
+        "fixed": "수정",
+        "title": "변경 내역"
+      },
+      "database": "데이터베이스",
+      "language": "언어"
+    },
     "product": {
       "fallback": "물품",
       "title": "{name} × 물품 × Annohead"

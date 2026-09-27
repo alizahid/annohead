@@ -369,6 +369,16 @@
     "items": {
       "title": "Objetos × Annohead"
     },
+    "landing": {
+      "changelog": {
+        "added": "Añadido",
+        "changed": "Cambiado",
+        "fixed": "Corregido",
+        "title": "Registro de cambios"
+      },
+      "database": "Base de datos",
+      "language": "Idioma"
+    },
     "product": {
       "fallback": "Producto",
       "title": "{name} × Productos × Annohead"

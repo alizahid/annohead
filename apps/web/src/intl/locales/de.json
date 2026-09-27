@@ -369,6 +369,16 @@
     "items": {
       "title": "Gegenstände × Annohead"
     },
+    "landing": {
+      "changelog": {
+        "added": "Neu",
+        "changed": "Geändert",
+        "fixed": "Behoben",
+        "title": "Änderungsprotokoll"
+      },
+      "database": "Datenbank",
+      "language": "Sprache"
+    },
     "product": {
       "fallback": "Ware",
       "title": "{name} × Waren × Annohead"
