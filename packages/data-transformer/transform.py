@@ -121,8 +121,6 @@ LABEL_TABLES = [
     ("reputation", "ReputationFeature", "ReputationFeature.ReputationSpecialStates", "Name"),
     ("incident", "GeneralIncidentConfiguration", "GeneralIncidentConfiguration.IncidentTypesConfig", "Name"),
 ]
-# "Charioteers": only the Hippodrome's infotips (infotips.rda) name it, so no config table carries the line
-CHARIOTEERS_TEXT = -6913739351777274510
 # "The Mysterious Murmillo Part I" -> "The Mysterious Murmillo", as the client's English phrases do
 QUESTLINE_PART = re.compile(r"\s*(?:[–-]\s*)?\bPart\s+[IVXL]+\b.*$", re.IGNORECASE)
 # products the trading post filter doesn't list, filed under categories the game has no name for (client phrases)
@@ -849,10 +847,6 @@ class T:
                         "insert or ignore into label values(?,?,?,?)",
                         (self.enum("label_kind", kind), key, self.text(entry[field]), self.icon(icon)),
                     )
-        self.db.execute(
-            "insert into label values(?,?,?,?)",
-            (self.enum("label_kind", "item_type"), "Charioteer", CHARIOTEERS_TEXT, None),
-        )
         tables = {t: config(t) for t in ("ItemKeywords", "ItemInfotipTextFeature")}
         paths = self.db.execute("select distinct path from buff_modifier where attribute_id is null").fetchall()
         for (path,) in [*paths, ("BuildingUpgrade.AdditionalFunctionalEffect",)]:

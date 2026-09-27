@@ -64,7 +64,6 @@ export const labelKindValues = [
   'attribute',
   'diplomacy',
   'incident',
-  'item_type',
   'modifier',
   'niche',
   'racer_attribute',

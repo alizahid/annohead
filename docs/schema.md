@@ -238,9 +238,8 @@ Display names come from the game's own config tables, not hand-written ones, so 
   (`ItemBalancing.ItemConfig`), modifier (`buff_modifier.path` → `ItemKeywords`, or the infotip table
   `ItemInfotipTextFeature.BuffUpgradeTextAndIcons` for per-weapon unit stats; the path → key map is `MODIFIER_TEXTS`
   in transform.py and holds keys only), racer attribute (`RaceTrackConfig`), diplomacy state (`DiplomacyBalancing`),
-  reputation zone and state (`ReputationFeature`), incident (`GeneralIncidentConfiguration`), and item type
-  `Charioteer` ("Charioteers", a line only the Hippodrome infotips name, so `CHARIOTEERS_TEXT` holds its id). The
-  transformer warns about modifier paths without a game text.
+  reputation zone and state (`ReputationFeature`), incident (`GeneralIncidentConfiguration`). The transformer warns
+  about modifier paths without a game text.
 - `item_racer_attribute(item_guid, attribute, initial_min/max, potential_min/max)`: Hippodrome stat ranges from the
   item's `RaceTrackConfig.ItemRacerPreset` (templates default every item to the Common preset; only specialists are kept, as the Hippodrome's socket takes
   nothing else);
@@ -255,7 +254,7 @@ Display names come from the game's own config tables, not hand-written ones, so 
   product kinds and item types (items use `allocation`). Kind `unit`: see unit.
 - Hand-written text left in the client lives in `packages/db/src/client/phrases/<lang>.json`, one file per language
   typed against `en.json`: condition and item-source phrasing ("Worship {name}", "Sold by {name}"), statistics and
-  war-state names the game never shows, quest placeholders, the three unnamed product groups, a few words, and the
+  war-state names the game never shows, the singular "Charioteer" item type, quest placeholders, the three unnamed product groups, a few words, and the
   regex that strips "Part I" from a questline's first title in that language.
 - `slug` on building, product, unit, item, tech, production_chain and questline: the English name kebab-cased (questlines
   without "Part I"), so a page has the same URL path in every language and analytics groups it. Regional variants

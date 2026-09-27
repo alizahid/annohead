@@ -6,6 +6,7 @@ import {
   type Rarity,
 } from '../enums'
 import { labels } from './labels'
+import { phrases } from './phrases'
 
 /** game order, not alphabetical */
 const rarityOrder = [
@@ -39,10 +40,11 @@ export async function types({ lang }: { lang: Lang }) {
   const l = await labels(lang)
   return itemTypeValues.map((key) => ({
     key,
+    // the game only says "Charioteers", so the singular is hand-written
     name:
-      (key === 'Charioteer'
-        ? l('item_type', key)?.name
-        : l('allocation', key)?.name) ?? key,
+      key === 'Charioteer'
+        ? phrases[lang].words.charioteer
+        : (l('allocation', key)?.name ?? key),
   }))
 }
 
