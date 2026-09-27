@@ -1,4 +1,3 @@
-import { SearchTypes } from '@anno/db/search'
 import Image from 'next/image'
 import { useFormatter, useTranslations } from 'next-intl'
 
@@ -8,10 +7,11 @@ import { flags, names } from '@/intl/data'
 import { NavLink } from '@/intl/nav'
 import { changelog } from '@/lib/changelog'
 import { getIcon } from '@/lib/icons'
+import { navigation } from '@/lib/url'
 
 export default function Home() {
   const t = useTranslations('page.landing')
-  const tSearch = useTranslations('component.search')
+  const tNav = useTranslations('component.layouts.main.nav')
   const f = useFormatter()
 
   return (
@@ -20,15 +20,15 @@ export default function Home() {
         <h2 className="text-4xl">{t('database')}</h2>
 
         <div className="flex flex-col items-start gap-2">
-          {SearchTypes.map((item) => (
+          {navigation.map((section) => (
             <NavLink
-              className="flex items-center gap-4 rounded-lg p-2 outline-none ring-accent-8 transition-colors hover:bg-accent-4 focus-visible:ring-2"
-              href={`/${item}`}
-              key={item}
+              className="flex items-center gap-4 rounded-lg p-2 pr-3 outline-none ring-accent-8 transition-colors hover:bg-accent-4 focus-visible:ring-2"
+              href={section.href}
+              key={section.key}
             >
-              <Icon className="size-6" icon={getIcon(`ui.${item}`)} />
+              <Icon className="size-6" icon={getIcon(`ui.${section.key}`)} />
 
-              <span className="font-bold">{tSearch(`filters.${item}`)}</span>
+              <span className="font-bold">{tNav(section.key)}</span>
             </NavLink>
           ))}
         </div>
@@ -40,7 +40,7 @@ export default function Home() {
         <div className="flex flex-col items-start gap-2">
           {routing.locales.map((item) => (
             <NavLink
-              className="flex items-center gap-4 rounded-lg p-2 outline-none ring-accent-8 transition-colors hover:bg-accent-4 focus-visible:ring-2"
+              className="flex items-center gap-4 rounded-lg p-2 pr-3 outline-none ring-accent-8 transition-colors hover:bg-accent-4 focus-visible:ring-2"
               href="/"
               key={item}
               locale={item}

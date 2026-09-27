@@ -167,14 +167,14 @@
           "copyright": "© {year} Annohead. 無断転載を禁じます。"
         },
         "nav": {
-          "buildings": "建物",
-          "chains": "生産チェーン",
-          "items": "アイテム",
-          "products": "品物",
-          "quests": "クエスト",
-          "techs": "技術",
+          "building": "建物",
+          "chain": "生産チェーン",
+          "item": "アイテム",
+          "product": "品物",
+          "quest": "クエスト",
+          "tech": "技術",
           "title": "データベース",
-          "units": "ユニット"
+          "unit": "ユニット"
         },
         "title": "Annohead"
       }

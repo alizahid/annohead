@@ -167,14 +167,14 @@
           "copyright": "© {year} Annohead. All rights reserved."
         },
         "nav": {
-          "buildings": "건물",
-          "chains": "생산 체인",
-          "items": "아이템",
-          "products": "물품",
-          "quests": "퀘스트",
-          "techs": "기술",
+          "building": "건물",
+          "chain": "생산 체인",
+          "item": "아이템",
+          "product": "물품",
+          "quest": "퀘스트",
+          "tech": "기술",
           "title": "데이터베이스",
-          "units": "유닛"
+          "unit": "유닛"
         },
         "title": "Annohead"
       }

@@ -167,14 +167,14 @@
           "copyright": "© {year} Annohead。保留所有權利。"
         },
         "nav": {
-          "buildings": "建築",
-          "chains": "生產鏈",
-          "items": "物品",
-          "products": "貨物",
-          "quests": "任務",
-          "techs": "科技",
+          "building": "建築",
+          "chain": "生產鏈",
+          "item": "物品",
+          "product": "貨物",
+          "quest": "任務",
+          "tech": "科技",
           "title": "資料庫",
-          "units": "單位"
+          "unit": "單位"
         },
         "title": "Annohead"
       }

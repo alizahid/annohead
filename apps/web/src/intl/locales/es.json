@@ -167,14 +167,14 @@
           "copyright": "© {year} Annohead. Todos los derechos reservados."
         },
         "nav": {
-          "buildings": "Edificios",
-          "chains": "Cadenas de producción",
-          "items": "Objetos",
-          "products": "Productos",
-          "quests": "Misiones",
-          "techs": "Tecnologías",
+          "building": "Edificios",
+          "chain": "Cadenas de producción",
+          "item": "Objetos",
+          "product": "Productos",
+          "quest": "Misiones",
+          "tech": "Tecnologías",
           "title": "Base de datos",
-          "units": "Unidades"
+          "unit": "Unidades"
         },
         "title": "Annohead"
       }

@@ -167,14 +167,14 @@
           "copyright": "© {year} Annohead。保留所有权利。"
         },
         "nav": {
-          "buildings": "建筑",
-          "chains": "生产链",
-          "items": "物品",
-          "products": "货物",
-          "quests": "任务",
-          "techs": "科技",
+          "building": "建筑",
+          "chain": "生产链",
+          "item": "物品",
+          "product": "货物",
+          "quest": "任务",
+          "tech": "科技",
           "title": "数据库",
-          "units": "单位"
+          "unit": "单位"
         },
         "title": "Annohead"
       }

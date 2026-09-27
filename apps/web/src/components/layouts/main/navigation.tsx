@@ -4,6 +4,7 @@ import { cn } from 'cn'
 import { useTranslations } from 'next-intl'
 
 import { NavLink, usePathname } from '@/intl/nav'
+import { navigation } from '@/lib/url'
 
 type Props = {
   className?: string
@@ -14,44 +15,6 @@ export function Navigation({ className }: Props) {
 
   const t = useTranslations('component.layouts.main.nav')
 
-  const sections = [
-    {
-      href: '/buildings',
-      icon: 'building',
-      key: 'buildings',
-    },
-    {
-      href: '/chains',
-      icon: 'chain',
-      key: 'chains',
-    },
-    {
-      href: '/items',
-      icon: 'item',
-      key: 'items',
-    },
-    {
-      href: '/products',
-      icon: 'product',
-      key: 'products',
-    },
-    {
-      href: '/quests',
-      icon: 'quest',
-      key: 'quests',
-    },
-    {
-      href: '/techs',
-      icon: 'tech',
-      key: 'techs',
-    },
-    {
-      href: '/units',
-      icon: 'unit',
-      key: 'units',
-    },
-  ] as const
-
   return (
     <nav
       className={cn(
@@ -59,7 +22,7 @@ export function Navigation({ className }: Props) {
         className,
       )}
     >
-      {sections.map((section) => (
+      {navigation.map((section) => (
         <NavLink
           className={cn(
             'flex h-10 items-center rounded-lg px-3 font-medium leading-tight outline-none ring-accent-8 transition-colors hover:bg-accent-4 focus-visible:ring-2',

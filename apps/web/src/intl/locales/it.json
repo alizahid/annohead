@@ -167,14 +167,14 @@
           "copyright": "© {year} Annohead. Tutti i diritti riservati."
         },
         "nav": {
-          "buildings": "Edifici",
-          "chains": "Catene di produzione",
-          "items": "Oggetti",
-          "products": "Merci",
-          "quests": "Missioni",
-          "techs": "Tecnologie",
+          "building": "Edifici",
+          "chain": "Catene di produzione",
+          "item": "Oggetti",
+          "product": "Merci",
+          "quest": "Missioni",
+          "tech": "Tecnologie",
           "title": "Database",
-          "units": "Unità"
+          "unit": "Unità"
         },
         "title": "Annohead"
       }

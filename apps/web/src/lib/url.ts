@@ -1,6 +1,36 @@
 import { type SearchType } from '@anno/db/search'
 
-/** `slug` is the English one the DB stores, so a page has the same path in every language */
+export const navigation = [
+  {
+    href: '/buildings',
+    key: 'building',
+  },
+  {
+    href: '/chains',
+    key: 'chain',
+  },
+  {
+    href: '/items',
+    key: 'item',
+  },
+  {
+    href: '/products',
+    key: 'product',
+  },
+  {
+    href: '/quests',
+    key: 'quest',
+  },
+  {
+    href: '/techs',
+    key: 'tech',
+  },
+  {
+    href: '/units',
+    key: 'unit',
+  },
+] as const
+
 export function getUrl(type: SearchType, id: number, slug?: string | null) {
   const base =
     type === 'building'
