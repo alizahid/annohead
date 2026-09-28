@@ -26,6 +26,7 @@ export default async function Page({
   const [dlcs, types, niches, rarities, items] = await Promise.all([
     anno.dlc.list({
       lang,
+      of: 'item',
     }),
     anno.items.types({
       lang,

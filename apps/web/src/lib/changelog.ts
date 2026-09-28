@@ -16,6 +16,7 @@ export const changelog: Array<Release> = [
     changed: [
       'New landing page with search, every section and the language picker up front',
       'The chain calculator rounds input buildings up to how many you need to place, with the exact ratio beside it. Each building has its icon and links to its page',
+      'DLC filters only list DLCs with something on that page, so the cosmetic packs no longer show up as empty options',
     ],
     date: new Date('2026-09-28'),
   },

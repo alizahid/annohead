@@ -26,6 +26,7 @@ export default async function Page({
   const [dlcs, regions, quests] = await Promise.all([
     anno.dlc.list({
       lang,
+      of: 'questline',
     }),
     anno.regions.list({
       lang,

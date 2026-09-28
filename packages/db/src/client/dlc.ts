@@ -1,15 +1,26 @@
-import { asc } from 'drizzle-orm'
+import { asc, inArray } from 'drizzle-orm'
 
 import { db } from '../db'
 import { type Lang } from '../enums'
-import { dlc as dlcTable } from '../schema'
+import { building, dlc as dlcTable, item, questline, tech } from '../schema'
 import { localized, on } from './shared'
+
+// products and chains take their DLC from the producing building
+const owners = {
+  building,
+  item,
+  questline,
+  tech,
+}
 
 export type DlcFilter = {
   lang: Lang
+  /** only DLCs that own at least one row of this kind, so empty packs never show up as filters */
+  of: keyof typeof owners
 }
 
-async function list({ lang }: DlcFilter) {
+async function list({ lang, of }: DlcFilter) {
+  const owner = owners[of]
   const nameT = localized('name')
   const rows = await db
     .select({
@@ -20,6 +31,12 @@ async function list({ lang }: DlcFilter) {
     })
     .from(dlcTable)
     .leftJoin(nameT, on(nameT, dlcTable.nameText, lang))
+    .where(
+      inArray(
+        dlcTable.guid,
+        db.selectDistinct({ guid: owner.dlcGuid }).from(owner),
+      ),
+    )
     .orderBy(asc(dlcTable.guid))
   return rows
 }

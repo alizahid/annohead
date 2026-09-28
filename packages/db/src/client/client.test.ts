@@ -209,6 +209,7 @@ test.each(['en', 'de'] as const)(
   async (lang) => {
     const dlcs = await anno.dlc.list({
       lang,
+      of: 'building',
     })
     const building = await anno.buildings.get({
       id: 152_714,
@@ -224,6 +225,18 @@ test.each(['en', 'de'] as const)(
     })
     expect(baseGameBuilding).not.toBeNull()
     expect(baseGameBuilding?.dlc).toBeNull()
+  },
+)
+
+test.each(['building', 'item', 'questline', 'tech'] as const)(
+  'DLC filters for %s skip packs without content',
+  async (of) => {
+    const dlcs = await anno.dlc.list({
+      lang: 'en',
+      of,
+    })
+    // 67_906-67_908 are the cosmetic packs, which only add ornaments
+    expect(dlcs.map((d) => d.guid)).toEqual([67_902, 67_903])
   },
 )
 

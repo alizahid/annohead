@@ -26,6 +26,7 @@ export default async function Page({
   const [dlcs, regions, types, chains] = await Promise.all([
     anno.dlc.list({
       lang,
+      of: 'building',
     }),
     anno.regions.list({
       lang,

@@ -8,6 +8,7 @@ export async function fetchChainData(locale: string) {
   const [dlcs, regions, types, chains] = await Promise.all([
     anno.dlc.list({
       lang,
+      of: 'building',
     }),
     anno.regions.list({
       lang,
