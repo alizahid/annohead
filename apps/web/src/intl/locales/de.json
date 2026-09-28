@@ -96,6 +96,10 @@
       }
     },
     "chains": {
+      "all": {
+        "empty": "Nichts gefunden",
+        "title": "Rechner"
+      },
       "calculator": {
         "baseProductivity": "Grundproduktivität",
         "buildings": "× {required, number, required}",
@@ -174,6 +178,7 @@
         },
         "nav": {
           "building": "Gebäude",
+          "calculator": "Rechner",
           "chain": "Produktionsketten",
           "item": "Gegenstände",
           "product": "Waren",
@@ -360,6 +365,9 @@
     },
     "buildings": {
       "title": "Gebäude × Annohead"
+    },
+    "calculator": {
+      "title": "Produktionskettenrechner × Annohead"
     },
     "chain": {
       "fallback": "Produktionskette",

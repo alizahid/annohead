@@ -96,6 +96,10 @@
       }
     },
     "chains": {
+      "all": {
+        "empty": "Nic nie znaleziono",
+        "title": "Kalkulator"
+      },
       "calculator": {
         "baseProductivity": "Bazowa wydajność",
         "buildings": "× {required, number, required}",
@@ -174,6 +178,7 @@
         },
         "nav": {
           "building": "Budynki",
+          "calculator": "Kalkulator",
           "chain": "Łańcuchy produkcyjne",
           "item": "Przedmioty",
           "product": "Towary",
@@ -360,6 +365,9 @@
     },
     "buildings": {
       "title": "Budynki × Annohead"
+    },
+    "calculator": {
+      "title": "Kalkulator łańcuchów produkcyjnych × Annohead"
     },
     "chain": {
       "fallback": "Łańcuch",

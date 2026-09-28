@@ -96,6 +96,10 @@
       }
     },
     "chains": {
+      "all": {
+        "empty": "找不到結果",
+        "title": "計算器"
+      },
       "calculator": {
         "baseProductivity": "基礎生產效率",
         "buildings": "× {required, number, required}",
@@ -174,6 +178,7 @@
         },
         "nav": {
           "building": "建築",
+          "calculator": "計算器",
           "chain": "生產鏈",
           "item": "物品",
           "product": "貨物",
@@ -360,6 +365,9 @@
     },
     "buildings": {
       "title": "建築 × Annohead"
+    },
+    "calculator": {
+      "title": "生產鏈計算器 × Annohead"
     },
     "chain": {
       "fallback": "生產鏈",

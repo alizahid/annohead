@@ -96,6 +96,10 @@
       }
     },
     "chains": {
+      "all": {
+        "empty": "Nothing found",
+        "title": "Calculator"
+      },
       "calculator": {
         "baseProductivity": "Base productivity",
         "buildings": "× {required, number, required}",
@@ -174,6 +178,7 @@
         },
         "nav": {
           "building": "Buildings",
+          "calculator": "Calculator",
           "chain": "Production chains",
           "item": "Items",
           "product": "Goods",
@@ -360,6 +365,9 @@
     },
     "buildings": {
       "title": "Buildings × Annohead"
+    },
+    "calculator": {
+      "title": "Production chain calculator × Annohead"
     },
     "chain": {
       "fallback": "Chain",

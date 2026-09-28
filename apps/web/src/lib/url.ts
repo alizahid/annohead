@@ -2,6 +2,10 @@ import { type SearchType } from '@anno/db/search'
 
 export const navigation = [
   {
+    href: '/calculator',
+    key: 'calculator',
+  },
+  {
     href: '/buildings',
     key: 'building',
   },

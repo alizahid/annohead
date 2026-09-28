@@ -4,8 +4,11 @@ import { db } from '../db'
 import { type Lang } from '../enums'
 import {
   building,
+  categoryMember,
   dlc,
   factory,
+  factoryOutput,
+  product,
   productionChain,
   productionChainNode,
   region,
@@ -41,6 +44,7 @@ async function queryChains(f: ChainFilter & Page, id?: number) {
   const bName = localized('b_name')
   const nName = localized('n_name')
   const dlcT = localized('dlc_name')
+  const pName = localized('p_name')
   const where = and(
     id === undefined ? undefined : eq(productionChain.guid, id),
     f.regions?.length
@@ -76,6 +80,13 @@ async function queryChains(f: ChainFilter & Page, id?: number) {
         guid: productionChain.guid,
         icon: productionChain.icon,
         name: nameT.value,
+        /** what the final building makes; no building makes more than one product */
+        product: {
+          guid: product.guid,
+          icon: product.icon,
+          name: pName.value,
+          slug: product.slug,
+        },
         region: regionColumns,
         slug: productionChain.slug,
       })
@@ -87,41 +98,54 @@ async function queryChains(f: ChainFilter & Page, id?: number) {
       .leftJoin(factory, eq(factory.buildingGuid, building.guid))
       .leftJoin(dlc, eq(dlc.guid, building.dlcGuid))
       .leftJoin(dlcT, on(dlcT, dlc.nameText, f.lang))
+      .leftJoin(factoryOutput, eq(factoryOutput.buildingGuid, building.guid))
+      .leftJoin(product, eq(product.guid, factoryOutput.productGuid))
+      .leftJoin(pName, on(pName, product.nameText, f.lang))
       .where(where)
       .orderBy(asc(nameT.value), asc(productionChain.guid))
       .limit(limit)
       .offset(offset),
   ])
   const guids = rows.map((r) => r.guid)
-  const nodes = await db
-    .select({
-      baseProductivity: factory.baseProductivity,
-      chainGuid: productionChainNode.chainGuid,
-      cycleTime: factory.cycleTime,
-      guid: building.guid,
-      icon: building.icon,
-      id: productionChainNode.id,
-      name: nName.value,
-      needsFuel: factory.needsFuel,
-      parentId: productionChainNode.parentId,
-      region: regionColumns,
-      slug: building.slug,
-      tier: productionChainNode.tier,
-    })
-    .from(productionChainNode)
-    .innerJoin(building, eq(building.guid, productionChainNode.buildingGuid))
-    .leftJoin(nName, on(nName, building.nameText, f.lang))
-    .leftJoin(region, eq(region.id, building.regionId))
-    .leftJoin(factory, eq(factory.buildingGuid, building.guid))
-    .where(inArray(productionChainNode.chainGuid, guids))
-    .orderBy(asc(productionChainNode.tier), asc(productionChainNode.id))
+  const [nodes, members] = await Promise.all([
+    db
+      .select({
+        baseProductivity: factory.baseProductivity,
+        chainGuid: productionChainNode.chainGuid,
+        cycleTime: factory.cycleTime,
+        guid: building.guid,
+        icon: building.icon,
+        id: productionChainNode.id,
+        name: nName.value,
+        needsFuel: factory.needsFuel,
+        parentId: productionChainNode.parentId,
+        region: regionColumns,
+        slug: building.slug,
+        tier: productionChainNode.tier,
+      })
+      .from(productionChainNode)
+      .innerJoin(building, eq(building.guid, productionChainNode.buildingGuid))
+      .leftJoin(nName, on(nName, building.nameText, f.lang))
+      .leftJoin(region, eq(region.id, building.regionId))
+      .leftJoin(factory, eq(factory.buildingGuid, building.guid))
+      .where(inArray(productionChainNode.chainGuid, guids))
+      .orderBy(asc(productionChainNode.tier), asc(productionChainNode.id)),
+    db
+      .select()
+      .from(categoryMember)
+      .where(inArray(categoryMember.assetGuid, guids)),
+  ])
   const n = groupBy(nodes, 'chainGuid')
+  const m = groupBy(members, 'assetGuid')
   return {
     pages: Math.ceil(total / limit),
     rows: rows.map((c) => ({
       ...c,
       dlc: c.dlc?.guid ? c.dlc : null,
       nodes: n(c.guid),
+      product: c.product?.guid ? c.product : null,
+      /** menu tabs (category guids) the chain is filed under */
+      types: m(c.guid).map((x) => x.categoryGuid),
     })),
     total,
   }

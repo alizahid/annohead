@@ -96,6 +96,10 @@
       }
     },
     "chains": {
+      "all": {
+        "empty": "Nessun risultato",
+        "title": "Calcolatore"
+      },
       "calculator": {
         "baseProductivity": "Produttività base",
         "buildings": "× {required, number, required}",
@@ -174,6 +178,7 @@
         },
         "nav": {
           "building": "Edifici",
+          "calculator": "Calcolatore",
           "chain": "Catene di produzione",
           "item": "Oggetti",
           "product": "Merci",
@@ -360,6 +365,9 @@
     },
     "buildings": {
       "title": "Edifici × Annohead"
+    },
+    "calculator": {
+      "title": "Calcolatore di catene di produzione × Annohead"
     },
     "chain": {
       "fallback": "Catena",

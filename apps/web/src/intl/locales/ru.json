@@ -96,6 +96,10 @@
       }
     },
     "chains": {
+      "all": {
+        "empty": "Ничего не найдено",
+        "title": "Калькулятор"
+      },
       "calculator": {
         "baseProductivity": "Базовая продуктивность",
         "buildings": "× {required, number, required}",
@@ -174,6 +178,7 @@
         },
         "nav": {
           "building": "Постройки",
+          "calculator": "Калькулятор",
           "chain": "Производственные цепочки",
           "item": "Объекты",
           "product": "Товары",
@@ -360,6 +365,9 @@
     },
     "buildings": {
       "title": "Постройки × Annohead"
+    },
+    "calculator": {
+      "title": "Калькулятор производственных цепочек × Annohead"
     },
     "chain": {
       "fallback": "Цепочка",

@@ -96,6 +96,10 @@
       }
     },
     "chains": {
+      "all": {
+        "empty": "見つかりませんでした",
+        "title": "計算機"
+      },
       "calculator": {
         "baseProductivity": "基本生産性",
         "buildings": "× {required, number, required}",
@@ -174,6 +178,7 @@
         },
         "nav": {
           "building": "建物",
+          "calculator": "計算機",
           "chain": "生産チェーン",
           "item": "アイテム",
           "product": "品物",
@@ -360,6 +365,9 @@
     },
     "buildings": {
       "title": "建物 × Annohead"
+    },
+    "calculator": {
+      "title": "生産チェーン計算機 × Annohead"
     },
     "chain": {
       "fallback": "チェーン",

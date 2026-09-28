@@ -96,6 +96,10 @@
       }
     },
     "chains": {
+      "all": {
+        "empty": "결과 없음",
+        "title": "계산기"
+      },
       "calculator": {
         "baseProductivity": "기본 생산성",
         "buildings": "× {required, number, required}",
@@ -174,6 +178,7 @@
         },
         "nav": {
           "building": "건물",
+          "calculator": "계산기",
           "chain": "생산 체인",
           "item": "아이템",
           "product": "물품",
@@ -360,6 +365,9 @@
     },
     "buildings": {
       "title": "건물 × Annohead"
+    },
+    "calculator": {
+      "title": "생산 체인 계산기 × Annohead"
     },
     "chain": {
       "fallback": "체인",

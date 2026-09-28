@@ -11,17 +11,18 @@ import { FiltersCard } from '../common/filters'
 
 type Props = {
   dlcs: Dlcs
-  types: ChainTypes
+  refresh?: boolean
   regions: Regions
+  types: ChainTypes
 }
 
-export function ChainFiltersCard({ dlcs, types, regions }: Props) {
+export function ChainFiltersCard({ dlcs, refresh, regions, types }: Props) {
   const t = useTranslations('component.chains.filters')
 
   const filters = useQueryStates(chainFilters)
 
   return (
-    <div className="grid gap-8 md:grid-cols-4 lg:flex lg:w-64 lg:flex-col">
+    <div className="grid gap-8 sm:grid-cols-3 lg:flex lg:w-64 lg:flex-col">
       <FiltersCard
         filters={filters}
         id="regions"
@@ -30,6 +31,7 @@ export function ChainFiltersCard({ dlcs, types, regions }: Props) {
           label: item.name,
           value: item.id,
         }))}
+        refresh={refresh}
         title={t('regions')}
       />
 
@@ -41,6 +43,7 @@ export function ChainFiltersCard({ dlcs, types, regions }: Props) {
           label: item.name,
           value: item.guid,
         }))}
+        refresh={refresh}
         title={t('dlcs')}
       />
 
@@ -52,6 +55,7 @@ export function ChainFiltersCard({ dlcs, types, regions }: Props) {
           label: item.name,
           value: item.guid,
         }))}
+        refresh={refresh}
         title={t('types')}
       />
     </div>

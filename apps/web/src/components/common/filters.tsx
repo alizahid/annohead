@@ -18,6 +18,7 @@ type Props<Type extends UseQueryStatesKeysMap> = {
   filters: UseQueryStatesReturn<Type>
   id: keyof Type
   items: Array<Item>
+  refresh?: boolean
   title: string
 }
 
@@ -25,6 +26,7 @@ export function FiltersCard<Type extends UseQueryStatesKeysMap>({
   filters,
   id,
   items,
+  refresh = true,
   title,
 }: Props<Type>) {
   const router = useRouter()
@@ -45,7 +47,9 @@ export function FiltersCard<Type extends UseQueryStatesKeysMap>({
             page: null,
           } as unknown as Parameters<typeof set>[0])
 
-          router.refresh()
+          if (refresh) {
+            router.refresh()
+          }
         }}
         value={value ? value.map(String) : []}
       >

@@ -96,6 +96,10 @@
       }
     },
     "chains": {
+      "all": {
+        "empty": "Nada encontrado",
+        "title": "Calculadora"
+      },
       "calculator": {
         "baseProductivity": "Produtividade base",
         "buildings": "× {required, number, required}",
@@ -174,6 +178,7 @@
         },
         "nav": {
           "building": "Construções",
+          "calculator": "Calculadora",
           "chain": "Cadeias de produção",
           "item": "Itens",
           "product": "Mercadorias",
@@ -360,6 +365,9 @@
     },
     "buildings": {
       "title": "Construções × Annohead"
+    },
+    "calculator": {
+      "title": "Calculadora de cadeias de produção × Annohead"
     },
     "chain": {
       "fallback": "Cadeia",

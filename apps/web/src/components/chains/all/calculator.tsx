@@ -1,6 +1,3 @@
-'use client'
-
-import { type Chain } from '@anno/db/client'
 import { NumberField } from '@base-ui/react/number-field'
 import {
   ArrowsHorizontalIcon,
@@ -10,13 +7,15 @@ import {
 import { useFormatter, useTranslations } from 'next-intl'
 import { useState } from 'react'
 
+import { Icon } from '@/components/common/icon'
+import { DlcCard } from '@/components/shared/dlc'
+import { RegionCard } from '@/components/shared/region'
 import { NavLink } from '@/intl/nav'
+import { type ChainData } from '@/lib/chains'
 import { getUrl } from '@/lib/url'
 
-import { Icon } from '../common/icon'
-
 type Props = {
-  chain: Chain
+  chain: ChainData['chains'][number]
 }
 
 export function Calculator({ chain }: Props) {
@@ -34,7 +33,21 @@ export function Calculator({ chain }: Props) {
 
   return (
     <div className="flex flex-col gap-4 rounded-lg bg-gray-1 p-4">
-      <div className="font-bold text-sm">{t('title')}</div>
+      <div className="flex gap-4">
+        <div className="flex min-w-0 flex-1 gap-2 rounded-sm outline-none ring-accent-8 focus-visible:ring-2">
+          {chain.icon ? <Icon className="shrink-0" icon={chain.icon} /> : null}
+
+          <span className="truncate font-bold text-2xl">{chain.name}</span>
+        </div>
+
+        {chain.region?.key || chain.dlc?.key ? (
+          <div className="flex gap-2">
+            <RegionCard region={chain.region?.key} />
+
+            <DlcCard dlc={chain.dlc?.key} />
+          </div>
+        ) : null}
+      </div>
 
       <NumberField.Root
         className="flex flex-1 items-center justify-between gap-4"
@@ -84,49 +97,42 @@ export function Calculator({ chain }: Props) {
         </NumberField.Group>
       </NumberField.Root>
 
-      <div className="flex justify-between gap-4">
-        <div>{t('cycleTime')}</div>
+      {chain.product ? (
+        <div className="flex justify-between gap-4">
+          <NavLink
+            className="flex min-w-0 items-center gap-2 rounded-sm outline-none ring-accent-8 focus-visible:ring-2"
+            href={getUrl('product', chain.product.guid, chain.product.slug)}
+          >
+            {chain.product.icon ? (
+              <Icon className="size-6 shrink-0" icon={chain.product.icon} />
+            ) : null}
 
-        {chain.building?.cycleTime ? (
+            <span className="truncate">{chain.product.name}</span>
+          </NavLink>
+
           <div className="tabular-nums">
-            {f.number(chain.building.cycleTime, {
-              style: 'unit',
-              unit: 'second',
-            })}
-          </div>
-        ) : null}
-      </div>
-
-      <div className="flex justify-between gap-4">
-        <div>{t('output')}</div>
-
-        <div className="tabular-nums">
-          {t(
-            'tons',
-            {
-              tons: output,
-            },
-            {
-              number: {
-                tons: {
-                  maximumFractionDigits: 2,
+            {t(
+              'tons',
+              {
+                tons: output,
+              },
+              {
+                number: {
+                  tons: {
+                    maximumFractionDigits: 2,
+                  },
                 },
               },
-            },
-          )}
+            )}
+          </div>
         </div>
-      </div>
-
-      <div className="mt-4 font-bold text-sm">{t('inputs')}</div>
+      ) : null}
 
       <div className="flex flex-col gap-2">
         {chain.nodes
           .filter((node) => Boolean(node.parentId))
           .map((node) => {
-            const exact =
-              (output * (node.cycleTime ?? 60)) /
-              60 /
-              ((node.baseProductivity ?? 100) / 100)
+            const exact = (output * (node.time ?? 60)) / 60 / (100 / 100)
 
             const place = Math.ceil(exact - 1e-9)
 

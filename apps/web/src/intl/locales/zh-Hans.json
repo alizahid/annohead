@@ -96,6 +96,10 @@
       }
     },
     "chains": {
+      "all": {
+        "empty": "未找到结果",
+        "title": "计算器"
+      },
       "calculator": {
         "baseProductivity": "基础生产力",
         "buildings": "× {required, number, required}",
@@ -174,6 +178,7 @@
         },
         "nav": {
           "building": "建筑",
+          "calculator": "计算器",
           "chain": "生产链",
           "item": "物品",
           "product": "货物",
@@ -360,6 +365,9 @@
     },
     "buildings": {
       "title": "建筑 × Annohead"
+    },
+    "calculator": {
+      "title": "生产链计算器 × Annohead"
     },
     "chain": {
       "fallback": "生产链",
