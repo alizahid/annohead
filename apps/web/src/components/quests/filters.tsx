@@ -20,7 +20,7 @@ export function QuestFiltersCard({ dlcs, regions }: Props) {
   const filters = useQueryStates(questFilters)
 
   return (
-    <div className="grid gap-8 md:grid-cols-4 lg:flex lg:w-64 lg:flex-col">
+    <div className="grid gap-8 sm:grid-cols-2 lg:flex lg:w-64 lg:flex-col">
       <FiltersCard
         filters={filters}
         id="regions"

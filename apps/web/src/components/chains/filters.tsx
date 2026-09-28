@@ -22,7 +22,7 @@ export function ChainFiltersCard({ dlcs, refresh, regions, types }: Props) {
   const filters = useQueryStates(chainFilters)
 
   return (
-    <div className="grid gap-8 sm:grid-cols-3 lg:flex lg:w-64 lg:flex-col">
+    <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-3 lg:flex lg:w-64 lg:flex-col">
       <FiltersCard
         filters={filters}
         id="regions"

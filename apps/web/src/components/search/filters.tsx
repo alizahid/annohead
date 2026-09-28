@@ -19,7 +19,7 @@ export function SearchFiltersCard() {
 
   return (
     <CheckboxGroup
-      className="flex flex-col gap-2 lg:flex-row"
+      className="grid gap-4 sm:grid-cols-2 md:grid-cols-4 xl:grid-cols-7"
       onValueChange={async (next) => {
         await setFilters({
           page: null,

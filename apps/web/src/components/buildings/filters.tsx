@@ -29,7 +29,7 @@ export function BuildingFiltersCard({ dlcs, types, regions, tiers }: Props) {
   const filters = useQueryStates(buildingFilters)
 
   return (
-    <div className="grid gap-8 md:grid-cols-4 lg:flex lg:w-64 lg:flex-col">
+    <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-4 lg:flex lg:w-64 lg:flex-col">
       <FiltersCard
         filters={filters}
         id="regions"
