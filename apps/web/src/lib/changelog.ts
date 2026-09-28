@@ -10,6 +10,7 @@ export const changelog: Array<Release> = [
     added: ['Sign in with your Steam account', 'A page for the changelog'],
     changed: [
       'New landing page with search, every section and the language picker up front',
+      'The chain calculator rounds input buildings up to how many you need to place, with the exact ratio beside it. Each building has its icon and links to its page',
     ],
     date: new Date('2026-09-28'),
   },
