@@ -2,6 +2,9 @@
   "annohead": "Annohead",
   "common": {
     "dlc": {
+      "CDLC1": "Marvellous Mosaic Pack",
+      "CDLC2": "Blooming Cities Pack",
+      "CDLC3": "Echoes of Kassandra Pack",
       "DLC01_Prophecies_of_Ash": "Prophecies of Ash",
       "DLC02_The_Hippodrome": "The Hippodrome"
     },
@@ -185,9 +188,28 @@
           "quest": "Quests",
           "tech": "Technologies",
           "title": "Database",
-          "unit": "Units"
+          "unit": "Units",
+          "ornament": "Ornaments"
         },
         "title": "Annohead"
+      }
+    },
+    "ornaments": {
+      "filters": {
+        "dlcs": "DLC",
+        "regions": "Region",
+        "types": "Type"
+      },
+      "list": {
+        "empty": "Nothing found",
+        "title": "Ornaments"
+      },
+      "page": {
+        "costs": "Costs",
+        "stats": {
+          "title": "Other",
+          "value": "Ornament value"
+        }
       }
     },
     "products": {
@@ -269,7 +291,8 @@
           "product": "Product",
           "quest": "Quest",
           "tech": "Technology",
-          "unit": "Unit"
+          "unit": "Unit",
+          "ornament": "Ornament"
         }
       },
       "filters": {
@@ -280,7 +303,8 @@
         "product": "Products",
         "quest": "Quests",
         "tech": "Technologies",
-        "unit": "Units"
+        "unit": "Units",
+        "ornament": "Ornaments"
       },
       "page": {
         "empty": "Nothing found",
@@ -394,9 +418,16 @@
     "landing": {
       "annohead": "Annohead",
       "changelog": "Changelog",
-      "description": "Anno 117 database with information about buildings, production chains, items, specialists, captains, goods, quests, technologies, and units.",
+      "description": "Anno 117 database with information about buildings, production chains, items, specialists, captains, goods, quests, technologies, units, and ornaments.",
       "title": "Database for Anno 117 × Annohead",
       "updated": "Updated {updated, date, medium}"
+    },
+    "ornament": {
+      "fallback": "Ornament",
+      "title": "{name} × Ornaments × Annohead"
+    },
+    "ornaments": {
+      "title": "Ornaments × Annohead"
     },
     "product": {
       "fallback": "Product",

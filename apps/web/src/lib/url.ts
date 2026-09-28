@@ -33,6 +33,10 @@ export const navigation = [
     href: '/units',
     key: 'unit',
   },
+  {
+    href: '/ornaments',
+    key: 'ornament',
+  },
 ] as const
 
 export function getUrl(type: SearchType, id: number, slug?: string | null) {
@@ -49,7 +53,9 @@ export function getUrl(type: SearchType, id: number, slug?: string | null) {
               ? 'quests'
               : type === 'unit'
                 ? 'units'
-                : 'techs'
+                : type === 'ornament'
+                  ? 'ornaments'
+                  : 'techs'
 
   return `/${base}/${id}/${slug ?? type}`
 }

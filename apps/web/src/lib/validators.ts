@@ -87,6 +87,17 @@ export const parseProductFilters = createLoader(productFilters)
 
 export type ProductFilters = Awaited<ReturnType<typeof parseProductFilters>>
 
+export const ornamentFilters = {
+  dlcs: parseAsArrayOf(parseAsInteger),
+  page: parseAsInteger,
+  regions: parseAsArrayOf(parseAsInteger),
+  types: parseAsArrayOf(parseAsInteger),
+}
+
+export const parseOrnamentFilters = createLoader(ornamentFilters)
+
+export type OrnamentFilters = Awaited<ReturnType<typeof parseOrnamentFilters>>
+
 export const questFilters = {
   dlcs: parseAsArrayOf(parseAsInteger),
   page: parseAsInteger,

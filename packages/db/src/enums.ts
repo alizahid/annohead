@@ -3,7 +3,12 @@
 export const allocationValues = ['None', 'Ship', 'Villa'] as const
 export type Allocation = (typeof allocationValues)[number]
 
-export const categoryKindValues = ['menu', 'product', 'unit'] as const
+export const categoryKindValues = [
+  'menu',
+  'ornament',
+  'product',
+  'unit',
+] as const
 export type CategoryKind = (typeof categoryKindValues)[number]
 
 export const conditionTemplateValues = [
@@ -149,6 +154,9 @@ export const langValues = [
 export type Lang = (typeof langValues)[number]
 
 export const dlcValues = [
+  'CDLC1',
+  'CDLC2',
+  'CDLC3',
   'DLC01_Prophecies_of_Ash',
   'DLC02_The_Hippodrome',
 ] as const

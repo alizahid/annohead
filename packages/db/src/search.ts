@@ -6,6 +6,7 @@ export const SearchTypes = [
   'quest',
   'chain',
   'unit',
+  'ornament',
 ] as const
 
 export type SearchType = (typeof SearchTypes)[number]

@@ -2,6 +2,9 @@
   "annohead": "Annohead",
   "common": {
     "dlc": {
+      "CDLC1": "Pack Mosaicos maravillosos",
+      "CDLC2": "Pack Ciudades florecientes",
+      "CDLC3": "Pack Ecos de Kassandra",
       "DLC01_Prophecies_of_Ash": "Profecías cinéreas",
       "DLC02_The_Hippodrome": "El hipódromo"
     },
@@ -185,9 +188,28 @@
           "quest": "Misiones",
           "tech": "Tecnologías",
           "title": "Base de datos",
-          "unit": "Unidades"
+          "unit": "Unidades",
+          "ornament": "Adornos"
         },
         "title": "Annohead"
+      }
+    },
+    "ornaments": {
+      "filters": {
+        "dlcs": "DLC",
+        "regions": "Región",
+        "types": "Tipo"
+      },
+      "list": {
+        "empty": "No se encontró nada",
+        "title": "Adornos"
+      },
+      "page": {
+        "costs": "Costes",
+        "stats": {
+          "title": "Otros",
+          "value": "Valor de adorno"
+        }
       }
     },
     "products": {
@@ -269,7 +291,8 @@
           "product": "Producto",
           "quest": "Misión",
           "tech": "Tecnología",
-          "unit": "Unidad"
+          "unit": "Unidad",
+          "ornament": "Adorno"
         }
       },
       "filters": {
@@ -280,7 +303,8 @@
         "product": "Productos",
         "quest": "Misiones",
         "tech": "Tecnologías",
-        "unit": "Unidades"
+        "unit": "Unidades",
+        "ornament": "Adornos"
       },
       "page": {
         "empty": "No se encontró nada",
@@ -394,9 +418,16 @@
     "landing": {
       "annohead": "Annohead",
       "changelog": "Registro de cambios",
-      "description": "Base de datos de Anno 117 con información sobre edificios, cadenas de producción, objetos, especialistas, capitanes, productos, misiones, tecnologías y unidades.",
+      "description": "Base de datos de Anno 117 con información sobre edificios, cadenas de producción, objetos, especialistas, capitanes, productos, misiones, tecnologías, unidades y adornos.",
       "title": "Base de datos de Anno 117 × Annohead",
       "updated": "Actualizado el {updated, date, medium}"
+    },
+    "ornament": {
+      "fallback": "Adorno",
+      "title": "{name} × Adornos × Annohead"
+    },
+    "ornaments": {
+      "title": "Adornos × Annohead"
     },
     "product": {
       "fallback": "Producto",

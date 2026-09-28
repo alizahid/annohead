@@ -2,6 +2,9 @@
   "annohead": "Annohead",
   "common": {
     "dlc": {
+      "CDLC1": "华丽马赛克组合包",
+      "CDLC2": "繁花之城包",
+      "CDLC3": "卡珊德拉的回响组合包",
       "DLC01_Prophecies_of_Ash": "灰烬的预言",
       "DLC02_The_Hippodrome": "赛马场"
     },
@@ -185,9 +188,28 @@
           "quest": "任务",
           "tech": "科技",
           "title": "数据库",
-          "unit": "单位"
+          "unit": "单位",
+          "ornament": "装饰"
         },
         "title": "Annohead"
+      }
+    },
+    "ornaments": {
+      "filters": {
+        "dlcs": "DLC",
+        "regions": "地区",
+        "types": "类型"
+      },
+      "list": {
+        "empty": "未找到结果",
+        "title": "装饰"
+      },
+      "page": {
+        "costs": "费用",
+        "stats": {
+          "title": "其他",
+          "value": "装饰值"
+        }
       }
     },
     "products": {
@@ -269,7 +291,8 @@
           "product": "货物",
           "quest": "任务",
           "tech": "科技",
-          "unit": "单位"
+          "unit": "单位",
+          "ornament": "装饰"
         }
       },
       "filters": {
@@ -280,7 +303,8 @@
         "product": "货物",
         "quest": "任务",
         "tech": "科技",
-        "unit": "单位"
+        "unit": "单位",
+        "ornament": "装饰"
       },
       "page": {
         "empty": "未找到结果",
@@ -394,9 +418,16 @@
     "landing": {
       "annohead": "Annohead",
       "changelog": "更新日志",
-      "description": "Anno 117 数据库，收录建筑、生产链、物品、专家、船长、货物、任务、科技和单位的信息。",
+      "description": "Anno 117 数据库，收录建筑、生产链、物品、专家、船长、货物、任务、科技、单位和装饰的信息。",
       "title": "Anno 117 数据库 × Annohead",
       "updated": "更新于 {updated, date, medium}"
+    },
+    "ornament": {
+      "fallback": "装饰",
+      "title": "{name} × 装饰 × Annohead"
+    },
+    "ornaments": {
+      "title": "装饰 × Annohead"
     },
     "product": {
       "fallback": "货物",

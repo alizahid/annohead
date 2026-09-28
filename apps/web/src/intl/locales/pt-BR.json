@@ -2,6 +2,9 @@
   "annohead": "Annohead",
   "common": {
     "dlc": {
+      "CDLC1": "Pacote Mosaico Maravilhoso",
+      "CDLC2": "Pacote Cidades Florescentes",
+      "CDLC3": "Pacote Ecos de Kassandra",
       "DLC01_Prophecies_of_Ash": "Profecias das Cinzas",
       "DLC02_The_Hippodrome": "O Hipódromo"
     },
@@ -185,9 +188,28 @@
           "quest": "Missões",
           "tech": "Tecnologias",
           "title": "Banco de dados",
-          "unit": "Unidades"
+          "unit": "Unidades",
+          "ornament": "Ornamentos"
         },
         "title": "Annohead"
+      }
+    },
+    "ornaments": {
+      "filters": {
+        "dlcs": "DLC",
+        "regions": "Região",
+        "types": "Tipo"
+      },
+      "list": {
+        "empty": "Nada encontrado",
+        "title": "Ornamentos"
+      },
+      "page": {
+        "costs": "Custos",
+        "stats": {
+          "title": "Outros",
+          "value": "Valor de ornamento"
+        }
       }
     },
     "products": {
@@ -269,7 +291,8 @@
           "product": "Produto",
           "quest": "Missão",
           "tech": "Tecnologia",
-          "unit": "Unidade"
+          "unit": "Unidade",
+          "ornament": "Ornamento"
         }
       },
       "filters": {
@@ -280,7 +303,8 @@
         "product": "Produtos",
         "quest": "Missões",
         "tech": "Tecnologias",
-        "unit": "Unidades"
+        "unit": "Unidades",
+        "ornament": "Ornamentos"
       },
       "page": {
         "empty": "Nada encontrado",
@@ -394,9 +418,16 @@
     "landing": {
       "annohead": "Annohead",
       "changelog": "Registro de alterações",
-      "description": "Banco de dados de Anno 117 com informações sobre construções, cadeias de produção, itens, especialistas, capitães, mercadorias, missões, tecnologias e unidades.",
+      "description": "Banco de dados de Anno 117 com informações sobre construções, cadeias de produção, itens, especialistas, capitães, mercadorias, missões, tecnologias, unidades e ornamentos.",
       "title": "Banco de dados de Anno 117 × Annohead",
       "updated": "Atualizado em {updated, date, medium}"
+    },
+    "ornament": {
+      "fallback": "Ornamento",
+      "title": "{name} × Ornamentos × Annohead"
+    },
+    "ornaments": {
+      "title": "Ornamentos × Annohead"
     },
     "product": {
       "fallback": "Produto",

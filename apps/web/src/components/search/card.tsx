@@ -36,7 +36,8 @@ export function SearchCard({ item }: Props) {
 
           {item.type === 'building' ||
           item.type === 'chain' ||
-          item.type === 'unit' ? (
+          item.type === 'unit' ||
+          item.type === 'ornament' ? (
             <div className="flex gap-2">
               {item.regions.map((region) => (
                 <RegionCard key={region} region={region} />

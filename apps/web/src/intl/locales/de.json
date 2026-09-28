@@ -2,6 +2,9 @@
   "annohead": "Annohead",
   "common": {
     "dlc": {
+      "CDLC1": "Meisterhafte Mosaike Pack",
+      "CDLC2": "Blütezeit Pack",
+      "CDLC3": "Echos der Kassandra Pack",
       "DLC01_Prophecies_of_Ash": "Verheißung des Vulkans",
       "DLC02_The_Hippodrome": "Das Hippodrom"
     },
@@ -185,9 +188,28 @@
           "quest": "Quests",
           "tech": "Technologien",
           "title": "Datenbank",
-          "unit": "Einheiten"
+          "unit": "Einheiten",
+          "ornament": "Ornamente"
         },
         "title": "Annohead"
+      }
+    },
+    "ornaments": {
+      "filters": {
+        "dlcs": "DLC",
+        "regions": "Region",
+        "types": "Typ"
+      },
+      "list": {
+        "empty": "Nichts gefunden",
+        "title": "Ornamente"
+      },
+      "page": {
+        "costs": "Kosten",
+        "stats": {
+          "title": "Sonstiges",
+          "value": "Ornamentwert"
+        }
       }
     },
     "products": {
@@ -269,7 +291,8 @@
           "product": "Ware",
           "quest": "Quest",
           "tech": "Technologie",
-          "unit": "Einheit"
+          "unit": "Einheit",
+          "ornament": "Ornament"
         }
       },
       "filters": {
@@ -280,7 +303,8 @@
         "product": "Waren",
         "quest": "Quests",
         "tech": "Technologien",
-        "unit": "Einheiten"
+        "unit": "Einheiten",
+        "ornament": "Ornamente"
       },
       "page": {
         "empty": "Nichts gefunden",
@@ -394,9 +418,16 @@
     "landing": {
       "annohead": "Annohead",
       "changelog": "Änderungsprotokoll",
-      "description": "Anno-117-Datenbank mit Informationen zu Gebäuden, Produktionsketten, Gegenständen, Spezialisten, Kapitänen, Waren, Quests, Technologien und Einheiten.",
+      "description": "Anno-117-Datenbank mit Informationen zu Gebäuden, Produktionsketten, Gegenständen, Spezialisten, Kapitänen, Waren, Quests, Technologien, Einheiten und Ornamenten.",
       "title": "Datenbank für Anno 117 × Annohead",
       "updated": "Aktualisiert am {updated, date, medium}"
+    },
+    "ornament": {
+      "fallback": "Ornament",
+      "title": "{name} × Ornamente × Annohead"
+    },
+    "ornaments": {
+      "title": "Ornamente × Annohead"
     },
     "product": {
       "fallback": "Ware",

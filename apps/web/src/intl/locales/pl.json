@@ -2,6 +2,9 @@
   "annohead": "Annohead",
   "common": {
     "dlc": {
+      "CDLC1": "Pakiet Cudowna mozaika",
+      "CDLC2": "Pakiet Kwitnące miasta",
+      "CDLC3": "Pakiet Echa Kasandry",
       "DLC01_Prophecies_of_Ash": "Popielne proroctwa",
       "DLC02_The_Hippodrome": "Hipodrom"
     },
@@ -185,9 +188,28 @@
           "quest": "Zadania",
           "tech": "Technologie",
           "title": "Baza danych",
-          "unit": "Jednostki"
+          "unit": "Jednostki",
+          "ornament": "Ozdoby"
         },
         "title": "Annohead"
+      }
+    },
+    "ornaments": {
+      "filters": {
+        "dlcs": "DLC",
+        "regions": "Region",
+        "types": "Rodzaj"
+      },
+      "list": {
+        "empty": "Nic nie znaleziono",
+        "title": "Ozdoby"
+      },
+      "page": {
+        "costs": "Koszty",
+        "stats": {
+          "title": "Inne",
+          "value": "Wartość ozdobna"
+        }
       }
     },
     "products": {
@@ -269,7 +291,8 @@
           "product": "Towar",
           "quest": "Zadanie",
           "tech": "Technologia",
-          "unit": "Jednostka"
+          "unit": "Jednostka",
+          "ornament": "Ozdoba"
         }
       },
       "filters": {
@@ -280,7 +303,8 @@
         "product": "Towary",
         "quest": "Zadania",
         "tech": "Technologie",
-        "unit": "Jednostki"
+        "unit": "Jednostki",
+        "ornament": "Ozdoby"
       },
       "page": {
         "empty": "Nic nie znaleziono",
@@ -394,9 +418,16 @@
     "landing": {
       "annohead": "Annohead",
       "changelog": "Lista zmian",
-      "description": "Baza danych Anno 117 z informacjami o budynkach, łańcuchach produkcyjnych, przedmiotach, specjalistach, kapitanach, towarach, zadaniach, technologiach i jednostkach.",
+      "description": "Baza danych Anno 117 z informacjami o budynkach, łańcuchach produkcyjnych, przedmiotach, specjalistach, kapitanach, towarach, zadaniach, technologiach, jednostkach i ozdobach.",
       "title": "Baza danych Anno 117 × Annohead",
       "updated": "Zaktualizowano {updated, date, medium}"
+    },
+    "ornament": {
+      "fallback": "Ozdoba",
+      "title": "{name} × Ozdoby × Annohead"
+    },
+    "ornaments": {
+      "title": "Ozdoby × Annohead"
     },
     "product": {
       "fallback": "Towar",

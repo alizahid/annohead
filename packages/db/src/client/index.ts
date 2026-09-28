@@ -2,6 +2,7 @@ import { buildings } from './buildings'
 import { chains } from './chains'
 import { dlc } from './dlc'
 import { items } from './items'
+import { ornaments } from './ornaments'
 import { populationTiers } from './population-tiers'
 import { products } from './products'
 import { quests } from './quests'
@@ -14,6 +15,7 @@ export type { BuildingFilter } from './buildings'
 export type { ChainFilter } from './chains'
 export type { DlcFilter } from './dlc'
 export type { ItemFilter } from './items'
+export type { OrnamentFilter } from './ornaments'
 export type { PopulationTierFilter } from './population-tiers'
 export type { ProductFilter } from './products'
 export type { QuestFilter } from './quests'
@@ -35,6 +37,9 @@ export type Item = Awaited<ReturnType<typeof items.get>>
 export type ItemTypes = Awaited<ReturnType<typeof items.types>>
 export type ItemNiches = Awaited<ReturnType<typeof items.niches>>
 export type ItemRarities = Awaited<ReturnType<typeof items.rarities>>
+export type Ornaments = Awaited<ReturnType<typeof ornaments.list>>
+export type Ornament = Awaited<ReturnType<typeof ornaments.get>>
+export type OrnamentTypes = Awaited<ReturnType<typeof ornaments.types>>
 export type PopulationTiers = Awaited<ReturnType<typeof populationTiers.list>>
 export type Products = Awaited<ReturnType<typeof products.list>>
 export type Product = Awaited<ReturnType<typeof products.get>>
@@ -60,6 +65,7 @@ export const anno = {
   chains,
   dlc,
   items,
+  ornaments,
   populationTiers,
   products,
   quests,

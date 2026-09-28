@@ -2,6 +2,9 @@
   "annohead": "Annohead",
   "common": {
     "dlc": {
+      "CDLC1": "경이로운 모자이크 팩",
+      "CDLC2": "만개한 도시 팩",
+      "CDLC3": "카산드라의 메아리 팩",
       "DLC01_Prophecies_of_Ash": "재의 예언",
       "DLC02_The_Hippodrome": "히포드롬"
     },
@@ -185,9 +188,28 @@
           "quest": "퀘스트",
           "tech": "기술",
           "title": "데이터베이스",
-          "unit": "유닛"
+          "unit": "유닛",
+          "ornament": "장식품"
         },
         "title": "Annohead"
+      }
+    },
+    "ornaments": {
+      "filters": {
+        "dlcs": "DLC",
+        "regions": "지역",
+        "types": "유형"
+      },
+      "list": {
+        "empty": "결과 없음",
+        "title": "장식품"
+      },
+      "page": {
+        "costs": "비용",
+        "stats": {
+          "title": "기타",
+          "value": "장식 수치"
+        }
       }
     },
     "products": {
@@ -269,7 +291,8 @@
           "product": "물품",
           "quest": "퀘스트",
           "tech": "기술",
-          "unit": "유닛"
+          "unit": "유닛",
+          "ornament": "장식품"
         }
       },
       "filters": {
@@ -280,7 +303,8 @@
         "product": "물품",
         "quest": "퀘스트",
         "tech": "기술",
-        "unit": "유닛"
+        "unit": "유닛",
+        "ornament": "장식품"
       },
       "page": {
         "empty": "결과 없음",
@@ -394,9 +418,16 @@
     "landing": {
       "annohead": "Annohead",
       "changelog": "변경 내역",
-      "description": "건물, 생산 체인, 아이템, 전문가, 선장, 물품, 퀘스트, 기술, 유닛 정보를 담은 Anno 117 데이터베이스.",
+      "description": "건물, 생산 체인, 아이템, 전문가, 선장, 물품, 퀘스트, 기술, 유닛, 장식품 정보를 담은 Anno 117 데이터베이스.",
       "title": "Anno 117 데이터베이스 × Annohead",
       "updated": "{updated, date, medium} 업데이트"
+    },
+    "ornament": {
+      "fallback": "장식품",
+      "title": "{name} × 장식품 × Annohead"
+    },
+    "ornaments": {
+      "title": "장식품 × Annohead"
     },
     "product": {
       "fallback": "물품",

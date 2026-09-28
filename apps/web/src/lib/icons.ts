@@ -11,6 +11,9 @@ const icons = {
   'common.coal':
     'data/ui/fhd/base/icon_content/production_goods/icon_3d_coal_ore_goods.png',
   'common.quest': 'data/ui/fhd/base/icon_content/generic/icon_2d_questlog.png',
+  'dlc.CDLC1': 'data/ui/fhd/base/icon_content/cdlc/icon_3d_cdlc_01.png',
+  'dlc.CDLC2': 'data/ui/fhd/base/icon_content/cdlc/icon_3d_cdlc_02.png',
+  'dlc.CDLC3': 'data/ui/fhd/base/icon_content/cdlc/icon_3d_cdlc_03.png',
   'dlc.DLC01_Prophecies_of_Ash': '/img/anno/icon_3d_dlc_category_volcano_0.png',
   'dlc.DLC02_The_Hippodrome':
     '/img/anno/icon_3d_dlc_category_circus_maximus_0.png',
@@ -53,6 +56,8 @@ const icons = {
   'ui.chain': '/img/anno/icon_2d_generic_construction_chain.png',
   'ui.item': '/img/anno/icon_2d_generic_item.png',
   'ui.notFound': '/img/anno/icon_3d_sideques_roman_ruins_0.png',
+  'ui.ornament':
+    'data/ui/fhd/base/icon_content/construction_tools/icon_2d_ornaments.png',
   'ui.product': '/img/anno/icon_2d_generic_goods.png',
   'ui.profile': '/img/anno/icon_2d_meta_rival.png',
   'ui.quest': '/img/anno/icon_2d_questlog.png',

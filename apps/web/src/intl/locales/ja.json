@@ -2,6 +2,9 @@
   "annohead": "Annohead",
   "common": {
     "dlc": {
+      "CDLC1": "珠玉のモザイクパック",
+      "CDLC2": "咲き誇る都市パック",
+      "CDLC3": "カサンドラの響きパック",
       "DLC01_Prophecies_of_Ash": "灰の予言",
       "DLC02_The_Hippodrome": "競馬場"
     },
@@ -185,9 +188,28 @@
           "quest": "クエスト",
           "tech": "技術",
           "title": "データベース",
-          "unit": "ユニット"
+          "unit": "ユニット",
+          "ornament": "装飾"
         },
         "title": "Annohead"
+      }
+    },
+    "ornaments": {
+      "filters": {
+        "dlcs": "DLC",
+        "regions": "地域",
+        "types": "タイプ"
+      },
+      "list": {
+        "empty": "見つかりませんでした",
+        "title": "装飾"
+      },
+      "page": {
+        "costs": "コスト",
+        "stats": {
+          "title": "その他",
+          "value": "装飾値"
+        }
       }
     },
     "products": {
@@ -269,7 +291,8 @@
           "product": "品物",
           "quest": "クエスト",
           "tech": "技術",
-          "unit": "ユニット"
+          "unit": "ユニット",
+          "ornament": "装飾品"
         }
       },
       "filters": {
@@ -280,7 +303,8 @@
         "product": "品物",
         "quest": "クエスト",
         "tech": "技術",
-        "unit": "ユニット"
+        "unit": "ユニット",
+        "ornament": "装飾"
       },
       "page": {
         "empty": "見つかりませんでした",
@@ -394,9 +418,16 @@
     "landing": {
       "annohead": "Annohead",
       "changelog": "更新履歴",
-      "description": "建物、生産チェーン、アイテム、専門家、船長、品物、クエスト、技術、ユニットの情報を掲載したAnno 117データベース。",
+      "description": "建物、生産チェーン、アイテム、専門家、船長、品物、クエスト、技術、ユニット、装飾の情報を掲載したAnno 117データベース。",
       "title": "Anno 117 データベース × Annohead",
       "updated": "{updated, date, medium} 更新"
+    },
+    "ornament": {
+      "fallback": "装飾品",
+      "title": "{name} × 装飾 × Annohead"
+    },
+    "ornaments": {
+      "title": "装飾 × Annohead"
     },
     "product": {
       "fallback": "品物",

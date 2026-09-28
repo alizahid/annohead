@@ -2,6 +2,9 @@
   "annohead": "Annohead",
   "common": {
     "dlc": {
+      "CDLC1": "Pacchetto Mosaico incantevole",
+      "CDLC2": "Pacchetto città fiorenti",
+      "CDLC3": "Pacchetto Echi di Kassandra",
       "DLC01_Prophecies_of_Ash": "Profezie cineree",
       "DLC02_The_Hippodrome": "L'Ippodromo"
     },
@@ -185,9 +188,28 @@
           "quest": "Missioni",
           "tech": "Tecnologie",
           "title": "Database",
-          "unit": "Unità"
+          "unit": "Unità",
+          "ornament": "Ornamenti"
         },
         "title": "Annohead"
+      }
+    },
+    "ornaments": {
+      "filters": {
+        "dlcs": "DLC",
+        "regions": "Regione",
+        "types": "Tipo"
+      },
+      "list": {
+        "empty": "Nessun risultato",
+        "title": "Ornamenti"
+      },
+      "page": {
+        "costs": "Costi",
+        "stats": {
+          "title": "Altro",
+          "value": "Valore ornamentale"
+        }
       }
     },
     "products": {
@@ -269,7 +291,8 @@
           "product": "Merce",
           "quest": "Missione",
           "tech": "Tecnologia",
-          "unit": "Unità"
+          "unit": "Unità",
+          "ornament": "Ornamento"
         }
       },
       "filters": {
@@ -280,7 +303,8 @@
         "product": "Merci",
         "quest": "Missioni",
         "tech": "Tecnologie",
-        "unit": "Unità"
+        "unit": "Unità",
+        "ornament": "Ornamenti"
       },
       "page": {
         "empty": "Nessun risultato",
@@ -394,9 +418,16 @@
     "landing": {
       "annohead": "Annohead",
       "changelog": "Registro delle modifiche",
-      "description": "Database di Anno 117 con informazioni su edifici, catene di produzione, oggetti, specialisti, capitani, merci, missioni, tecnologie e unità.",
+      "description": "Database di Anno 117 con informazioni su edifici, catene di produzione, oggetti, specialisti, capitani, merci, missioni, tecnologie, unità e ornamenti.",
       "title": "Database per Anno 117 × Annohead",
       "updated": "Aggiornato il {updated, date, medium}"
+    },
+    "ornament": {
+      "fallback": "Ornamento",
+      "title": "{name} × Ornamenti × Annohead"
+    },
+    "ornaments": {
+      "title": "Ornamenti × Annohead"
     },
     "product": {
       "fallback": "Merce",

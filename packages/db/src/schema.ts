@@ -370,6 +370,32 @@ export const unitRecruiter = sqliteTable(
   ],
 )
 
+/** decorations, ground patterns and walls from the ornament menu */
+export const ornament = sqliteTable('ornament', {
+  descriptionText: integer('description_text'),
+  /** the cosmetic pack unlocking it */
+  dlcGuid: integer('dlc_guid').references(() => dlc.guid),
+  guid: integer().primaryKey(),
+  icon: text(),
+  nameText: integer('name_text'),
+  /** null when every region's menu lists it (all but the pack's mountain statues) */
+  regionId: integer('region_id').references(() => region.id),
+  /** English URL slug, the same in every language */
+  slug: text(),
+  /** Ornament.OrnamentUnit, what it adds towards Prestige; null for ground patterns and walls */
+  value: integer(),
+})
+
+export const ornamentCost = sqliteTable(
+  'ornament_cost',
+  {
+    amount: real(),
+    ornamentGuid: integer('ornament_guid').references(() => ornament.guid),
+    productGuid: integer('product_guid').references(() => product.guid),
+  },
+  (table) => [index('idx_ornament_cost_ornament').on(table.ornamentGuid)],
+)
+
 export const productionChain = sqliteTable('production_chain', {
   buildingGuid: integer('building_guid').references(() => building.guid),
   guid: integer().primaryKey(),
@@ -392,7 +418,7 @@ export const productionChainNode = sqliteTable(
   (table) => [index('idx_production_chain_node_chain').on(table.chainGuid)],
 )
 
-/** Construction-menu tabs (`menu`: buildings and chains) and trading-post filter categories (`product`) */
+/** Construction-menu tabs (`menu`: buildings and chains), trading-post filter categories (`product`), recruiting buildings (`unit`) and ornament-menu tabs (`ornament`) */
 export const category = sqliteTable('category', {
   guid: integer().primaryKey(),
   icon: text(),

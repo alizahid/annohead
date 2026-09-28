@@ -74,4 +74,11 @@ assert q("select category_guid from category_member where asset_guid in (30456, 
 assert q("select region_id from unit where guid=109628") == [(None,)]
 assert q("select category_guid from category_member where asset_guid=39573") == [(5473,)]
 assert q("select amount from unit_cost where unit_guid=30456 and product_guid=1010017") == [(5000.0,)]
+# ornaments: Statue of Kassandra belongs to Echoes of Kassandra; Builder's Obelisk (a Twitch reward built from a
+# pack model) to no pack; Eternal Fountain sits under its menu tab and Hall Of Fame; Petrified Gorgo has one copy per region
+assert q("select value, dlc_guid, region_id from ornament where guid=174718") == [(9, 67908, None)]
+assert q("select dlc_guid from ornament where guid=174502") == [(None,)]
+assert q("select category_guid from category_member where asset_guid=80620 order by 1") == [(80617,), (87448,)]
+assert q("select guid, region_id from ornament where guid in (160617, 180455) order by 1") == [(160617, 1), (180455, 2)]
+assert q("select amount from ornament_cost where ornament_guid=174718 and product_guid=1010017") == [(1000.0,)]
 print("ok")

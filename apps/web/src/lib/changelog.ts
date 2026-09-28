@@ -12,6 +12,7 @@ export const changelog: Array<Release> = [
       'A page for the changelog',
       'A calculator page with every production chain side by side, filterable by region, DLC and type. Each chain links to the good it makes',
       'The calculator works offline. Once you have visited the site, opening it without internet takes you to the calculator',
+      'An ornaments section with every decoration, ground pattern and wall from the ornament menu, filterable by region, menu tab and cosmetic pack. Each one shows its cost and ornament value',
     ],
     changed: [
       'New landing page with search, every section and the language picker up front',

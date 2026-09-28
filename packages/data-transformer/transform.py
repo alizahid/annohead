@@ -445,7 +445,7 @@ class T:
                     "insert into dlc values(?,?,?,?)",
                     (
                         a["guid"],
-                        a["v"]["Standard"].get("ID"),
+                        a["v"]["Standard"].get("ID") or a["name"],  # cosmetic packs have no ID: CDLC1 …
                         self.text(a["text_id"]),
                         self.icon(a["icon"]),
                     ),
@@ -831,6 +831,62 @@ class T:
             self.cost_rows(v, u, "unit")
             for b in recruiters[u]:
                 self.db.execute("insert into unit_recruiter values(?,?)", (u, b))
+
+    # ---- ornaments -----------------------------------------------------------------------------------------
+    def ornaments(self):
+        """Everything in each region's ornament menu (ConstructionMenu.OrnamentsMenu): decorations, ground patterns and
+        walls, filed under the menu tab listing them (Ground Patterns …, and Hall Of Fame / Rewards for the ones those
+        hand out). Cosmetic packs own what their UplayProductUnlocks lists; model paths would also claim the Twitch and
+        Connect rewards built from pack models."""
+        menu = D(dict_get(D(next(iter(self.by_template("ConstructionMenu")), {}).get("v")), "ConstructionMenu.OrnamentsMenu"))
+        regions = defaultdict(set)  # ornament -> regions whose menu lists it
+        tabs = defaultdict(list)  # ornament -> menu tabs listing it
+        sort = {}
+
+        def walk(g, region, tab):
+            a = self.assets.get(self.num(g))
+            if not a:
+                return
+            if a["template"] != "ConstructionCategory":
+                regions[a["guid"]].add(region)
+                if tab:
+                    tabs[a["guid"]].append(tab["guid"])
+                return
+            if tab is not None:  # filters list tabs in menu order
+                sort.setdefault(a["guid"], len(sort))
+            for b in self.items(dict_get(a["v"], "ConstructionCategory.BuildingList")):
+                walk(b.get("Building"), region, a)
+
+        for key, rid in self.regions.items():
+            walk(dict_get(D(menu.get(key)), "SortingMode.OrnamentsCategory.Content"), rid, None)
+        # in menu order, so tabs every section repeats (Ground Patterns …) merge into the first one
+        listed = set().union(*tabs.values())
+        category = {
+            t: self.category("ornament", t, self.assets[t]["text_id"], self.assets[t]["icon"], i)
+            for i, t in enumerate(sorted(listed, key=sort.get))
+        }
+        owners = {}
+        for (dlc,) in self.db.execute("select guid from dlc").fetchall():
+            for u in self.items(dict_get(self.assets[dlc]["v"], "UplayProduct.UplayProductUnlocks")):
+                owners[self.num(u.get("UplayProductUnlock"))] = dlc
+        for g in sorted(regions):
+            a, v = self.assets[g], self.assets[g]["v"]
+            self.db.execute(
+                "insert into ornament values(?,?,?,?,?,?,?,null)",
+                (
+                    g,
+                    self.text(a["text_id"]),
+                    self.text(D(v.get("Standard")).get("InfoDescription")),
+                    self.icon(a["icon"]),
+                    # the menus list most ornaments for every region; pack statues come in one per region
+                    next(iter(regions[g])) if len(regions[g]) < len(self.regions) else None,
+                    self.num(D(v.get("Ornament")).get("OrnamentUnit")),
+                    owners.get(g),
+                ),
+            )
+            self.cost_rows(v, g, "ornament")
+            for t in tabs[g]:
+                self.db.execute("insert or ignore into category_member values(?,?)", (category[t], g))
 
     # ---- labels --------------------------------------------------------------------------------------------
     def labels(self):
@@ -2009,6 +2065,7 @@ class T:
             ("building", "name_text"),
             ("product", "name_text"),
             ("unit", "name_text"),
+            ("ornament", "name_text"),
             ("item", "name_text"),
             ("tech", "name_text"),
             ("production_chain", "name_text"),
@@ -2039,7 +2096,9 @@ class T:
               union all select 'chain', c.guid, c.slug, c.icon, null, c.name_text, null,
                 (select key from region where id = c.region_id) from production_chain c
               union all select 'unit', u.guid, u.slug, u.icon, null, u.name_text, u.description_text,
-                (select key from region where id = u.region_id) from unit u;
+                (select key from region where id = u.region_id) from unit u
+              union all select 'ornament', o.guid, o.slug, o.icon, null, o.name_text, o.description_text,
+                (select key from region where id = o.region_id) from ornament o;
             insert into search(lang_id, guid, key)
               select n.lang_id, min(s.guid), fold(n.value) from search_source s
               join translation n on n.line_id = s.name_text
@@ -2177,7 +2236,11 @@ create table unit_maintenance(unit_guid int references unit(guid), product_guid 
 create table unit_recruiter(unit_guid int references unit(guid), building_guid int references building(guid), primary key(unit_guid, building_guid)) without rowid;
 create table production_chain(guid integer primary key, name_text integer, icon text, building_guid int references building(guid), region_id int references region(id), slug text);
 create table production_chain_node(id integer primary key, chain_guid int references production_chain(guid), parent_id int, building_guid int, tier int);
--- construction-menu tabs (kind menu: buildings and chains), trading-post filter categories (kind product) and recruiting buildings (kind unit)
+create table ornament(guid integer primary key, name_text integer, description_text integer, icon text, region_id int references region(id),
+  value int, dlc_guid int references dlc(guid), slug text);
+create table ornament_cost(ornament_guid int references ornament(guid), product_guid int references product(guid), amount real);
+-- construction-menu tabs (kind menu: buildings and chains), trading-post filter categories (kind product), recruiting buildings (kind unit)
+-- and ornament-menu tabs (kind ornament)
 create table category(guid integer primary key, kind text, name_text integer, key text, icon text, sort int);
 create table category_member(category_guid int references category(guid), asset_guid int, primary key(category_guid, asset_guid)) without rowid;
 -- game names of keys stored elsewhere: attribute, rarity, niche, allocation, modifier (buff_modifier.path) …
@@ -2241,6 +2304,7 @@ create index idx_building_phase_cost_phase on building_phase_cost(phase_guid);
 create index idx_building_phase_maintenance_phase on building_phase_maintenance(phase_guid);
 create index idx_unit_cost_unit on unit_cost(unit_guid);
 create index idx_unit_maintenance_unit on unit_maintenance(unit_guid);
+create index idx_ornament_cost_ornament on ornament_cost(ornament_guid);
 create index idx_factory_input_building on factory_input(building_guid);
 create index idx_factory_input_product on factory_input(product_guid);
 create index idx_factory_output_building on factory_output(building_guid);
@@ -2292,6 +2356,7 @@ if __name__ == "__main__":
         t.buildings,
         t.categories,
         t.units,
+        t.ornaments,
         t.effects,
         t.items_,
         t.phases,  # before techs: unlocks resolve monument phases to their building

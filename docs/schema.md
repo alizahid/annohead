@@ -115,6 +115,17 @@ have it per soldier; `region_id` null for villa garrisons, recruited in both reg
 `unit_maintenance`, `unit_recruiter(unit_guid, building_guid)`. Categories of kind `unit` are the recruiting
 buildings, and the flagship under its own name. AI, pirate and quest-only units are left out.
 
+### ornament (2026-09-28)
+
+Everything the ornament menu lists: the tree under each region's `ConstructionMenu.OrnamentsMenu` root (sections
+Classic, one per cosmetic pack and Special, each holding tabs of `OrnamentalBuilding`, `PolygonObject` ground patterns
+and `Hedge` walls). `ornament(guid, name_text, description_text, icon, region_id, value, dlc_guid, slug)` (`value` is
+`Ornament.OrnamentUnit`, what it adds towards Prestige, null for patterns and walls; `region_id` null unless only one
+region's menu lists it; `dlc_guid` from the pack's `UplayProduct.UplayProductUnlocks`, not model paths, which Twitch
+and Connect rewards share with the packs), `ornament_cost`. Categories of kind `ornament` are the menu tabs, merged
+by name across sections and sorted in menu order; Hall Of Fame and Rewards list ornaments that also sit in a regular
+tab. Cosmetic packs have no `Standard.ID`, so their `dlc.key` is the asset name (CDLC1 …).
+
 ### need
 
 Template `Need` (88): `guid, name, product, category, attributes provided (Population, Money, …)`.

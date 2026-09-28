@@ -1170,3 +1170,75 @@ test.each([...langValues])(
     expect(rows.map((r) => r.guid)).toContain(3187)
   },
 )
+
+test('ornaments carry their pack, value, costs and menu tabs', async () => {
+  const kassandra = await anno.ornaments.get({
+    id: 174_718,
+    lang: 'en',
+  })
+  expect(kassandra?.name).toBe('Statue of Kassandra')
+  expect(kassandra?.value).toBe(9)
+  expect(kassandra?.dlc?.guid).toBe(67_908)
+  expect(kassandra?.costs.map((c) => [c.guid, c.amount])).toEqual([
+    [1_010_017, 1000],
+  ])
+  // Eternal Fountain: its own tab first, then Hall Of Fame
+  const fountain = await anno.ornaments.get({
+    id: 80_620,
+    lang: 'en',
+  })
+  expect(fountain?.dlc).toBeNull()
+  expect(fountain?.types.map((t) => t.guid)).toEqual([80_617, 87_448])
+})
+
+test('ornaments filter by menu tab and DLC', async () => {
+  const types = await anno.ornaments.types({
+    lang: 'en',
+  })
+  expect(types[0]?.name).toBe('Ground Patterns')
+  const walls = await anno.ornaments.list({
+    lang: 'en',
+    perPage: 1000,
+    types: [80_618],
+  })
+  expect(walls.total).toBe(13)
+  expect(walls.rows.every((r) => r.types.some((t) => t.guid === 80_618))).toBe(
+    true,
+  )
+  const mosaics = await anno.ornaments.list({
+    dlcs: [67_906],
+    lang: 'en',
+    perPage: 1000,
+  })
+  expect(mosaics.total).toBe(30)
+  expect(mosaics.rows.every((r) => r.dlc?.guid === 67_906)).toBe(true)
+  const packs = await anno.dlc.list({
+    lang: 'en',
+    of: 'ornament',
+  })
+  expect(packs.map((d) => d.guid)).toEqual([67_906, 67_907, 67_908])
+})
+
+test('search finds ornaments', async () => {
+  const { rows } = await anno.search({
+    lang: 'en',
+    query: 'Kassandra',
+    types: ['ornament'],
+  })
+  expect(rows.map((r) => r.guid)).toContain(174_718)
+})
+
+test('ornaments every region builds match any region filter', async () => {
+  const all = await anno.ornaments.list({
+    lang: 'en',
+    perPage: 1000,
+  })
+  const latium = await anno.ornaments.list({
+    lang: 'en',
+    perPage: 1000,
+    regions: [1],
+  })
+  // everything but Albion's copies of Petrified Gorgo and Sisyphus
+  expect(latium.total).toBe(all.total - 2)
+  expect(latium.rows.every((r) => !r.region || r.region.id === 1)).toBe(true)
+})

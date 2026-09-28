@@ -2,6 +2,9 @@
   "annohead": "Annohead",
   "common": {
     "dlc": {
+      "CDLC1": "華麗馬賽克組合包",
+      "CDLC2": "繁花之城組合包",
+      "CDLC3": "卡珊卓的迴響組合包",
       "DLC01_Prophecies_of_Ash": "灰燼預言",
       "DLC02_The_Hippodrome": "賽馬場"
     },
@@ -185,9 +188,28 @@
           "quest": "任務",
           "tech": "科技",
           "title": "資料庫",
-          "unit": "單位"
+          "unit": "單位",
+          "ornament": "裝飾"
         },
         "title": "Annohead"
+      }
+    },
+    "ornaments": {
+      "filters": {
+        "dlcs": "DLC",
+        "regions": "地區",
+        "types": "類型"
+      },
+      "list": {
+        "empty": "找不到結果",
+        "title": "裝飾"
+      },
+      "page": {
+        "costs": "費用",
+        "stats": {
+          "title": "其他",
+          "value": "裝飾值"
+        }
       }
     },
     "products": {
@@ -269,7 +291,8 @@
           "product": "貨物",
           "quest": "任務",
           "tech": "科技",
-          "unit": "單位"
+          "unit": "單位",
+          "ornament": "裝飾"
         }
       },
       "filters": {
@@ -280,7 +303,8 @@
         "product": "貨物",
         "quest": "任務",
         "tech": "科技",
-        "unit": "單位"
+        "unit": "單位",
+        "ornament": "裝飾"
       },
       "page": {
         "empty": "找不到結果",
@@ -394,9 +418,16 @@
     "landing": {
       "annohead": "Annohead",
       "changelog": "更新日誌",
-      "description": "Anno 117 資料庫，收錄建築、生產鏈、物品、專家、船長、貨物、任務、科技和單位的資訊。",
+      "description": "Anno 117 資料庫，收錄建築、生產鏈、物品、專家、船長、貨物、任務、科技、單位和裝飾的資訊。",
       "title": "Anno 117 資料庫 × Annohead",
       "updated": "更新於 {updated, date, medium}"
+    },
+    "ornament": {
+      "fallback": "裝飾",
+      "title": "{name} × 裝飾 × Annohead"
+    },
+    "ornaments": {
+      "title": "裝飾 × Annohead"
     },
     "product": {
       "fallback": "貨物",

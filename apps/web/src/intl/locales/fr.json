@@ -2,6 +2,9 @@
   "annohead": "Annohead",
   "common": {
     "dlc": {
+      "CDLC1": "Pack Mosaïque merveilleuse",
+      "CDLC2": "Pack Cités florissantes",
+      "CDLC3": "Pack Échos de Kassandra",
       "DLC01_Prophecies_of_Ash": "Prophéties des cendres",
       "DLC02_The_Hippodrome": "L'Hippodrome"
     },
@@ -185,9 +188,28 @@
           "quest": "Quêtes",
           "tech": "Technologies",
           "title": "Base de données",
-          "unit": "Unités"
+          "unit": "Unités",
+          "ornament": "Embellissements"
         },
         "title": "Annohead"
+      }
+    },
+    "ornaments": {
+      "filters": {
+        "dlcs": "DLC",
+        "regions": "Région",
+        "types": "Type"
+      },
+      "list": {
+        "empty": "Aucun résultat",
+        "title": "Embellissements"
+      },
+      "page": {
+        "costs": "Coûts",
+        "stats": {
+          "title": "Autres",
+          "value": "Valeur d'embellissement"
+        }
       }
     },
     "products": {
@@ -269,7 +291,8 @@
           "product": "Marchandise",
           "quest": "Quête",
           "tech": "Technologie",
-          "unit": "Unité"
+          "unit": "Unité",
+          "ornament": "Embellissement"
         }
       },
       "filters": {
@@ -280,7 +303,8 @@
         "product": "Marchandises",
         "quest": "Quêtes",
         "tech": "Technologies",
-        "unit": "Unités"
+        "unit": "Unités",
+        "ornament": "Embellissements"
       },
       "page": {
         "empty": "Aucun résultat",
@@ -394,9 +418,16 @@
     "landing": {
       "annohead": "Annohead",
       "changelog": "Journal des modifications",
-      "description": "Base de données d'Anno 117 avec des informations sur les bâtiments, les chaînes de production, les objets, les spécialistes, les capitaines, les marchandises, les quêtes, les technologies et les unités.",
+      "description": "Base de données d'Anno 117 avec des informations sur les bâtiments, les chaînes de production, les objets, les spécialistes, les capitaines, les marchandises, les quêtes, les technologies, les unités et les embellissements.",
       "title": "Base de données pour Anno 117 × Annohead",
       "updated": "Mis à jour le {updated, date, medium}"
+    },
+    "ornament": {
+      "fallback": "Embellissement",
+      "title": "{name} × Embellissements × Annohead"
+    },
+    "ornaments": {
+      "title": "Embellissements × Annohead"
     },
     "product": {
       "fallback": "Marchandise",

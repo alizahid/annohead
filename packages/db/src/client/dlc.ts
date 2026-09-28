@@ -2,13 +2,21 @@ import { asc, inArray } from 'drizzle-orm'
 
 import { db } from '../db'
 import { type Lang } from '../enums'
-import { building, dlc as dlcTable, item, questline, tech } from '../schema'
+import {
+  building,
+  dlc as dlcTable,
+  item,
+  ornament,
+  questline,
+  tech,
+} from '../schema'
 import { localized, on } from './shared'
 
 // products and chains take their DLC from the producing building
 const owners = {
   building,
   item,
+  ornament,
   questline,
   tech,
 }
