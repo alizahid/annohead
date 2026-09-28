@@ -1,9 +1,12 @@
 'use client'
 
+import { getImageProps } from 'next/image'
 import { useLocale } from 'next-intl'
 import { useEffect } from 'react'
 
 import { getPathname } from '@/intl/nav'
+
+import { emptyIcon } from './common/empty'
 
 /** The only page saved for offline use; returning visitors who are offline see it whatever url they open. */
 const offlinePage = '/calculator'
@@ -79,18 +82,20 @@ async function save(page: string) {
  * CDN icons need the R2 CORS policy to list this origin; ones that fail are skipped.
  */
 async function saveIcons(doc: Document) {
-  const urls = new Set(
-    [...doc.querySelectorAll('img')].flatMap((img) =>
-      [
-        img.getAttribute('src'),
-        ...(img.getAttribute('srcset') ?? '')
-          .split(',')
-          .map((candidate) => candidate.trim().split(whitespace)[0]),
-      ]
-        .filter((src) => src)
-        .map((src) => new URL(src ?? '', location.origin).href),
+  // the saved page is unfiltered, so the "nothing found" image isn't in it
+  const { props: empty } = getImageProps({
+    alt: '',
+    height: emptyIcon.size,
+    src: emptyIcon.icon,
+    width: emptyIcon.size,
+  })
+
+  const urls = new Set([
+    ...imageUrls(empty.src, empty.srcSet),
+    ...[...doc.querySelectorAll('img')].flatMap((img) =>
+      imageUrls(img.getAttribute('src'), img.getAttribute('srcset')),
     ),
-  )
+  ])
 
   const cache = await caches.open('offline-icons')
 
@@ -109,6 +114,18 @@ async function saveIcons(doc: Document) {
       )
     }),
   )
+}
+
+/** An image's src and every srcset candidate, as absolute urls. */
+function imageUrls(src?: string | null, srcset?: string | null) {
+  return [
+    src,
+    ...(srcset ?? '')
+      .split(',')
+      .map((candidate) => candidate.trim().split(whitespace)[0]),
+  ]
+    .filter((url) => url)
+    .map((url) => new URL(url ?? '', location.origin).href)
 }
 
 /** A stylesheet with the fonts and background images it loads, resolved relative to it. */
