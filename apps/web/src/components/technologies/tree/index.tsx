@@ -19,7 +19,7 @@ export function TechTree({ categories, techs }: Props) {
   const tree = useMemo(() => layout(categories, techs), [categories, techs])
 
   return (
-    <div className="relative h-[80vh] select-none overflow-hidden rounded-2xl bg-gray-2">
+    <div className="relative h-[80vh] select-none overflow-hidden rounded-2xl bg-gray-1">
       <ReactFlowProvider>
         <ReactFlow
           defaultEdgeOptions={{

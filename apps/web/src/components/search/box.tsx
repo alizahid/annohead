@@ -83,9 +83,9 @@ export function SearchBox({ className }: Props) {
         }}
         value={text}
       >
-        <Autocomplete.InputGroup className="flex w-full items-center rounded-lg bg-gray-3 ring-accent-8 focus-within:ring-2 not-data-list-empty:data-popup-open:rounded-b-none not-data-list-empty:data-popup-open:ring-0">
-          <div className="flex size-10 items-center justify-center">
-            <MagnifyingGlassIcon weight="bold" />
+        <Autocomplete.InputGroup className="flex w-full items-center rounded-lg bg-gray-2 ring-accent-8 focus-within:ring-2 not-data-list-empty:data-popup-open:rounded-b-none not-data-list-empty:data-popup-open:ring-0">
+          <div className="mx-3 flex size-6 items-center justify-center">
+            <MagnifyingGlassIcon className="size-6" />
           </div>
 
           <Autocomplete.Input
@@ -108,7 +108,7 @@ export function SearchBox({ className }: Props) {
               <Autocomplete.List>
                 {(item: SearchHit) => (
                   <Autocomplete.Item
-                    className="flex h-10 items-center gap-4 px-3 leading-tight outline-none data-highlighted:bg-accent-4"
+                    className="flex h-10 items-center gap-3 px-3 leading-tight outline-none data-highlighted:bg-accent-4"
                     key={`${item.type}-${item.guid}`}
                     onClick={() => {
                       setText('')
@@ -120,7 +120,7 @@ export function SearchBox({ className }: Props) {
                   >
                     <SearchIcon className="size-6 shrink-0" item={item} />
 
-                    <div className="flex min-w-0 flex-1 items-center gap-4 font-medium">
+                    <div className="flex min-w-0 flex-1 items-center gap-3 font-medium">
                       <span className="truncate">{item.name}</span>
 
                       {item.type === 'building' ||

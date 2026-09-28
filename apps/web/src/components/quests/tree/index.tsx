@@ -3,6 +3,7 @@
 import { type Quest } from '@anno/db/client'
 import { type QuestPicks, walkQuest } from '@anno/db/walk'
 import { layout as dagre, Graph } from '@dagrejs/dagre'
+import { ArrowsClockwiseIcon } from '@phosphor-icons/react/dist/ssr'
 import {
   Controls,
   type Edge,
@@ -398,19 +399,18 @@ function Flow({ quest }: Props) {
       >
         <Controls showInteractive={false} />
 
-        <Panel
-          className="flex items-center gap-3 rounded-sm bg-gray-4 px-3 py-2 text-sm"
-          position="top-left"
-        >
-          {t(walk.done ? 'end' : 'pick')}
+        <Panel className="flex rounded-lg bg-gray-3" position="top-left">
+          <span className="mx-3 my-2 text-sm leading-tight">
+            {t(walk.done ? 'end' : 'pick')}
+          </span>
 
           {Object.keys(picks).length ? (
             <button
-              className="font-bold text-accent-11 outline-none ring-accent-8 focus-visible:ring-2"
+              className="-ml-3 flex size-8.5 items-center justify-center rounded-lg outline-none ring-accent-8 focus-visible:ring-2"
               onClick={() => setPicks({})}
               type="button"
             >
-              {t('reset')}
+              <ArrowsClockwiseIcon weight="bold" />
             </button>
           ) : null}
         </Panel>
@@ -421,7 +421,7 @@ function Flow({ quest }: Props) {
 
 export function QuestFlow({ quest }: Props) {
   return (
-    <div className="h-[80vh] overflow-hidden rounded-lg bg-gray-2">
+    <div className="h-[80vh] overflow-hidden rounded-lg bg-gray-1">
       <ReactFlowProvider>
         <Flow quest={quest} />
       </ReactFlowProvider>

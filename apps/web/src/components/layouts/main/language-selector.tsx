@@ -14,7 +14,7 @@ export function LanguageSelector() {
 
   return (
     <Menu.Root>
-      <Menu.Trigger className="flex size-10 items-center justify-center rounded-lg outline-none ring-accent-8 focus-visible:ring-2 data-popup-open:rounded-b-none data-popup-open:bg-white dark:data-popup-open:bg-black">
+      <Menu.Trigger className="flex size-10 items-center justify-center rounded-lg outline-none ring-accent-8 focus-visible:ring-2 data-popup-open:rounded-b-none data-popup-open:bg-gray-3">
         <Image
           alt={locale}
           className="size-6"
@@ -27,7 +27,7 @@ export function LanguageSelector() {
 
       <Menu.Portal>
         <Menu.Positioner align="end" className="outline-hidden" side="bottom">
-          <Menu.Popup className="overflow-hidden rounded-b-lg rounded-tl-lg bg-white outline-hidden dark:bg-black">
+          <Menu.Popup className="overflow-hidden rounded-b-lg rounded-tl-lg bg-gray-3 outline-hidden">
             <Menu.RadioGroup value={locale}>
               {routing.locales.map((item) => (
                 <Menu.RadioItem

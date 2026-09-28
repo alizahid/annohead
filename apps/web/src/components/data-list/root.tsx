@@ -11,7 +11,7 @@ export function Root({ children, className, title }: Props) {
   return (
     <div
       className={cn(
-        'flex flex-col gap-4 rounded-lg bg-gray-2 p-4 pb-3',
+        'flex flex-col gap-4 rounded-lg bg-gray-1 p-4 pb-3',
         className,
       )}
     >

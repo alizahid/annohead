@@ -26,7 +26,7 @@ export function Calculator({ chain }: Props) {
     ((chain.building?.baseProductivity ?? 100) / 100)
 
   return (
-    <div className="flex flex-col gap-4 rounded-lg bg-gray-2 p-4">
+    <div className="flex flex-col gap-4 rounded-lg bg-gray-1 p-4">
       <div className="font-bold text-sm">{t('title')}</div>
 
       <NumberField.Root

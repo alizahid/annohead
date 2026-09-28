@@ -19,13 +19,14 @@ export type PartNode = Node<
 export function QuestPartNode({ data: { part }, id }: NodeProps<PartNode>) {
   const t = useTranslations('component.quests.page')
   const f = useFormatter()
+
   const { off, on } = usePath()
 
   return (
     <div
       className={cn(
-        'flex h-full w-full rounded-lg bg-gray-1 transition-opacity',
-        on.has(id) && 'ring-2 ring-accent-9',
+        'flex h-full w-full rounded-lg bg-gray-2 transition-opacity',
+        on.has(id) && 'ring-2 ring-accent-8',
         off.has(id) && 'opacity-40',
       )}
     >
