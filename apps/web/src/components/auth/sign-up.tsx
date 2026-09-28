@@ -18,56 +18,53 @@ export function SignUp() {
 
   return (
     <form
-      className="flex flex-1 flex-col items-center justify-center"
+      className="flex w-sm flex-col items-stretch gap-4"
       onSubmit={onSubmit}
     >
-      <div className="flex w-sm flex-col items-stretch gap-4">
-        <Controller
-          control={form.control}
-          name="username"
-          render={({ field, fieldState }) => (
-            <Field
-              error={fieldState.error?.message}
-              label={t('field.username.label')}
-            >
-              <TextBox
-                {...field}
-                placeholder={t('field.username.placeholder')}
-              />
-            </Field>
-          )}
-        />
+      <h1 className="text-center text-2xl">{t('action.submit')}</h1>
 
-        <Controller
-          control={form.control}
-          name="password"
-          render={({ field, fieldState }) => (
-            <Field
-              error={fieldState.error?.message}
-              label={t('field.password.label')}
-            >
-              <TextBox
-                {...field}
-                placeholder={t('field.password.placeholder')}
-                type="password"
-              />
-            </Field>
-          )}
-        />
+      <Controller
+        control={form.control}
+        name="username"
+        render={({ field, fieldState }) => (
+          <Field
+            error={fieldState.error?.message}
+            label={t('field.username.label')}
+          >
+            <TextBox {...field} placeholder={t('field.username.placeholder')} />
+          </Field>
+        )}
+      />
 
-        <Button loading={isPending} type="submit">
-          {t('action.submit')}
-        </Button>
+      <Controller
+        control={form.control}
+        name="password"
+        render={({ field, fieldState }) => (
+          <Field
+            error={fieldState.error?.message}
+            label={t('field.password.label')}
+          >
+            <TextBox
+              {...field}
+              placeholder={t('field.password.placeholder')}
+              type="password"
+            />
+          </Field>
+        )}
+      />
 
-        <SteamSignIn />
+      <Button loading={isPending} type="submit">
+        {t('action.submit')}
+      </Button>
 
-        <NavLink
-          className="text-center text-gray-11 text-sm leading-tight"
-          href="/auth/sign-in"
-        >
-          {t('action.signIn')}
-        </NavLink>
-      </div>
+      <SteamSignIn />
+
+      <NavLink
+        className="text-center text-gray-11 text-sm leading-tight"
+        href="/auth/sign-in"
+      >
+        {t('action.signIn')}
+      </NavLink>
     </form>
   )
 }
