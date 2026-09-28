@@ -150,15 +150,15 @@
           "modifiers": "補正",
           "title": "ブースト"
         },
-        "details": {
-          "modifiers": "補正",
-          "sources": "入手先",
-          "targets": "対象"
-        },
         "charioteer": {
           "initial": "初期値",
           "potential": "潜在能力",
           "title": "御者"
+        },
+        "details": {
+          "modifiers": "補正",
+          "sources": "入手先",
+          "targets": "対象"
         },
         "other": {
           "title": "その他",
@@ -320,7 +320,6 @@
         "costs": "コスト",
         "maintenance": "維持費",
         "recruited": "募集場所",
-        "unlocked": "アンロック条件",
         "stats": {
           "buildTime": "建造時間",
           "cargoSlots": "積荷スロット",
@@ -331,7 +330,8 @@
           "soldiers": "兵士",
           "speed": "速度",
           "title": "その他"
-        }
+        },
+        "unlocked": "アンロック条件"
       }
     }
   },
@@ -368,6 +368,13 @@
     "chains": {
       "title": "生産チェーン × Annohead"
     },
+    "changelog": {
+      "added": "追加",
+      "changed": "変更",
+      "fixed": "修正",
+      "header": "更新履歴",
+      "title": "更新履歴 × Annohead"
+    },
     "item": {
       "fallback": "アイテム",
       "title": "{name} × アイテム × Annohead"
@@ -376,14 +383,10 @@
       "title": "アイテム × Annohead"
     },
     "landing": {
-      "changelog": {
-        "added": "追加",
-        "changed": "変更",
-        "fixed": "修正",
-        "title": "更新履歴"
-      },
-      "database": "データベース",
-      "language": "言語"
+      "annohead": "Annohead",
+      "changelog": "更新履歴",
+      "description": "建物、生産チェーン、アイテム、専門家、船長、品物、クエスト、技術、ユニットの情報を掲載したAnno 117データベース。",
+      "title": "Anno 117 データベース × Annohead"
     },
     "product": {
       "fallback": "品物",

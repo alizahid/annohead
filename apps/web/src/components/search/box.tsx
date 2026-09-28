@@ -19,9 +19,10 @@ import { SearchIcon } from './icon'
 
 type Props = {
   className?: string
+  inputClassName?: string
 }
 
-export function SearchBox({ className }: Props) {
+export function SearchBox({ className, inputClassName }: Props) {
   const locale = useLocale()
   const t = useTranslations('component.search')
 
@@ -83,9 +84,14 @@ export function SearchBox({ className }: Props) {
         }}
         value={text}
       >
-        <Autocomplete.InputGroup className="flex w-full items-center rounded-lg bg-gray-2 ring-accent-8 focus-within:ring-2 not-data-list-empty:data-popup-open:rounded-b-none not-data-list-empty:data-popup-open:ring-0">
-          <div className="mx-3 flex size-6 items-center justify-center">
-            <MagnifyingGlassIcon className="size-6" />
+        <Autocomplete.InputGroup
+          className={cn(
+            'flex w-full items-center rounded-lg bg-gray-3 ring-accent-8 focus-within:ring-2 not-data-list-empty:data-popup-open:rounded-b-none not-data-list-empty:data-popup-open:ring-0',
+            inputClassName,
+          )}
+        >
+          <div className="mx-4 ml-3 flex size-6 items-center justify-center">
+            <MagnifyingGlassIcon className="size-5" weight="bold" />
           </div>
 
           <Autocomplete.Input
@@ -134,7 +140,7 @@ export function SearchBox({ className }: Props) {
                       ) : null}
                     </div>
 
-                    <span className="shrink-0 font-medium text-gray-11 text-sm">
+                    <span className="shrink-0 text-gray-11 text-sm">
                       {t(`card.type.${item.type}`)}
                     </span>
                   </Autocomplete.Item>

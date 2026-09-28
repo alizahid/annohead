@@ -150,15 +150,15 @@
           "modifiers": "Modifikatoren",
           "title": "Bonus"
         },
-        "details": {
-          "modifiers": "Modifikatoren",
-          "sources": "Quellen",
-          "targets": "Ziele"
-        },
         "charioteer": {
           "initial": "Start",
           "potential": "Potenzial",
           "title": "Wagenlenker"
+        },
+        "details": {
+          "modifiers": "Modifikatoren",
+          "sources": "Quellen",
+          "targets": "Ziele"
         },
         "other": {
           "title": "Sonstiges",
@@ -320,7 +320,6 @@
         "costs": "Kosten",
         "maintenance": "Unterhalt",
         "recruited": "Rekrutiert in",
-        "unlocked": "Freigeschaltet durch",
         "stats": {
           "buildTime": "Bauzeit",
           "cargoSlots": "Frachtplätze",
@@ -331,7 +330,8 @@
           "soldiers": "Soldaten",
           "speed": "Geschwindigkeit",
           "title": "Sonstiges"
-        }
+        },
+        "unlocked": "Freigeschaltet durch"
       }
     }
   },
@@ -368,6 +368,13 @@
     "chains": {
       "title": "Produktionsketten × Annohead"
     },
+    "changelog": {
+      "added": "Neu",
+      "changed": "Geändert",
+      "fixed": "Behoben",
+      "header": "Änderungsprotokoll",
+      "title": "Änderungsprotokoll × Annohead"
+    },
     "item": {
       "fallback": "Gegenstand",
       "title": "{name} × Gegenstände × Annohead"
@@ -376,14 +383,10 @@
       "title": "Gegenstände × Annohead"
     },
     "landing": {
-      "changelog": {
-        "added": "Neu",
-        "changed": "Geändert",
-        "fixed": "Behoben",
-        "title": "Änderungsprotokoll"
-      },
-      "database": "Datenbank",
-      "language": "Sprache"
+      "annohead": "Annohead",
+      "changelog": "Änderungsprotokoll",
+      "description": "Anno-117-Datenbank mit Informationen zu Gebäuden, Produktionsketten, Gegenständen, Spezialisten, Kapitänen, Waren, Quests, Technologien und Einheiten.",
+      "title": "Datenbank für Anno 117 × Annohead"
     },
     "product": {
       "fallback": "Ware",

@@ -150,15 +150,15 @@
           "modifiers": "Modificatori",
           "title": "Potenziamento"
         },
-        "details": {
-          "modifiers": "Modificatori",
-          "sources": "Fonti",
-          "targets": "Bersagli"
-        },
         "charioteer": {
           "initial": "Iniziale",
           "potential": "Potenziale",
           "title": "Auriga"
+        },
+        "details": {
+          "modifiers": "Modificatori",
+          "sources": "Fonti",
+          "targets": "Bersagli"
         },
         "other": {
           "title": "Altro",
@@ -320,7 +320,6 @@
         "costs": "Costi",
         "maintenance": "Manutenzione",
         "recruited": "Reclutato in",
-        "unlocked": "Sbloccato da",
         "stats": {
           "buildTime": "Tempo di costruzione",
           "cargoSlots": "Slot di carico",
@@ -331,7 +330,8 @@
           "soldiers": "Soldati",
           "speed": "Velocità",
           "title": "Altro"
-        }
+        },
+        "unlocked": "Sbloccato da"
       }
     }
   },
@@ -368,6 +368,13 @@
     "chains": {
       "title": "Catene di produzione × Annohead"
     },
+    "changelog": {
+      "added": "Aggiunte",
+      "changed": "Modifiche",
+      "fixed": "Correzioni",
+      "header": "Registro delle modifiche",
+      "title": "Registro delle modifiche × Annohead"
+    },
     "item": {
       "fallback": "Oggetto",
       "title": "{name} × Oggetti × Annohead"
@@ -376,14 +383,10 @@
       "title": "Oggetti × Annohead"
     },
     "landing": {
-      "changelog": {
-        "added": "Aggiunte",
-        "changed": "Modifiche",
-        "fixed": "Correzioni",
-        "title": "Registro delle modifiche"
-      },
-      "database": "Database",
-      "language": "Lingua"
+      "annohead": "Annohead",
+      "changelog": "Registro delle modifiche",
+      "description": "Database di Anno 117 con informazioni su edifici, catene di produzione, oggetti, specialisti, capitani, merci, missioni, tecnologie e unità.",
+      "title": "Database per Anno 117 × Annohead"
     },
     "product": {
       "fallback": "Merce",

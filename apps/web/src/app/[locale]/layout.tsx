@@ -6,7 +6,6 @@ import { type Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
 
 import { code, text } from '@/assets/fonts'
-import { MainLayout } from '@/components/layouts/main'
 import { Providers } from '@/components/providers'
 import { routing } from '@/intl'
 
@@ -37,9 +36,7 @@ export default async function Layout({
       suppressHydrationWarning
     >
       <body>
-        <Providers>
-          <MainLayout>{children}</MainLayout>
-        </Providers>
+        <Providers>{children}</Providers>
 
         <Analytics />
       </body>

@@ -150,15 +150,15 @@
           "modifiers": "Modificadores",
           "title": "Bônus"
         },
-        "details": {
-          "modifiers": "Modificadores",
-          "sources": "Fontes",
-          "targets": "Alvos"
-        },
         "charioteer": {
           "initial": "Inicial",
           "potential": "Potencial",
           "title": "Auriga"
+        },
+        "details": {
+          "modifiers": "Modificadores",
+          "sources": "Fontes",
+          "targets": "Alvos"
         },
         "other": {
           "title": "Outros",
@@ -320,7 +320,6 @@
         "costs": "Custos",
         "maintenance": "Manutenção",
         "recruited": "Recrutado em",
-        "unlocked": "Desbloqueado por",
         "stats": {
           "buildTime": "Tempo de construção",
           "cargoSlots": "Espaços de carga",
@@ -331,7 +330,8 @@
           "soldiers": "Soldados",
           "speed": "Velocidade",
           "title": "Outros"
-        }
+        },
+        "unlocked": "Desbloqueado por"
       }
     }
   },
@@ -368,6 +368,13 @@
     "chains": {
       "title": "Cadeias de produção × Annohead"
     },
+    "changelog": {
+      "added": "Adicionado",
+      "changed": "Alterado",
+      "fixed": "Corrigido",
+      "header": "Registro de alterações",
+      "title": "Registro de alterações × Annohead"
+    },
     "item": {
       "fallback": "Item",
       "title": "{name} × Itens × Annohead"
@@ -376,14 +383,10 @@
       "title": "Itens × Annohead"
     },
     "landing": {
-      "changelog": {
-        "added": "Adicionado",
-        "changed": "Alterado",
-        "fixed": "Corrigido",
-        "title": "Registro de alterações"
-      },
-      "database": "Banco de dados",
-      "language": "Idioma"
+      "annohead": "Annohead",
+      "changelog": "Registro de alterações",
+      "description": "Banco de dados de Anno 117 com informações sobre construções, cadeias de produção, itens, especialistas, capitães, mercadorias, missões, tecnologias e unidades.",
+      "title": "Banco de dados de Anno 117 × Annohead"
     },
     "product": {
       "fallback": "Produto",

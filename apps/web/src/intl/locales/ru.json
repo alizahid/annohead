@@ -150,15 +150,15 @@
           "modifiers": "Модификаторы",
           "title": "Усиление"
         },
-        "details": {
-          "modifiers": "Модификаторы",
-          "sources": "Источники",
-          "targets": "Цели"
-        },
         "charioteer": {
           "initial": "Начальные",
           "potential": "Потенциал",
           "title": "Колесничий"
+        },
+        "details": {
+          "modifiers": "Модификаторы",
+          "sources": "Источники",
+          "targets": "Цели"
         },
         "other": {
           "title": "Прочее",
@@ -320,7 +320,6 @@
         "costs": "Стоимость",
         "maintenance": "Содержание",
         "recruited": "Набор в",
-        "unlocked": "Разблокируется",
         "stats": {
           "buildTime": "Время постройки",
           "cargoSlots": "Грузовые отсеки",
@@ -331,7 +330,8 @@
           "soldiers": "Солдаты",
           "speed": "Скорость",
           "title": "Прочее"
-        }
+        },
+        "unlocked": "Разблокируется"
       }
     }
   },
@@ -368,6 +368,13 @@
     "chains": {
       "title": "Производственные цепочки × Annohead"
     },
+    "changelog": {
+      "added": "Добавлено",
+      "changed": "Изменено",
+      "fixed": "Исправлено",
+      "header": "Список изменений",
+      "title": "Список изменений × Annohead"
+    },
     "item": {
       "fallback": "Объект",
       "title": "{name} × Объекты × Annohead"
@@ -376,14 +383,10 @@
       "title": "Объекты × Annohead"
     },
     "landing": {
-      "changelog": {
-        "added": "Добавлено",
-        "changed": "Изменено",
-        "fixed": "Исправлено",
-        "title": "Список изменений"
-      },
-      "database": "База данных",
-      "language": "Язык"
+      "annohead": "Annohead",
+      "changelog": "Список изменений",
+      "description": "База данных Anno 117 с информацией о постройках, производственных цепочках, объектах, специалистах, капитанах, товарах, заданиях, технологиях и отрядах.",
+      "title": "База данных Anno 117 × Annohead"
     },
     "product": {
       "fallback": "Товар",

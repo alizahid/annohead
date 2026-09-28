@@ -18,7 +18,7 @@ export function Navigation({ className }: Props) {
   return (
     <nav
       className={cn(
-        '-m-1 flex items-center overflow-x-scroll text-nowrap p-1 lg:justify-center lg:overflow-x-visible',
+        'flex items-center text-nowrap lg:justify-center',
         className,
       )}
     >

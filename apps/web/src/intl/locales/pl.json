@@ -150,15 +150,15 @@
           "modifiers": "Modyfikatory",
           "title": "Wzmocnienie"
         },
-        "details": {
-          "modifiers": "Modyfikatory",
-          "sources": "Źródła",
-          "targets": "Cele"
-        },
         "charioteer": {
           "initial": "Początkowe",
           "potential": "Potencjał",
           "title": "Woźnica"
+        },
+        "details": {
+          "modifiers": "Modyfikatory",
+          "sources": "Źródła",
+          "targets": "Cele"
         },
         "other": {
           "title": "Inne",
@@ -320,7 +320,6 @@
         "costs": "Koszty",
         "maintenance": "Konserwacja",
         "recruited": "Rekrutowane w",
-        "unlocked": "Odblokowywane przez",
         "stats": {
           "buildTime": "Czas budowy",
           "cargoSlots": "Miejsca ładunkowe",
@@ -331,7 +330,8 @@
           "soldiers": "Żołnierze",
           "speed": "Prędkość",
           "title": "Inne"
-        }
+        },
+        "unlocked": "Odblokowywane przez"
       }
     }
   },
@@ -368,6 +368,13 @@
     "chains": {
       "title": "Łańcuchy produkcyjne × Annohead"
     },
+    "changelog": {
+      "added": "Dodano",
+      "changed": "Zmieniono",
+      "fixed": "Naprawiono",
+      "header": "Lista zmian",
+      "title": "Lista zmian × Annohead"
+    },
     "item": {
       "fallback": "Przedmiot",
       "title": "{name} × Przedmioty × Annohead"
@@ -376,14 +383,10 @@
       "title": "Przedmioty × Annohead"
     },
     "landing": {
-      "changelog": {
-        "added": "Dodano",
-        "changed": "Zmieniono",
-        "fixed": "Naprawiono",
-        "title": "Lista zmian"
-      },
-      "database": "Baza danych",
-      "language": "Język"
+      "annohead": "Annohead",
+      "changelog": "Lista zmian",
+      "description": "Baza danych Anno 117 z informacjami o budynkach, łańcuchach produkcyjnych, przedmiotach, specjalistach, kapitanach, towarach, zadaniach, technologiach i jednostkach.",
+      "title": "Baza danych Anno 117 × Annohead"
     },
     "product": {
       "fallback": "Towar",

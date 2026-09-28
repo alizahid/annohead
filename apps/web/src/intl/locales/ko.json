@@ -150,15 +150,15 @@
           "modifiers": "보정치",
           "title": "부스트"
         },
-        "details": {
-          "modifiers": "보정치",
-          "sources": "획득처",
-          "targets": "대상"
-        },
         "charioteer": {
           "initial": "초기",
           "potential": "잠재력",
           "title": "전차 기수"
+        },
+        "details": {
+          "modifiers": "보정치",
+          "sources": "획득처",
+          "targets": "대상"
         },
         "other": {
           "title": "기타",
@@ -320,7 +320,6 @@
         "costs": "비용",
         "maintenance": "유지비",
         "recruited": "모집 장소",
-        "unlocked": "잠금 해제 조건",
         "stats": {
           "buildTime": "건조 시간",
           "cargoSlots": "화물 슬롯",
@@ -331,7 +330,8 @@
           "soldiers": "병사",
           "speed": "속도",
           "title": "기타"
-        }
+        },
+        "unlocked": "잠금 해제 조건"
       }
     }
   },
@@ -368,6 +368,13 @@
     "chains": {
       "title": "생산 체인 × Annohead"
     },
+    "changelog": {
+      "added": "추가",
+      "changed": "변경",
+      "fixed": "수정",
+      "header": "변경 내역",
+      "title": "변경 내역 × Annohead"
+    },
     "item": {
       "fallback": "아이템",
       "title": "{name} × 아이템 × Annohead"
@@ -376,14 +383,10 @@
       "title": "아이템 × Annohead"
     },
     "landing": {
-      "changelog": {
-        "added": "추가",
-        "changed": "변경",
-        "fixed": "수정",
-        "title": "변경 내역"
-      },
-      "database": "데이터베이스",
-      "language": "언어"
+      "annohead": "Annohead",
+      "changelog": "변경 내역",
+      "description": "건물, 생산 체인, 아이템, 전문가, 선장, 물품, 퀘스트, 기술, 유닛 정보를 담은 Anno 117 데이터베이스.",
+      "title": "Anno 117 데이터베이스 × Annohead"
     },
     "product": {
       "fallback": "물품",

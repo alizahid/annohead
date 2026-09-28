@@ -150,15 +150,15 @@
           "modifiers": "Modifiers",
           "title": "Boost"
         },
-        "details": {
-          "modifiers": "Modifiers",
-          "sources": "Sources",
-          "targets": "Targets"
-        },
         "charioteer": {
           "initial": "Starting",
           "potential": "Potential",
           "title": "Charioteer"
+        },
+        "details": {
+          "modifiers": "Modifiers",
+          "sources": "Sources",
+          "targets": "Targets"
         },
         "other": {
           "title": "Other",
@@ -368,6 +368,13 @@
     "chains": {
       "title": "Production chains × Annohead"
     },
+    "changelog": {
+      "added": "Added",
+      "changed": "Changed",
+      "fixed": "Fixed",
+      "header": "Changelog",
+      "title": "Changelog × Annohead"
+    },
     "item": {
       "fallback": "Item",
       "title": "{name} × Items × Annohead"
@@ -376,14 +383,10 @@
       "title": "Items × Annohead"
     },
     "landing": {
-      "changelog": {
-        "added": "Added",
-        "changed": "Changed",
-        "fixed": "Fixed",
-        "title": "Changelog"
-      },
-      "database": "Database",
-      "language": "Language"
+      "annohead": "Annohead",
+      "changelog": "Changelog",
+      "description": "Anno 117 database with information about buildings, production chains, items, specialists, captains, goods, quests, technologies, and units.",
+      "title": "Database for Anno 117 × Annohead"
     },
     "product": {
       "fallback": "Product",

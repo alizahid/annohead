@@ -24,7 +24,7 @@ export function MainLayout({ children }: Props) {
             <Logo className="h-8" />
           </NavLink>
 
-          <Navigation className="flex-1" />
+          <Navigation className="-m-1 flex-1 overflow-x-scroll p-1 lg:overflow-x-visible" />
 
           <LanguageSelector />
 

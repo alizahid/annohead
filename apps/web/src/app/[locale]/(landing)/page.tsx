@@ -1,0 +1,70 @@
+import { type Metadata } from 'next'
+import Image from 'next/image'
+import { useTranslations } from 'next-intl'
+import { getTranslations } from 'next-intl/server'
+
+import { Logo } from '@/components/common/logo'
+import { Navigation } from '@/components/layouts/main/navigation'
+import { SearchBox } from '@/components/search/box'
+import { routing } from '@/intl'
+import { flags } from '@/intl/data'
+import { NavLink } from '@/intl/nav'
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('page.landing')
+
+  return {
+    description: t('description'),
+    title: t('title'),
+  }
+}
+
+export default function Home() {
+  const t = useTranslations('page.landing')
+
+  return (
+    <main className="flex min-h-screen flex-col items-center justify-center gap-8 p-6">
+      <NavLink
+        className="flex items-center gap-4 rounded-sm outline-none ring-accent-8 ring-offset-8 ring-offset-gray-1 focus-visible:ring-2"
+        href="/"
+      >
+        <Logo className="h-8" />
+
+        <h1 className="text-2xl">{t('annohead')}</h1>
+      </NavLink>
+
+      <SearchBox
+        className="w-xl max-w-full"
+        inputClassName="rounded-full not-data-list-empty:data-popup-open:rounded-t-lg"
+      />
+
+      <Navigation className="flex-wrap justify-center" />
+
+      <div className="flex flex-wrap justify-center gap-4">
+        {routing.locales.map((item) => (
+          <NavLink
+            className="flex rounded-full leading-tight outline-none ring-accent-8 ring-offset-2 ring-offset-white transition-colors hover:bg-accent-4 focus-visible:ring-2 dark:ring-offset-black"
+            href={item}
+            key={item}
+          >
+            <Image
+              alt={item}
+              className="size-6"
+              height={16}
+              src={`https://flags.willa.app/flags/${flags[item]}.svg`}
+              unoptimized
+              width={16}
+            />
+          </NavLink>
+        ))}
+      </div>
+
+      <NavLink
+        className="rounded-sm text-gray-11 text-sm outline-none ring-accent-8 focus-visible:ring-2"
+        href="/changelog"
+      >
+        {t('changelog')}
+      </NavLink>
+    </main>
+  )
+}

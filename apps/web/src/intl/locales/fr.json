@@ -150,15 +150,15 @@
           "modifiers": "Modificateurs",
           "title": "Bonus"
         },
-        "details": {
-          "modifiers": "Modificateurs",
-          "sources": "Sources",
-          "targets": "Cibles"
-        },
         "charioteer": {
           "initial": "Initial",
           "potential": "Potentiel",
           "title": "Aurige"
+        },
+        "details": {
+          "modifiers": "Modificateurs",
+          "sources": "Sources",
+          "targets": "Cibles"
         },
         "other": {
           "title": "Autres",
@@ -320,7 +320,6 @@
         "costs": "Coûts",
         "maintenance": "Entretien",
         "recruited": "Recruté à",
-        "unlocked": "Débloqué par",
         "stats": {
           "buildTime": "Temps de construction",
           "cargoSlots": "Emplacements de cargaison",
@@ -331,7 +330,8 @@
           "soldiers": "Soldats",
           "speed": "Vitesse",
           "title": "Autres"
-        }
+        },
+        "unlocked": "Débloqué par"
       }
     }
   },
@@ -368,6 +368,13 @@
     "chains": {
       "title": "Chaînes de production × Annohead"
     },
+    "changelog": {
+      "added": "Ajouts",
+      "changed": "Modifications",
+      "fixed": "Corrections",
+      "header": "Journal des modifications",
+      "title": "Journal des modifications × Annohead"
+    },
     "item": {
       "fallback": "Objet",
       "title": "{name} × Objets × Annohead"
@@ -376,14 +383,10 @@
       "title": "Objets × Annohead"
     },
     "landing": {
-      "changelog": {
-        "added": "Ajouts",
-        "changed": "Modifications",
-        "fixed": "Corrections",
-        "title": "Journal des modifications"
-      },
-      "database": "Base de données",
-      "language": "Langue"
+      "annohead": "Annohead",
+      "changelog": "Journal des modifications",
+      "description": "Base de données d'Anno 117 avec des informations sur les bâtiments, les chaînes de production, les objets, les spécialistes, les capitaines, les marchandises, les quêtes, les technologies et les unités.",
+      "title": "Base de données pour Anno 117 × Annohead"
     },
     "product": {
       "fallback": "Marchandise",
