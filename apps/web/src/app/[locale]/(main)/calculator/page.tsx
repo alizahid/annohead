@@ -1,4 +1,5 @@
 import { type Metadata } from 'next'
+import { connection } from 'next/server'
 import { getTranslations } from 'next-intl/server'
 
 import { AllChains } from '@/components/chains/all'
@@ -15,6 +16,8 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function Page({
   params,
 }: PageProps<'/[locale]/calculator'>) {
+  await connection()
+
   const { locale } = await params
 
   const data = await fetchChainData(locale)

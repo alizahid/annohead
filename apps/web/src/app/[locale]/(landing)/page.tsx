@@ -3,6 +3,7 @@ import { type Metadata } from 'next'
 import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { getTranslations } from 'next-intl/server'
+import { Suspense } from 'react'
 
 import { Logo } from '@/components/common/logo'
 import { Navigation } from '@/components/layouts/main/navigation'
@@ -34,10 +35,12 @@ export default function Home() {
         <h1 className="text-2xl">{t('annohead')}</h1>
       </NavLink>
 
-      <SearchBox
-        className="w-xl max-w-full"
-        inputClassName="rounded-full not-data-list-empty:data-popup-open:rounded-t-lg"
-      />
+      <Suspense>
+        <SearchBox
+          className="w-xl max-w-full"
+          inputClassName="rounded-full not-data-list-empty:data-popup-open:rounded-t-lg"
+        />
+      </Suspense>
 
       <Navigation className="flex-wrap justify-center" />
 

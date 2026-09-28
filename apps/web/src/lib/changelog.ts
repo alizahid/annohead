@@ -11,6 +11,7 @@ export const changelog: Array<Release> = [
       'Sign in with your Steam account',
       'A page for the changelog',
       'A calculator page with every production chain side by side, filterable by region, DLC and type. Each chain links to the good it makes',
+      'The calculator works offline. Once you have visited the site, opening it without internet takes you to the calculator',
     ],
     changed: [
       'New landing page with search, every section and the language picker up front',
