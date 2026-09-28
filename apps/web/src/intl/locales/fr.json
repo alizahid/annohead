@@ -373,7 +373,8 @@
       "changed": "Modifications",
       "fixed": "Corrections",
       "header": "Journal des modifications",
-      "title": "Journal des modifications × Annohead"
+      "title": "Journal des modifications × Annohead",
+      "updated": "Mis à jour le {updated, date, long} à {updated, time, short} UTC"
     },
     "item": {
       "fallback": "Objet",
@@ -386,7 +387,8 @@
       "annohead": "Annohead",
       "changelog": "Journal des modifications",
       "description": "Base de données d'Anno 117 avec des informations sur les bâtiments, les chaînes de production, les objets, les spécialistes, les capitaines, les marchandises, les quêtes, les technologies et les unités.",
-      "title": "Base de données pour Anno 117 × Annohead"
+      "title": "Base de données pour Anno 117 × Annohead",
+      "updated": "Mis à jour le {updated, date, medium}"
     },
     "product": {
       "fallback": "Marchandise",

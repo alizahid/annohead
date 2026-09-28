@@ -373,7 +373,8 @@
       "changed": "Изменено",
       "fixed": "Исправлено",
       "header": "Список изменений",
-      "title": "Список изменений × Annohead"
+      "title": "Список изменений × Annohead",
+      "updated": "Обновлено {updated, date, long} в {updated, time, short} UTC"
     },
     "item": {
       "fallback": "Объект",
@@ -386,7 +387,8 @@
       "annohead": "Annohead",
       "changelog": "Список изменений",
       "description": "База данных Anno 117 с информацией о постройках, производственных цепочках, объектах, специалистах, капитанах, товарах, заданиях, технологиях и отрядах.",
-      "title": "База данных Anno 117 × Annohead"
+      "title": "База данных Anno 117 × Annohead",
+      "updated": "Обновлено {updated, date, medium}"
     },
     "product": {
       "fallback": "Товар",

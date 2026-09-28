@@ -1,3 +1,4 @@
+import { parseISO } from 'date-fns'
 import { type Metadata } from 'next'
 import Image from 'next/image'
 import { useTranslations } from 'next-intl'
@@ -59,12 +60,20 @@ export default function Home() {
         ))}
       </div>
 
-      <NavLink
-        className="rounded-sm text-gray-11 text-sm outline-none ring-accent-8 focus-visible:ring-2"
-        href="/changelog"
-      >
-        {t('changelog')}
-      </NavLink>
+      <div className="flex flex-wrap justify-center gap-4 text-gray-11 text-sm">
+        <div className="tabular-nums">
+          {t('updated', {
+            updated: parseISO(process.env.LAST_UPDATED),
+          })}
+        </div>
+
+        <NavLink
+          className="rounded-sm outline-none ring-accent-8 hover:text-gray-12 focus-visible:ring-2"
+          href="/changelog"
+        >
+          {t('changelog')}
+        </NavLink>
+      </div>
     </main>
   )
 }

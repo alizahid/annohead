@@ -373,7 +373,8 @@
       "changed": "Cambiado",
       "fixed": "Corregido",
       "header": "Registro de cambios",
-      "title": "Registro de cambios × Annohead"
+      "title": "Registro de cambios × Annohead",
+      "updated": "Actualizado el {updated, date, long} a las {updated, time, short} UTC"
     },
     "item": {
       "fallback": "Objeto",
@@ -386,7 +387,8 @@
       "annohead": "Annohead",
       "changelog": "Registro de cambios",
       "description": "Base de datos de Anno 117 con información sobre edificios, cadenas de producción, objetos, especialistas, capitanes, productos, misiones, tecnologías y unidades.",
-      "title": "Base de datos de Anno 117 × Annohead"
+      "title": "Base de datos de Anno 117 × Annohead",
+      "updated": "Actualizado el {updated, date, medium}"
     },
     "product": {
       "fallback": "Producto",

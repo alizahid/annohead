@@ -1,3 +1,4 @@
+import { parseISO } from 'date-fns'
 import { type Metadata } from 'next'
 import { useFormatter, useTranslations } from 'next-intl'
 import { getTranslations } from 'next-intl/server'
@@ -18,7 +19,15 @@ export default function Page() {
 
   return (
     <div className="flex flex-1 flex-col gap-6">
-      <h1 className="text-4xl">{t('header')}</h1>
+      <div className="flex flex-col gap-2">
+        <h1 className="text-4xl">{t('header')}</h1>
+
+        <p className="text-gray-11 text-sm tabular-nums">
+          {t('updated', {
+            updated: parseISO(process.env.LAST_UPDATED),
+          })}
+        </p>
+      </div>
 
       <div className="flex flex-col gap-8">
         {changelog.map((release) => (

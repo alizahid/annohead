@@ -373,7 +373,8 @@
       "changed": "Changed",
       "fixed": "Fixed",
       "header": "Changelog",
-      "title": "Changelog × Annohead"
+      "title": "Changelog × Annohead",
+      "updated": "Updated {updated, date, long} at {updated, time, short} UTC"
     },
     "item": {
       "fallback": "Item",
@@ -386,7 +387,8 @@
       "annohead": "Annohead",
       "changelog": "Changelog",
       "description": "Anno 117 database with information about buildings, production chains, items, specialists, captains, goods, quests, technologies, and units.",
-      "title": "Database for Anno 117 × Annohead"
+      "title": "Database for Anno 117 × Annohead",
+      "updated": "Updated {updated, date, medium}"
     },
     "product": {
       "fallback": "Product",

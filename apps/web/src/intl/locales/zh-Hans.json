@@ -373,7 +373,8 @@
       "changed": "变更",
       "fixed": "修复",
       "header": "更新日志",
-      "title": "更新日志 × Annohead"
+      "title": "更新日志 × Annohead",
+      "updated": "更新于 {updated, date, long} {updated, time, short} UTC"
     },
     "item": {
       "fallback": "物品",
@@ -386,7 +387,8 @@
       "annohead": "Annohead",
       "changelog": "更新日志",
       "description": "Anno 117 数据库，收录建筑、生产链、物品、专家、船长、货物、任务、科技和单位的信息。",
-      "title": "Anno 117 数据库 × Annohead"
+      "title": "Anno 117 数据库 × Annohead",
+      "updated": "更新于 {updated, date, medium}"
     },
     "product": {
       "fallback": "货物",

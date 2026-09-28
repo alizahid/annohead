@@ -373,7 +373,8 @@
       "changed": "Zmieniono",
       "fixed": "Naprawiono",
       "header": "Lista zmian",
-      "title": "Lista zmian × Annohead"
+      "title": "Lista zmian × Annohead",
+      "updated": "Zaktualizowano {updated, date, long} o {updated, time, short} UTC"
     },
     "item": {
       "fallback": "Przedmiot",
@@ -386,7 +387,8 @@
       "annohead": "Annohead",
       "changelog": "Lista zmian",
       "description": "Baza danych Anno 117 z informacjami o budynkach, łańcuchach produkcyjnych, przedmiotach, specjalistach, kapitanach, towarach, zadaniach, technologiach i jednostkach.",
-      "title": "Baza danych Anno 117 × Annohead"
+      "title": "Baza danych Anno 117 × Annohead",
+      "updated": "Zaktualizowano {updated, date, medium}"
     },
     "product": {
       "fallback": "Towar",

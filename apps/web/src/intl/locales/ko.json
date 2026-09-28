@@ -373,7 +373,8 @@
       "changed": "변경",
       "fixed": "수정",
       "header": "변경 내역",
-      "title": "변경 내역 × Annohead"
+      "title": "변경 내역 × Annohead",
+      "updated": "{updated, date, long} {updated, time, short} UTC 업데이트"
     },
     "item": {
       "fallback": "아이템",
@@ -386,7 +387,8 @@
       "annohead": "Annohead",
       "changelog": "변경 내역",
       "description": "건물, 생산 체인, 아이템, 전문가, 선장, 물품, 퀘스트, 기술, 유닛 정보를 담은 Anno 117 데이터베이스.",
-      "title": "Anno 117 데이터베이스 × Annohead"
+      "title": "Anno 117 데이터베이스 × Annohead",
+      "updated": "{updated, date, medium} 업데이트"
     },
     "product": {
       "fallback": "물품",

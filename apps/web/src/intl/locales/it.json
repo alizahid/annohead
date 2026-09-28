@@ -373,7 +373,8 @@
       "changed": "Modifiche",
       "fixed": "Correzioni",
       "header": "Registro delle modifiche",
-      "title": "Registro delle modifiche × Annohead"
+      "title": "Registro delle modifiche × Annohead",
+      "updated": "Aggiornato il {updated, date, long} alle {updated, time, short} UTC"
     },
     "item": {
       "fallback": "Oggetto",
@@ -386,7 +387,8 @@
       "annohead": "Annohead",
       "changelog": "Registro delle modifiche",
       "description": "Database di Anno 117 con informazioni su edifici, catene di produzione, oggetti, specialisti, capitani, merci, missioni, tecnologie e unità.",
-      "title": "Database per Anno 117 × Annohead"
+      "title": "Database per Anno 117 × Annohead",
+      "updated": "Aggiornato il {updated, date, medium}"
     },
     "product": {
       "fallback": "Merce",

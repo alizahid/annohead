@@ -373,7 +373,8 @@
       "changed": "變更",
       "fixed": "修正",
       "header": "更新日誌",
-      "title": "更新日誌 × Annohead"
+      "title": "更新日誌 × Annohead",
+      "updated": "更新於 {updated, date, long} {updated, time, short} UTC"
     },
     "item": {
       "fallback": "物品",
@@ -386,7 +387,8 @@
       "annohead": "Annohead",
       "changelog": "更新日誌",
       "description": "Anno 117 資料庫，收錄建築、生產鏈、物品、專家、船長、貨物、任務、科技和單位的資訊。",
-      "title": "Anno 117 資料庫 × Annohead"
+      "title": "Anno 117 資料庫 × Annohead",
+      "updated": "更新於 {updated, date, medium}"
     },
     "product": {
       "fallback": "貨物",

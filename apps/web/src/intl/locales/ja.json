@@ -373,7 +373,8 @@
       "changed": "変更",
       "fixed": "修正",
       "header": "更新履歴",
-      "title": "更新履歴 × Annohead"
+      "title": "更新履歴 × Annohead",
+      "updated": "{updated, date, long} {updated, time, short} UTC 更新"
     },
     "item": {
       "fallback": "アイテム",
@@ -386,7 +387,8 @@
       "annohead": "Annohead",
       "changelog": "更新履歴",
       "description": "建物、生産チェーン、アイテム、専門家、船長、品物、クエスト、技術、ユニットの情報を掲載したAnno 117データベース。",
-      "title": "Anno 117 データベース × Annohead"
+      "title": "Anno 117 データベース × Annohead",
+      "updated": "{updated, date, medium} 更新"
     },
     "product": {
       "fallback": "品物",

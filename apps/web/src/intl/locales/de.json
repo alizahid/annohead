@@ -373,7 +373,8 @@
       "changed": "Geändert",
       "fixed": "Behoben",
       "header": "Änderungsprotokoll",
-      "title": "Änderungsprotokoll × Annohead"
+      "title": "Änderungsprotokoll × Annohead",
+      "updated": "Aktualisiert am {updated, date, long} um {updated, time, short} UTC"
     },
     "item": {
       "fallback": "Gegenstand",
@@ -386,7 +387,8 @@
       "annohead": "Annohead",
       "changelog": "Änderungsprotokoll",
       "description": "Anno-117-Datenbank mit Informationen zu Gebäuden, Produktionsketten, Gegenständen, Spezialisten, Kapitänen, Waren, Quests, Technologien und Einheiten.",
-      "title": "Datenbank für Anno 117 × Annohead"
+      "title": "Datenbank für Anno 117 × Annohead",
+      "updated": "Aktualisiert am {updated, date, medium}"
     },
     "product": {
       "fallback": "Ware",
