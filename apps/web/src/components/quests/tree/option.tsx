@@ -35,9 +35,7 @@ export function QuestOptionNode({
       <QuestHandle type="target" />
 
       <button
-        aria-pressed={on.has(id)}
         className={cn(
-          // pickable cards are tinted; ones the game decides stay gray
           'pointer-events-auto flex w-full flex-col gap-4 rounded-lg bg-gray-3 p-4 pb-3 text-left outline-none ring-accent-8 transition focus-visible:ring-2 enabled:bg-accent-3 enabled:hover:bg-accent-4',
           on.has(id) && 'ring-2 ring-accent-9',
           off.has(id) && 'opacity-40 enabled:hover:opacity-100',

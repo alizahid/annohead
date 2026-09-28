@@ -22,7 +22,8 @@ export function QuestBranchNode({
   id,
 }: NodeProps<BranchNode>) {
   const t = useTranslations('component.quests.choice')
-  const { locked, off, on, pick } = usePath()
+
+  const { locked, off, pick } = usePath()
 
   const holds = option.idx === 0
   const label = t(holds ? 'holds' : 'fails')
@@ -38,10 +39,8 @@ export function QuestBranchNode({
 
       <div className="flex size-14 shrink-0 items-center justify-center">
         <button
-          aria-label={label}
-          aria-pressed={on.has(id)}
           className={cn(
-            'pointer-events-auto flex size-10 rotate-45 items-center justify-center rounded-md text-white outline-none ring-accent-8 ring-offset-2 ring-offset-gray-2 focus-visible:ring-2 aria-pressed:ring-2 aria-pressed:ring-accent-9',
+            'pointer-events-auto flex size-10 rotate-45 items-center justify-center rounded-md text-white outline-none ring-accent-8 ring-offset-2 ring-offset-gray-2 focus-visible:ring-2',
             holds ? 'bg-green-9' : 'bg-red-9',
           )}
           disabled={locked.has(id)}
