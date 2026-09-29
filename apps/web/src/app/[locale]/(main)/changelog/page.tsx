@@ -1,3 +1,4 @@
+import { cn } from 'cn'
 import { parseISO } from 'date-fns'
 import { type Metadata } from 'next'
 import { useFormatter, useTranslations } from 'next-intl'
@@ -41,7 +42,14 @@ export default function Page() {
             {(['added', 'changed', 'fixed'] as const).map((section) =>
               release[section] ? (
                 <div className="flex flex-col gap-2" key={section}>
-                  <h4 className="font-bold text-gray-11 text-sm">
+                  <h4
+                    className={cn(
+                      'font-bold text-gray-11 text-sm',
+                      section === 'added' && 'text-green-11',
+                      section === 'changed' && 'text-blue-11',
+                      section === 'fixed' && 'text-orange-11',
+                    )}
+                  >
                     {t(section)}
                   </h4>
 
