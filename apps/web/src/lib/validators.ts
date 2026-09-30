@@ -68,6 +68,7 @@ export const chainFilters = {
   dlcs: parseAsArrayOf(parseAsInteger),
   page: parseAsInteger,
   regions: parseAsArrayOf(parseAsInteger),
+  tiers: parseAsArrayOf(parseAsInteger),
   types: parseAsArrayOf(parseAsInteger),
 }
 

@@ -115,6 +115,7 @@
       "filters": {
         "dlcs": "DLC",
         "regions": "地域",
+        "tiers": "住民階層",
         "types": "タイプ"
       },
       "list": {

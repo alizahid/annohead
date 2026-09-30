@@ -1,6 +1,12 @@
 'use client'
 
-import { type ChainTypes, type Dlcs, type Regions } from '@anno/db/client'
+import {
+  type ChainTiers,
+  type ChainTypes,
+  type Dlcs,
+  type Regions,
+} from '@anno/db/client'
+import { orderBy } from 'lodash'
 import { useTranslations } from 'next-intl'
 import { useQueryStates } from 'nuqs'
 
@@ -8,21 +14,29 @@ import { getIcon } from '@/lib/icons'
 import { chainFilters } from '@/lib/validators'
 
 import { FiltersCard } from '../common/filters'
+import { Icon } from '../common/icon'
 
 type Props = {
   dlcs: Dlcs
   refresh?: boolean
   regions: Regions
+  tiers: ChainTiers
   types: ChainTypes
 }
 
-export function ChainFiltersCard({ dlcs, refresh, regions, types }: Props) {
+export function ChainFiltersCard({
+  dlcs,
+  refresh,
+  regions,
+  tiers,
+  types,
+}: Props) {
   const t = useTranslations('component.chains.filters')
 
   const filters = useQueryStates(chainFilters)
 
   return (
-    <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-3 lg:flex lg:w-64 lg:flex-col">
+    <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-4 lg:flex lg:w-64 lg:flex-col">
       <FiltersCard
         filters={filters}
         id="regions"
@@ -33,6 +47,30 @@ export function ChainFiltersCard({ dlcs, refresh, regions, types }: Props) {
         }))}
         refresh={refresh}
         title={t('regions')}
+      />
+
+      <FiltersCard
+        filters={filters}
+        id="tiers"
+        items={orderBy(tiers, ['region', 'tier'], ['desc', 'asc']).map(
+          (item) => ({
+            after: (
+              <>
+                <Icon
+                  className="size-6"
+                  icon={getIcon(`region.${item.region}`)}
+                />
+
+                <Icon className="size-6" icon={getIcon(`tier.${item.tier}`)} />
+              </>
+            ),
+            icon: item.icon,
+            label: item.name,
+            value: item.guid,
+          }),
+        )}
+        refresh={refresh}
+        title={t('tiers')}
       />
 
       <FiltersCard

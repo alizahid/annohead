@@ -115,6 +115,7 @@
       "filters": {
         "dlcs": "DLC",
         "regions": "Регион",
+        "tiers": "Уровень населения",
         "types": "Тип"
       },
       "list": {

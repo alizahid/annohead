@@ -115,6 +115,7 @@
       "filters": {
         "dlcs": "DLC",
         "regions": "Regione",
+        "tiers": "Livello di popolazione",
         "types": "Tipo"
       },
       "list": {

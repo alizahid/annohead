@@ -1,5 +1,6 @@
 import {
   type Chains,
+  type ChainTiers,
   type ChainTypes,
   type Dlcs,
   type Regions,
@@ -19,9 +20,17 @@ type Props = {
   filters: ChainFilters
   types: ChainTypes
   regions: Regions
+  tiers: ChainTiers
 }
 
-export function ChainList({ chains, dlcs, filters, types, regions }: Props) {
+export function ChainList({
+  chains,
+  dlcs,
+  filters,
+  types,
+  regions,
+  tiers,
+}: Props) {
   const t = useTranslations('component.chains.list')
 
   return (
@@ -29,7 +38,12 @@ export function ChainList({ chains, dlcs, filters, types, regions }: Props) {
       <h1 className="text-4xl">{t('title')}</h1>
 
       <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
-        <ChainFiltersCard dlcs={dlcs} regions={regions} types={types} />
+        <ChainFiltersCard
+          dlcs={dlcs}
+          regions={regions}
+          tiers={tiers}
+          types={types}
+        />
 
         <div className="flex flex-1 flex-col gap-12">
           {chains.rows.length ? (

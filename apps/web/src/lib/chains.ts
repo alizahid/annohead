@@ -5,12 +5,15 @@ import { validateLocale } from './validators'
 export async function fetchChainData(locale: string) {
   const lang = validateLocale(locale)
 
-  const [dlcs, regions, types, chains] = await Promise.all([
+  const [dlcs, regions, tiers, types, chains] = await Promise.all([
     anno.dlc.list({
       lang,
       of: 'building',
     }),
     anno.regions.list({
+      lang,
+    }),
+    anno.chains.tiers({
       lang,
     }),
     anno.chains.types({
@@ -44,6 +47,7 @@ export async function fetchChainData(locale: string) {
     })),
     dlcs,
     regions,
+    tiers,
     types,
   }
 }

@@ -8,11 +8,13 @@ import {
   dlc,
   factory,
   factoryOutput,
+  populationLevel,
   product,
   productionChain,
   productionChainNode,
   region,
 } from '../schema'
+import { populationTiers } from './population-tiers'
 import {
   categoriesOf,
   type Get,
@@ -29,13 +31,56 @@ export type ChainFilter = {
   regions?: Array<number>
   /** DLC guids (of the chain's final building) */
   dlcs?: Array<number>
-  /** construction-menu tabs listing the chain (category guids, see `chains.types`): a tier's tab, Materials … */
+  /** construction-menu tabs listing the chain (category guids, see `chains.types`): Harbour, Materials … */
   types?: Array<number>
+  /** population tiers' menu tabs listing the chain (category guids, see `chains.tiers`) */
+  tiers?: Array<number>
 }
 
-/** The construction-menu tabs chains are filed under, in game order. */
+/** The construction-menu tabs chains are filed under, in game order, each tier's tab with its population tier (matched by the tier's workforce icon). */
+async function menuTabs(lang: Lang) {
+  const [categories, levels, workforce] = await Promise.all([
+    categoriesOf('menu', productionChain.guid, lang),
+    populationTiers.list({ lang }),
+    db
+      .select({ guid: product.guid, icon: product.icon })
+      .from(product)
+      .innerJoin(
+        populationLevel,
+        eq(populationLevel.workforceProductGuid, product.guid),
+      ),
+  ])
+  return categories.map((category) => {
+    const productGuid = workforce.find((w) => w.icon === category.icon)?.guid
+    return {
+      category,
+      tier: levels.find((t) => t.workforceProductGuid === productGuid),
+    }
+  })
+}
+
+/** Menu tabs that aren't a population tier's: Harbour, Military, Materials */
 async function types({ lang }: { lang: Lang }) {
-  return await categoriesOf('menu', productionChain.guid, lang)
+  const tabs = await menuTabs(lang)
+  return tabs.filter((tab) => !tab.tier).map((tab) => tab.category)
+}
+
+/** Population tiers' menu tabs, keyed by the tab's category guid */
+async function tiers({ lang }: { lang: Lang }) {
+  const tabs = await menuTabs(lang)
+  return tabs.flatMap(({ category, tier }) =>
+    tier
+      ? [
+          {
+            guid: category.guid,
+            icon: tier.icon,
+            name: category.name,
+            region: tier.region,
+            tier: tier.tier,
+          },
+        ]
+      : [],
+  )
 }
 
 /** Production chains with their nodes as a flat parent/tier list. */
@@ -52,6 +97,7 @@ async function queryChains(f: ChainFilter & Page, id?: number) {
       : undefined,
     f.dlcs?.length ? inArray(building.dlcGuid, f.dlcs) : undefined,
     f.types?.length ? inCategories(productionChain.guid, f.types) : undefined,
+    f.tiers?.length ? inCategories(productionChain.guid, f.tiers) : undefined,
   )
   const { limit, offset } = paginate(f)
   const [[{ total }], rows] = await Promise.all([
@@ -172,5 +218,6 @@ async function list(f: ChainFilter & Page) {
 export const chains = {
   get,
   list,
+  tiers,
   types,
 }

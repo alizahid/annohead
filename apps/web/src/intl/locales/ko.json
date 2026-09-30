@@ -115,6 +115,7 @@
       "filters": {
         "dlcs": "DLC",
         "regions": "지역",
+        "tiers": "인구 계층",
         "types": "유형"
       },
       "list": {

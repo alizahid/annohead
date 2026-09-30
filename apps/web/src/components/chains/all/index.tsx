@@ -23,6 +23,7 @@ export function AllChains({ data }: Props) {
     (chain) =>
       matches(filters.regions, [chain.region?.id]) &&
       matches(filters.dlcs, [chain.dlc?.guid]) &&
+      matches(filters.tiers, chain.types) &&
       matches(filters.types, chain.types),
   )
 
@@ -35,6 +36,7 @@ export function AllChains({ data }: Props) {
           dlcs={data.dlcs}
           refresh={false}
           regions={data.regions}
+          tiers={data.tiers}
           types={data.types}
         />
 
