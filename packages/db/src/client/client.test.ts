@@ -675,7 +675,7 @@ test('chains join final building and nodes', async () => {
   ).toBeNull()
 })
 
-test('chains filter by type, region and dlc', async () => {
+test('chains filter by type, tier, region and dlc', async () => {
   const military = await anno.chains.list({
     lang: 'en',
     types: [41_368],
@@ -685,7 +685,7 @@ test('chains filter by type, region and dlc', async () => {
   // Roman Celtic Wine is on both the Aldermen and Nobles menus
   const nobles = await anno.chains.list({
     lang: 'en',
-    types: [41_327],
+    tiers: [41_327],
   })
   expect(nobles.rows.map((r) => r.guid)).toContain(6668)
   const roman = await anno.chains.list({
@@ -702,11 +702,21 @@ test('chains filter by type, region and dlc', async () => {
       })
     ).total,
   ).toBe(0)
-  expect(
-    await anno.chains.types({
-      lang: 'en',
-    }),
-  ).toHaveLength(12)
+  const types = await anno.chains.types({
+    lang: 'en',
+  })
+  expect(types.map((t) => t.name)).toEqual([
+    'Harbour Buildings',
+    'Military Buildings',
+    'Materials',
+  ])
+  // every tier's menu tab matches its population tier by workforce icon; a patch changing either icon breaks this
+  const tiers = await anno.chains.tiers({
+    lang: 'en',
+  })
+  expect(tiers).toHaveLength(
+    (await anno.populationTiers.list({ lang: 'en' })).length,
+  )
 })
 
 test('search ranks name matches, dedupes variants, filters by type and paginates', async () => {
