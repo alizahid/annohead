@@ -7,7 +7,9 @@ type Release = {
 
 export const changelog: Array<Release> = [
   {
-    added: ['Search the calculator by chain, good or building name'],
+    added: [
+      'Filter the calculator by chain, good or building name. The filter is saved in the link, so you can share it',
+    ],
     date: new Date('2026-10-04'),
   },
   {

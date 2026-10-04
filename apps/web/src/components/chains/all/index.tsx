@@ -1,8 +1,7 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { useQueryStates } from 'nuqs'
-import { useState } from 'react'
+import { parseAsString, useQueryState, useQueryStates } from 'nuqs'
 
 import { Empty } from '@/components/common/empty'
 import { TextBox } from '@/components/common/text-box'
@@ -21,7 +20,10 @@ export function AllChains({ data }: Props) {
 
   const [filters] = useQueryStates(chainFilters)
 
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useQueryState(
+    'filter',
+    parseAsString.withDefault(''),
+  )
 
   const query = search.trim().toLocaleLowerCase()
 
@@ -53,7 +55,9 @@ export function AllChains({ data }: Props) {
         >
           <TextBox
             className="sm:col-span-2 md:col-span-4"
-            onValueChange={setSearch}
+            onValueChange={async (next) => {
+              await setSearch(next)
+            }}
             placeholder={t('search')}
             type="search"
             value={search}
