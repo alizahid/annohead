@@ -101,6 +101,7 @@
     "chains": {
       "all": {
         "empty": "Nessun risultato",
+        "search": "Filtra",
         "title": "Calcolatore"
       },
       "calculator": {

@@ -101,6 +101,7 @@
     "chains": {
       "all": {
         "empty": "결과 없음",
+        "search": "필터",
         "title": "계산기"
       },
       "calculator": {

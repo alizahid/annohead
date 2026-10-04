@@ -101,6 +101,7 @@
     "chains": {
       "all": {
         "empty": "找不到結果",
+        "search": "篩選",
         "title": "計算器"
       },
       "calculator": {

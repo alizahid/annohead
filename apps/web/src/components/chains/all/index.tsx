@@ -2,8 +2,10 @@
 
 import { useTranslations } from 'next-intl'
 import { useQueryStates } from 'nuqs'
+import { useState } from 'react'
 
 import { Empty } from '@/components/common/empty'
+import { TextBox } from '@/components/common/text-box'
 import { type ChainData } from '@/lib/chains'
 import { chainFilters } from '@/lib/validators'
 
@@ -19,12 +21,22 @@ export function AllChains({ data }: Props) {
 
   const [filters] = useQueryStates(chainFilters)
 
+  const [search, setSearch] = useState('')
+
+  const query = search.trim().toLocaleLowerCase()
+
   const chains = data.chains.filter(
     (chain) =>
       matches(filters.regions, [chain.region?.id]) &&
       matches(filters.dlcs, [chain.dlc?.guid]) &&
       matches(filters.tiers, chain.types) &&
-      matches(filters.types, chain.types),
+      matches(filters.types, chain.types) &&
+      (!query ||
+        [
+          chain.name,
+          chain.product?.name,
+          ...chain.nodes.map((node) => node.name),
+        ].some((name) => name?.toLocaleLowerCase().includes(query))),
   )
 
   return (
@@ -38,7 +50,15 @@ export function AllChains({ data }: Props) {
           regions={data.regions}
           tiers={data.tiers}
           types={data.types}
-        />
+        >
+          <TextBox
+            className="sm:col-span-2 md:col-span-4"
+            onValueChange={setSearch}
+            placeholder={t('search')}
+            type="search"
+            value={search}
+          />
+        </ChainFiltersCard>
 
         <div className="flex flex-1 flex-col gap-12">
           {chains.length ? (

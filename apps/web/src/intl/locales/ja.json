@@ -101,6 +101,7 @@
     "chains": {
       "all": {
         "empty": "見つかりませんでした",
+        "search": "絞り込み",
         "title": "計算機"
       },
       "calculator": {

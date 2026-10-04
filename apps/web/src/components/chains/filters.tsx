@@ -9,6 +9,7 @@ import {
 import { orderBy } from 'lodash'
 import { useTranslations } from 'next-intl'
 import { useQueryStates } from 'nuqs'
+import { type ReactNode } from 'react'
 
 import { getIcon } from '@/lib/icons'
 import { chainFilters } from '@/lib/validators'
@@ -17,6 +18,7 @@ import { FiltersCard } from '../common/filters'
 import { Icon } from '../common/icon'
 
 type Props = {
+  children?: ReactNode
   dlcs: Dlcs
   refresh?: boolean
   regions: Regions
@@ -25,6 +27,7 @@ type Props = {
 }
 
 export function ChainFiltersCard({
+  children,
   dlcs,
   refresh,
   regions,
@@ -37,6 +40,8 @@ export function ChainFiltersCard({
 
   return (
     <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-4 lg:flex lg:w-64 lg:flex-col">
+      {children}
+
       <FiltersCard
         filters={filters}
         id="regions"
