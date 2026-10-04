@@ -7,19 +7,29 @@ type Release = {
 
 export const changelog: Array<Release> = [
   {
+    added: ['Search the calculator by chain, good or building name'],
+    date: new Date('2026-10-04'),
+  },
+  {
+    changed: [
+      'Production chains and the calculator have a population tier filter like the buildings page. The type filter now only lists harbour, military and materials',
+    ],
+    date: new Date('2026-09-30'),
+  },
+  {
     added: [
       'Sign in with your Steam account',
       'A page for the changelog',
       'A calculator page with every production chain side by side, filterable by region, DLC and type. Each chain links to the good it makes',
       'The calculator works offline. Once you have visited the site, opening it without internet takes you to the calculator',
       'An ornaments section with every decoration, ground pattern and wall from the ornament menu, filterable by region, menu tab and cosmetic pack. Each one shows its cost and ornament value',
-      'Search the calculator by chain, good or building name',
+      'The search box suggests matches as you type. Pick one to jump straight to its page, or press Enter for all results',
     ],
     changed: [
       'New landing page with search, every section and the language picker up front',
       'The chain calculator rounds input buildings up to how many you need to place, with the exact ratio beside it. Each building has its icon and links to its page',
       'DLC filters only list DLCs with something on that page, so the cosmetic packs no longer show up as empty options',
-      'Production chains and the calculator have a population tier filter like the buildings page. The type filter now only lists harbour, military and materials',
+      'Search is faster, and only suggests near-miss spellings when nothing matches what you typed',
     ],
     date: new Date('2026-09-28'),
   },
@@ -29,10 +39,6 @@ export const changelog: Array<Release> = [
       'Items can be filtered by Charioteer',
       'The quest flowchart is clickable. Picking an option lights up that path, fades what it rules out, and pans to the next decision',
       'Each quest part shows its opening story',
-      'The search box suggests matches as you type. Pick one to jump straight to its page, or press Enter for all results',
-    ],
-    changed: [
-      'Search is faster, and only suggests near-miss spellings when nothing matches what you typed',
     ],
     date: new Date('2026-09-27'),
   },
