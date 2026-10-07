@@ -50,7 +50,7 @@ export function Calculator({ chain }: Props) {
       </div>
 
       <NumberField.Root
-        className="flex flex-1 items-center justify-between gap-4"
+        className="flex items-center justify-between gap-4"
         id={`chain-${chain.guid}`}
         min={1}
         onClick={(event) => {

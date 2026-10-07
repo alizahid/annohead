@@ -66,7 +66,7 @@ export function AllChains({ data }: Props) {
 
         <div className="flex flex-1 flex-col gap-12">
           {chains.length ? (
-            <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               {chains.map((chain) => (
                 <Calculator chain={chain} key={chain.guid} />
               ))}
