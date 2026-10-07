@@ -29,6 +29,9 @@ assert sorted(
         "select region_id from production_chain pc join translation t on t.line_id=pc.name_text and t.lang_id=(select id from lang where code='english') where t.value='Bread'"
     )
 ) == [(1,), (2,)]
+# one chain per region and output building: Albion keeps Celtic Cheese (6587), not Latium's Roman Cheese copy (8894)
+assert q("select count(*) from (select 1 from production_chain group by region_id, building_guid having count(*) > 1)") == [(0,)]
+assert q("select guid from production_chain where building_guid=6586") == [(6587,)]
 # questlines only: radiant requests (the famine request) are pruned; the Murmillo finale's adopt option leads to the tally
 assert q("select count(*) from quest_option where decision_guid=77280") == [(0,)]
 assert (1, 50883) in q("select idx, node_guid from quest_choice_outcome where choice_guid=50866")

@@ -7,6 +7,12 @@ type Release = {
 
 export const changelog: Array<Release> = [
   {
+    date: new Date('2026-10-07'),
+    fixed: [
+      'Production chains and the calculator no longer list some goods twice, like Brooches, Chariots, Cheese and Cloaks',
+    ],
+  },
+  {
     added: [
       'Filter the calculator by chain, good or building name. The filter is saved in the link, so you can share it',
     ],

@@ -2047,6 +2047,16 @@ class T:
             delete from buff_functional_effect where buff_guid not in (select guid from used_buff);
             delete from buff_provided_need where buff_guid not in (select guid from used_buff);
             delete from condition_param where condition_id not in (select id from condition);
+            -- each menu (Latium, Celtic Albion, Roman Albion) ships its own copy of a chain; keep one per region and
+            -- output building, the one built most from that region's buildings (Celtic Cheese over Latium's Roman Cheese)
+            create temp table chain_rank as
+              select pc.guid, row_number() over (partition by pc.region_id, pc.building_guid
+                order by sum(b.region_id is pc.region_id) desc, pc.guid) n
+              from production_chain pc join production_chain_node pn on pn.chain_guid = pc.guid
+              left join building b on b.guid = pn.building_guid group by pc.guid;
+            delete from production_chain where guid in (select guid from chain_rank where n > 1);
+            delete from production_chain_node where chain_guid not in (select guid from production_chain);
+            delete from category_member where asset_guid in (select guid from chain_rank where n > 1);
             """
         )
 
