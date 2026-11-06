@@ -158,6 +158,14 @@ QUEST_TEMPLATES = {
     "TextPopup",
     "ComplexCombination",
     "DummySequenceAsset",
+    # objectives saved as their own asset kind; same Objective shape, and many lead on to decision trees
+    "DeliveryObjectiveComponent",
+    "DestroyObjectiveComponent",
+    "GoToObjectiveComponent",
+    "PickUpObjectiveComponent",
+    "ReligionObjectiveComponent",
+    "SelectObjectiveComponent",
+    "StatusQuoObjectiveComponent",
 }
 REWARD_ACTIONS = {
     "ActionAddGoodsToItemContainer",
@@ -1793,8 +1801,10 @@ class T:
         for g, s in node_story.items():
             by_story[s].append(g)
 
+        # a random roll in a story ("Quests") only picks a spawn point or the grain wanted; in requests it is the request
         def radiant(s):
-            return D(self.assets[s]["v"].get("StoryLine")).get("System") == "Contracts" or any(
+            system = D(self.assets[s]["v"].get("StoryLine")).get("System")
+            return system == "Contracts" or system != "Quests" and any(
                 isinstance(d.get("SetVariableTo"), dict)
                 and re.search(r"Random|PoolEntry", json.dumps(d["SetVariableTo"]))
                 for g in by_story[s]
@@ -1811,7 +1821,8 @@ class T:
             local[s].add(name)
         writes, reads = defaultdict(set), defaultdict(set)
         for node, var in self.db.execute("select node_guid, variable from quest_variable_change"):
-            if story_of.get(node) in keep and var not in local[story_of[node]]:
+            # tutorial flags (Onboarding_StartLoadGoods) are set by unrelated stories that teach the same thing
+            if story_of.get(node) in keep and var not in local[story_of[node]] and not var.startswith("Onboarding"):
                 writes[var].add(story_of[node])
         for kind, owner, var in self.db.execute(
             """select c.owner_kind, c.owner_id, p.value from condition c join condition_param p on p.condition_id=c.id

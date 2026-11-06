@@ -8,6 +8,16 @@ type Release = {
 export const changelog: Array<Release> = [
   {
     added: [
+      '31 more questlines, like Recover the Mummy, Name and Title... and Aboard the Isis',
+    ],
+    date: new Date('2026-11-06'),
+    fixed: [
+      'Questlines show choices reached after a delivery or a fight, like Heron’s offer in Ill-Gotten Grains',
+      'Dear Father..., Fault Lines, Sacrifice Not In Vain and Reining In show as parts of the questlines they continue',
+    ],
+  },
+  {
+    added: [
       'Dawn of the Delta: the Egypt region with its buildings, goods, population tiers, production chains, research, items and questlines',
     ],
     changed: ['Game data updated to the latest patch'],

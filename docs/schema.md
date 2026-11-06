@@ -195,7 +195,10 @@ This is enough for the flowchart view: nodes, typed edges, option labels, reward
 #### Questlines (choices and their consequences)
 
 Radiant storylines (random requests and contracts) are left out; what the site shows are the narrative ones where
-choices lead somewhere.
+choices lead somewhere. A random roll only marks a storyline radiant outside the `Quests` system: in stories it just
+picks a spawn point or the good asked for. Quest graphs are walked through the `*ObjectiveComponent` assets too
+(deliver, destroy, select…), which often lead on to decision trees. Write-only `Onboarding*` tutorial flags don't tie
+storylines together.
 
 - `quest_option` also carries the option's `cost` (product, amount) and `condition` (its `UnlockRequirement`).
 - `quest_reward` also collects the actions on decision outcome screens (`DecisionComponent.DecisionActions`), plus
