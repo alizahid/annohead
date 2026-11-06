@@ -14,6 +14,7 @@ export const changelog: Array<Release> = [
     fixed: [
       'Questlines show choices reached after a delivery or a fight, like Heron’s offer in Ill-Gotten Grains',
       'Dear Father..., Fault Lines, Sacrifice Not In Vain and Reining In show as parts of the questlines they continue',
+      'Quest charts with question menus you return to, like Private Investigations, read left to right instead of piling up around the menu',
     ],
   },
   {

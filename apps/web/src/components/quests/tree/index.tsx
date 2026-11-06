@@ -149,6 +149,51 @@ function graph(quest: NonNullable<Quest>) {
   }
 }
 
+/** Edges that lead back to an earlier screen ("Return to other questions"), found walking from where a part starts.
+ * Left to dagre, these cycles get broken at random and drag menus to the far edge of the chart. */
+function loopsOf(ids: Set<string>, edges: Array<Edge>) {
+  const next = new Map<string, Array<Edge>>()
+  const entered = new Set<string>()
+
+  for (const edge of edges) {
+    if (ids.has(edge.source) && ids.has(edge.target)) {
+      next.set(edge.source, [...(next.get(edge.source) ?? []), edge])
+      entered.add(edge.target)
+    }
+  }
+
+  const loops = new Set<string>()
+  const open = new Set<string>()
+  const done = new Set<string>()
+
+  function visit(id: string) {
+    open.add(id)
+
+    for (const edge of next.get(id) ?? []) {
+      if (open.has(edge.target)) {
+        loops.add(edge.id)
+      } else if (!done.has(edge.target)) {
+        visit(edge.target)
+      }
+    }
+
+    open.delete(id)
+    done.add(id)
+  }
+
+  // starts first, then whatever only a loop leads into
+  for (const id of [
+    ...[...ids].filter((start) => !entered.has(start)),
+    ...ids,
+  ]) {
+    if (!done.has(id)) {
+      visit(id)
+    }
+  }
+
+  return loops
+}
+
 function layout(nodes: Array<FlowNode>, edges: Array<Edge>) {
   const sizeOf = (node: FlowNode): Size => ({
     height: node.measured?.height ?? 0,
@@ -184,8 +229,10 @@ function layout(nodes: Array<FlowNode>, edges: Array<Edge>) {
       chart.setNode(member.id, sizeOf(member))
     }
 
+    const loops = loopsOf(ids, edges)
+
     for (const edge of edges) {
-      if (ids.has(edge.source) && ids.has(edge.target)) {
+      if (ids.has(edge.source) && ids.has(edge.target) && !loops.has(edge.id)) {
         chart.setEdge(edge.source, edge.target)
       }
     }
