@@ -2021,6 +2021,15 @@ class T:
         ):
             if story_of.get(node) in keep and target in keep and target != story_of[node]:
                 after[story_of[node]].add(target)
+        # a story that waits for a step of another to end, start or exist comes after it: the parts of Valeria's
+        # story each start once a step of the part before has ended
+        for kind, owner, value in self.db.execute(
+            """select c.owner_kind, c.owner_id, p.value from condition c join condition_param p on p.condition_id=c.id
+               where c.owner_kind in ('storyline', 'quest_node', 'quest_option') and p.key in ('Context', 'ComponentGUID')"""
+        ):
+            waits, on = owner if kind == "storyline" else story_of.get(owner), story_of.get(self.num(value))
+            if waits in keep and on in keep and waits != on:
+                after[on].add(waits)
         titled = {
             s: (t or r, i)
             for s, t, r, i in self.db.execute("select guid, title_text, request_text, icon from storyline")

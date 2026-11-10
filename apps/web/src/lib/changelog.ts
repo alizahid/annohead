@@ -10,6 +10,7 @@ export const changelog: Array<Release> = [
     changed: [
       'Every quest has its own page: questlines are split into the quests the game starts one by one, 226 in all, like each part of The Mysterious Murmillo',
       'Quests that depend on each other list their storyline in order, and an option that starts another quest links to it',
+      'Quests that start once a step of another has ended are one storyline, like the five quests of Valeria’s story from Valeria’s Offer to Invitation to Dine',
       'Picks carry over to the later quests of a storyline: play The Mysterious Murmillo part by part, follow the link to the next quest, and the last one tallies your favours. Picks live in the page address, so a link shares your whole run',
       'Game checks say what they check: the picks that decide them, also from another quest, like Making A Sail for Quality Assurance, or what they compare, like Patrician Favor ≥ Neutral Favor',
       'Choices say what they change for a later check, like Patrician Favor +1',

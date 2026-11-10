@@ -237,7 +237,9 @@ storylines together.
   and decision headlines; a story that is no quest (Folk Of The Great River / Breadbasket) finds the quests it leads
   to, else the ones before it.
   Quests share a `series` (the guid of its first quest, `idx` in dependency order) when one starts another or reads a
-  global variable another writes; achievement counters and tutorial flags don't count. Storylines without choices
+  global variable another writes, or waits for a step of another to end, start or exist (a condition whose
+  `Context` / `ComponentGUID` is a node of the other storyline: the parts of Valeria's story); achievement counters
+  and tutorial flags don't count. Storylines without choices
   (Folk Of The Great River, To Face A God) are no quests and only pass those links on. Region from the storyline's
   journal provinces (else the HL/WL name prefix, else the rest of the series), DLC from names or `/dlcNN/` icon paths.
   Storylines without a written title are dropped.

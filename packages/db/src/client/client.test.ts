@@ -591,16 +591,28 @@ test('every storyline with choices is a quest, in a series with the quests it de
   expect(q?.name).toBe('The Mysterious Murmillo Part III')
   expect(q?.series[0]?.name).toBe('The Mysterious Murmillo Part I')
   expect(q?.series.at(-1)?.name).toBe('The Mysterious Murmillo Part VI')
-  // an achievement counter is all Making A Sail and Quality Assurance share: two one-offs
+  // an achievement counter is all Making A Sail and Quality Assurance share: the second is a one-off
   const oneOffs = await Promise.all(
-    [93_906, 155_761, 154_080].map((id) =>
+    [155_761, 154_080].map((id) =>
       anno.quests.get({
         id,
         lang: 'en',
       }),
     ),
   )
-  expect(oneOffs.map((quest) => quest?.series.length)).toEqual([1, 1, 1])
+  expect(oneOffs.map((quest) => quest?.series.length)).toEqual([1, 1])
+  // each part of Valeria's story starts once a step of the part before has ended; nothing else ties them
+  const lily = await anno.quests.get({
+    id: 93_904,
+    lang: 'en',
+  })
+  expect(lily?.series.map((s) => s.name)).toEqual([
+    "Valeria's Offer",
+    'Extortions and Enterprises',
+    "A Lily's Ransom",
+    'Making A Sail',
+    'Invitation to Dine',
+  ])
   // Folk Of The Great River has no choice to make; what it starts is a series of its own
   expect(rows.some((r) => r.guid === 152_815)).toBe(false)
   const body = await anno.quests.get({
