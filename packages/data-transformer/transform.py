@@ -1818,15 +1818,20 @@ class T:
         # an objective only something's end action names never starts in this story
         fallible = {g for g, outs in missed.items() if outs and g in inside}
 
+        # a container with an Exit ends there: a thread inside that just runs out does not end it. One without ends
+        # once its graph has run out (the quiz in Justice For Nymphaeus?)
+        exited = {inside.get(g) for g, t in types.items() if t == "Exit"}
+
         def leave(g):
             """Where the story carries on once the graph around `g` has run out: the output of the QuestLine it
             sits in, else of the one around that."""
-            line = inside.get(g)
-            while line:
+            line, ends = inside.get(g), types[g] == "Exit"
+            while line and (ends or line not in exited):
                 out = [t for t, kind, _ in edges[line] if kind == "QuestComponentConnector.Output"]
                 if out:
                     return out
-                line = inside.get(line)
+                # a container nothing follows is itself where a thread of the one around it runs out
+                line, ends = inside.get(line), False
             return []
 
         def follow(g):

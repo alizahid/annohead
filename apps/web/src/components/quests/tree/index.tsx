@@ -35,11 +35,13 @@ import { questPicks, serializeQuestPicks } from '@/lib/validators'
 import { type BranchNode, QuestBranchNode } from './branch'
 import { type ChoiceNode, QuestChoiceNode } from './choice'
 import { type FollowNode, QuestFollowNode } from './follow'
+import { type JunctionNode, QuestJunctionNode } from './junction'
 import { type OptionNode, QuestOptionNode } from './option'
 import { type PartNode, QuestPartNode } from './part'
 import {
   choiceId,
   followId,
+  junctionsOf,
   optionId,
   PathContext,
   partId,
@@ -53,6 +55,7 @@ const nodeTypes = {
   branch: QuestBranchNode,
   choice: QuestChoiceNode,
   follow: QuestFollowNode,
+  junction: QuestJunctionNode,
   option: QuestOptionNode,
   part: QuestPartNode,
   start: QuestStartNode,
@@ -72,6 +75,7 @@ type FlowNode =
   | BranchNode
   | ChoiceNode
   | FollowNode
+  | JunctionNode
   | OptionNode
   | PartNode
   | StartNode
@@ -96,6 +100,7 @@ function graph(quest: NonNullable<Quest>) {
   const edges: Array<Edge> = []
   const choices = new Set(quest.choices.map((choice) => choice.guid))
   const follows = new Set<string>()
+  const junction = junctionsOf(quest)
 
   for (const choice of quest.choices) {
     const source = choiceId(choice.guid)
@@ -140,7 +145,28 @@ function graph(quest: NonNullable<Quest>) {
         target: id,
       })
 
-      for (const next of option.nexts) {
+      // options that lead to the same several choices meet in a junction first
+      const meets = junction(option.nexts)
+
+      if (meets && !nodes.some((existing) => existing.id === meets)) {
+        nodes.push({
+          data: {},
+          id: meets,
+          parentId,
+          position: ORIGIN,
+          type: 'junction',
+        })
+
+        for (const next of option.nexts) {
+          edges.push({
+            id: `${meets}:${choiceId(next)}`,
+            source: meets,
+            target: choiceId(next),
+          })
+        }
+      }
+
+      for (const next of meets ? [] : option.nexts) {
         if (choices.has(next)) {
           edges.push({
             id: `${id}:${choiceId(next)}`,
@@ -148,6 +174,14 @@ function graph(quest: NonNullable<Quest>) {
             target: choiceId(next),
           })
         }
+      }
+
+      if (meets) {
+        edges.push({
+          id: `${id}:${meets}`,
+          source: id,
+          target: meets,
+        })
       }
 
       // the quest an option starts next gets a node that links to its page

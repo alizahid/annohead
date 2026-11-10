@@ -6,6 +6,7 @@ import { anno } from './index'
 
 // quests whose story sets out on several threads at once, as of the Dawn of the Delta data
 const THREADED = 40
+const CRISIS_LINKS = 150
 
 /** "Part I" in every game language */
 // typed queries have no zero-width spaces, which the game puts between CJK words
@@ -670,6 +671,16 @@ test('a quest is one connected tree: what follows a part of the story hangs from
   // the quiz is a container that hands on to the verdict once it has run out: answering all six right leads there
   const solved = justice?.choices.find((c) => c.guid === 173_279)
   expect(solved?.options[0]?.nexts).toEqual([174_393])
+  // a container with an Exit ends there alone: the side threads of a campaign act that just run out do not each
+  // lead on to everything after the act (373 links before, a chart of nothing but lines)
+  const crisis = await anno.quests.get({
+    id: 32_612,
+    lang: 'en',
+  })
+  const links = crisis?.choices.flatMap((c) =>
+    c.options.flatMap((o) => o.nexts),
+  )
+  expect(links?.length).toBeLessThan(CRISIS_LINKS)
   const { rows } = await anno.quests.list({
     lang: 'en',
     perPage: 500,

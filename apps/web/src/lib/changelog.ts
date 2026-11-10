@@ -14,7 +14,7 @@ export const changelog: Array<Release> = [
       'Game checks say what they check: the picks that decide them, also from another quest, like Making A Sail for Quality Assurance, or what they compare, like Patrician Favor ≥ Neutral Favor',
       'Choices say what they change for a later check, like Patrician Favor +1',
       'Parts without a choice of yours, like Folk Of The Great River, are gone',
-      'Quest charts are one connected tree: what follows a part of the story hangs from it, like the verdict after the quiz in Justice For Nymphaeus?, and threads that run side by side set out from one start',
+      'Quest charts are one connected tree: what follows a part of the story hangs from it, like the verdict after the quiz in Justice For Nymphaeus?, and threads that run side by side set out from one start, and options that lead to the same choices meet in one point first',
       'Options that can fail show what decides them, like a 50% chance, Knowledge 5,000 or Story Inspire ≥ 3, and what failing leads to',
       'Objectives that can fail or run out of time show both ways on',
       'Quests that only shared an achievement, like Making A Sail and Quality Assurance, are no longer one questline',

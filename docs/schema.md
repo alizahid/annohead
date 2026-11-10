@@ -214,7 +214,9 @@ storylines together.
   and including every next choice (several when the story fans out). How the graph hands on (2026-11-10, so a quest
   is one connected tree; only threads the storyline starts side by side have no choice before them):
   - A `QuestLine` is a container: it runs the graph behind its `StartConnector`, and its own `Output` fires once that
-    graph has run out (a node nothing follows) or reached an `Exit`; a `Loop` starts the container over.
+    graph has run out (a node nothing follows) or reached an `Exit`; a `Loop` starts the container over. A container
+    that has an `Exit` ends only there: threads inside that just run out end nothing (else every side thread of a
+    campaign act links to all that follows the act).
   - A `DecisionRoot` leaves through numbered outputs: the options that end the event (nothing follows them), counted
     in the order its screens are walked, take the outputs in turn (the counts match for 629 of 634 events). For an
     event of one screen that is option `i` → output `i`.
