@@ -452,6 +452,13 @@ function changeLabel(
 }
 
 const MARKUP = /<[^>]+>/gu
+
+function chartKind(kind: string | null) {
+  if (kind === 'decision' || kind === 'then') {
+    return kind
+  }
+  return 'check' as const
+}
 const PERCENT = 100
 // objective headlines the game completes at runtime: "Destroy:", "Deliver to [Island]:"
 const DANGLING = /^.*:$/u
@@ -795,11 +802,9 @@ async function choiceRows(
         /** where the story sets out: the quest's start reaches this choice before any other */
         entry: Boolean(choice.entry),
         headline: objective ? null : questText(choice.headline, lang),
-        /** checks and objectives read as "the game checks": options are 0 = holds, 1 = does not */
-        kind:
-          choice.kind === 'decision'
-            ? ('decision' as const)
-            : ('check' as const),
+        /** checks and objectives read as "the game checks": options are 0 = holds, 1 = does not. then: a meeting
+         * point with one option, where threads that run out come together before the story fans out again */
+        kind: chartKind(choice.kind),
         options:
           choice.kind === 'decision'
             ? opts(choice.guid).map(
@@ -843,7 +848,10 @@ async function choiceRows(
                   }
                 },
               )
-            : branches(choice.guid, 0, 1),
+            : branches(choice.guid, 0, 1).slice(
+                0,
+                choice.kind === 'then' ? 1 : undefined,
+              ),
         /** what the decision screen asks, e.g. "What will you do with Favillus?" */
         question: questQuestion(text, lang),
         /** what a check tests */
@@ -894,7 +902,7 @@ async function choiceRows(
           o.sets.length ||
           o.nexts.some((next) => kept.has(next)),
       )
-      if (row.kind === 'check' && kept.has(row.guid) && !matters) {
+      if (row.kind !== 'decision' && kept.has(row.guid) && !matters) {
         kept.delete(row.guid)
         pruned = true
       }

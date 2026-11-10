@@ -26,6 +26,8 @@ export function QuestBranchNode({
   const { locked, off, pick } = usePath()
 
   const holds = option.idx === 0
+  // the one way on from a meeting point: nothing to pick
+  const only = choice < 0
   const label = t(holds ? 'holds' : 'fails')
 
   return (
@@ -37,24 +39,26 @@ export function QuestBranchNode({
     >
       <QuestHandle type="target" />
 
-      <div className="flex size-14 shrink-0 items-center justify-center">
-        <button
-          className={cn(
-            'ring-accent-8 ring-offset-gray-2 pointer-events-auto flex size-10 rotate-45 items-center justify-center rounded-md text-white ring-offset-2 outline-none focus-visible:ring-2',
-            holds ? 'bg-green-9' : 'bg-red-9',
-          )}
-          disabled={locked.has(id)}
-          onClick={() => pick(choice, option.idx ?? 0)}
-          title={label}
-          type="button"
-        >
-          {holds ? (
-            <CheckIcon className="size-5 -rotate-45" weight="bold" />
-          ) : (
-            <XIcon className="size-5 -rotate-45" weight="bold" />
-          )}
-        </button>
-      </div>
+      {only ? null : (
+        <div className="flex size-14 shrink-0 items-center justify-center">
+          <button
+            className={cn(
+              'ring-accent-8 ring-offset-gray-2 pointer-events-auto flex size-10 rotate-45 items-center justify-center rounded-md text-white ring-offset-2 outline-none focus-visible:ring-2',
+              holds ? 'bg-green-9' : 'bg-red-9',
+            )}
+            disabled={locked.has(id)}
+            onClick={() => pick(choice, option.idx ?? 0)}
+            title={label}
+            type="button"
+          >
+            {holds ? (
+              <CheckIcon className="size-5 -rotate-45" weight="bold" />
+            ) : (
+              <XIcon className="size-5 -rotate-45" weight="bold" />
+            )}
+          </button>
+        </div>
+      )}
 
       {option.outcomes.length ? (
         <>

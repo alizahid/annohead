@@ -220,6 +220,9 @@ storylines together.
   - A `DecisionRoot` leaves through numbered outputs: the options that end the event (nothing follows them), counted
     in the order its screens are walked, take the outputs in turn (the counts match for 629 of 634 events). For an
     event of one screen that is option `i` → output `i`.
+  - A container many threads run out into, with several choices after it, is a meeting point: a `quest_choice` of
+    kind `then` (guid minus the container's, one option) the threads lead to and the choices after hang from, so the
+    chart draws threads + choices lines instead of threads × choices.
   - `quest_choice.entry`: 1 for the choices the storyline's start reaches before any other. A walk and the chart set
     out from these; a menu of questions that loop back to it has no other way in (Private Investigations).
   - `quest_option.challenge` (`chance` with odds, `variable`, `knowledge`, `prestige`, plus value): an option with

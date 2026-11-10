@@ -6,6 +6,7 @@ Usage: python3 transform.py <source.sqlite> <anno.sqlite> [cdn_dir] [--langs eng
 import json
 import os
 import re
+import shutil
 import sqlite3
 import sys
 import unicodedata
@@ -228,9 +229,12 @@ class T:
         self.attributes = {}
         self.conditions = []
         self.merged = {}  # what a category name reads in every language -> category guid
-        if os.path.exists(out):
-            os.unlink(out)
-        self.db = sqlite3.connect(out)
+        # built beside the site DB and copied over it at the end: a running dev server keeps the file it opened, so
+        # replacing the file would leave it reading the old data until restarted
+        self.out, self.building = out, f"{out}.building"
+        if os.path.exists(self.building):
+            os.unlink(self.building)
+        self.db = sqlite3.connect(self.building)
         self.db.executescript(SCHEMA + SCRATCH)
 
     # ---- helpers -------------------------------------------------------------------------------------------
@@ -1793,7 +1797,8 @@ class T:
 
         def is_choice(g):
             return (
-                (types.get(g) == "Decision" and (len(options[g]) > 1 or g in self.variant_screens))
+                g < 0  # a container as a meeting point, see `hubs`
+                or (types.get(g) == "Decision" and (len(options[g]) > 1 or g in self.variant_screens))
                 or g in branches
                 or g in fallible
             )
@@ -1822,13 +1827,27 @@ class T:
         # once its graph has run out (the quiz in Justice For Nymphaeus?)
         exited = {inside.get(g) for g, t in types.items() if t == "Exit"}
 
+        # A container many threads run out into, with several choices after it, is a meeting point: a choice of its
+        # own (kind "then", guid -container, one option) those threads lead to and the choices after hang from, so
+        # the chart draws threads + choices lines, not threads × choices (Lucius' Tomb in Fruit of Albion)
+        hubs, met = set(), set()
+        drained = defaultdict(set)  # container -> the outcomes that run out into it
+        walking = [None]  # the outcome being walked
+
+        def after(line):
+            return [t for t, kind, _ in edges[line] if kind == "QuestComponentConnector.Output"]
+
         def leave(g):
             """Where the story carries on once the graph around `g` has run out: the output of the QuestLine it
             sits in, else of the one around that."""
             line, ends = inside.get(g), types[g] == "Exit"
             while line and (ends or line not in exited):
-                out = [t for t, kind, _ in edges[line] if kind == "QuestComponentConnector.Output"]
+                out = after(line)
+                if out and line in hubs:
+                    met.add(line)
+                    return [-line]
                 if out:
+                    drained[line].add(walking[0])
                     return out
                 # a container nothing follows is itself where a thread of the one around it runs out
                 line, ends = inside.get(line), False
@@ -1847,9 +1866,12 @@ class T:
             out, queue, seen = [], list(starts), set()
             while queue:
                 g = queue.pop(0)
-                if g in seen or g not in types:
+                if g in seen or (g > 0 and g not in types):
                     continue
                 seen.add(g)
+                if g < 0:
+                    out.append(g)
+                    continue
                 if types[g] in ("Exit", "Loop", "QuestLine"):
                     queue += leave(g) if types[g] == "Exit" else follow(g)
                     continue
@@ -1865,53 +1887,79 @@ class T:
                 queue += follow(g)
             return out
 
+        def outcomes():
+            """Every choice with its kind and the nodes each of its options runs."""
+            for g, story in node_story.items():
+                if not is_choice(g):
+                    continue
+                if g in branches:
+                    kind = "check"
+                    starts = {
+                        0: [t for t, k, _ in edges[g] if k == "Function.FunctionSuccessOutput"],
+                        1: [t for t, k, _ in edges[g] if k == "Function.FunctionFailureOutput"],
+                    }
+                elif g in fallible:
+                    kind = "objective"
+                    starts = {0: [t for t, k, _ in edges[g] if k == "Objective.SuccessOutput"], 1: missed[g]}
+                else:
+                    kind = "decision"
+                    starts = {i: [] for i in options[g]}
+                    # hidden variants of one button share its outputs; where the event carries on may differ between them
+                    for t, k, idx in edges[g] + [(t, None, i) for (d, i), ts in exit_to.items() if d == g for t in ts]:
+                        i = self.variant_of.get((g, idx), idx)
+                        if i not in starts:
+                            continue
+                        if k == "DecisionComponent.DecisionOutputs.FailureOutput":
+                            starts.setdefault(-(i + 1), []).append(t)
+                        elif k in (None, "DecisionComponent.DecisionOutputs.SuccessOutput"):
+                            starts[i].append(t)
+                runs = {}
+                for i, s in starts.items():
+                    walking[0] = (g, i)
+                    # an option nothing follows ends the graph around the choice
+                    runs[i] = reach(s or leave(g))
+                yield g, story, kind, runs
+
+        # a first walk finds the meeting points, the second one leads to them
+        for _ in outcomes():
+            pass
+        walking[0] = None
+        hubs |= {
+            line
+            for line, threads in list(drained.items())
+            if len(threads) > 1 and sum(map(is_choice, reach(after(line)))) > 1
+        }
         position = defaultdict(int)
-        for g, story in node_story.items():
-            if not is_choice(g):
-                continue
-            if g in branches:
-                kind = "check"
-                starts = {
-                    0: [t for t, k, _ in edges[g] if k == "Function.FunctionSuccessOutput"],
-                    1: [t for t, k, _ in edges[g] if k == "Function.FunctionFailureOutput"],
-                }
-            elif g in fallible:
-                kind = "objective"
-                starts = {0: [t for t, k, _ in edges[g] if k == "Objective.SuccessOutput"], 1: missed[g]}
-            else:
-                kind = "decision"
-                starts = {i: [] for i in options[g]}
-                # hidden variants of one button share its outputs; where the event carries on may differ between them
-                for t, k, idx in edges[g] + [(t, None, i) for (d, i), ts in exit_to.items() if d == g for t in ts]:
-                    i = self.variant_of.get((g, idx), idx)
-                    if i not in starts:
-                        continue
-                    if k == "DecisionComponent.DecisionOutputs.FailureOutput":
-                        starts.setdefault(-(i + 1), []).append(t)
-                    elif k in (None, "DecisionComponent.DecisionOutputs.SuccessOutput"):
-                        starts[i].append(t)
+
+        def choose(g, story, kind, runs):
             self.db.execute(
-                """insert into quest_choice select guid, storyline_guid, ?, ?, headline_text, text_text, condition_id,
-                   speaker_guid, 0 from quest_node where guid=?""",
-                (kind, position[story], g),
+                """insert into quest_choice select ?, ?, ?, ?, headline_text, text_text, condition_id, speaker_guid, 0
+                   from (select 1) left join quest_node on guid=?""",
+                (g, story, kind, position[story], g),
             )
             position[story] += 1
-            for i, s in starts.items():
-                # an option nothing follows ends the graph around the choice
-                for n in reach(s or leave(g)):
-                    self.db.execute(
-                        "insert or ignore into quest_choice_outcome values(?,?,?)",
-                        (g, i, n),
-                    )
+            self.db.executemany(
+                "insert or ignore into quest_choice_outcome values(?,?,?)",
+                [(g, i, n) for i, nodes in runs.items() for n in nodes],
+            )
 
+        for row in list(outcomes()):
+            choose(*row)
         # where each story sets out: the choices its start reaches before any other. A menu of questions that loop
         # back to it has no other way in
-        for g, t in types.items():
-            if t == "StoryLine":
-                starts = [n for n, k, _ in edges[g] if k == "StoryLine.StartConnector"]
-                self.db.executemany(
-                    "update quest_choice set entry=1 where node_guid=?", [(n,) for n in reach(starts) if is_choice(n)]
-                )
+        entries = [
+            n
+            for g, t in types.items()
+            if t == "StoryLine"
+            for n in reach([n for n, k, _ in edges[g] if k == "StoryLine.StartConnector"])
+            if is_choice(n)
+        ]
+        done = set()
+        while met - done:
+            line = min(met - done)
+            done.add(line)
+            choose(-line, node_story.get(line), "then", {0: reach(after(line))})
+        self.db.executemany("update quest_choice set entry=1 where node_guid=?", [(n,) for n in entries])
 
     def questlines(self, node_story):
         """Quests the site shows: narrative storylines with a decision, or whose checks hand out something. Quests
@@ -2438,6 +2486,9 @@ class T:
             print(
                 f"{t:<28}{self.db.execute(f'select count(*) from {t}').fetchone()[0]:>8}"
             )
+        self.db.close()
+        shutil.copyfile(self.building, self.out)
+        os.unlink(self.building)
 
 
 def fold(text):

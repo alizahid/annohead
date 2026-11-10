@@ -105,18 +105,31 @@ function graph(quest: NonNullable<Quest>) {
   for (const choice of quest.choices) {
     const source = choiceId(choice.guid)
 
-    nodes.push({
-      data: {
-        choice,
-      },
-      id: source,
-      parentId,
-      position: ORIGIN,
-      type: 'choice',
-    })
+    // a meeting point is a dot the threads run into
+    nodes.push(
+      choice.kind === 'then'
+        ? {
+            data: {},
+            id: source,
+            parentId,
+            position: ORIGIN,
+            type: 'junction',
+          }
+        : {
+            data: {
+              choice,
+            },
+            id: source,
+            parentId,
+            position: ORIGIN,
+            type: 'choice',
+          },
+    )
 
     for (const option of choice.options) {
-      const id = optionId(choice.guid, option.idx)
+      // what follows a meeting point hangs from the dot itself, unless it hands something out on the way
+      const bare = choice.kind === 'then' && !option.outcomes.length
+      const id = bare ? source : optionId(choice.guid, option.idx)
       const node = {
         data: {
           choice: choice.guid,
@@ -127,23 +140,25 @@ function graph(quest: NonNullable<Quest>) {
         position: ORIGIN,
       }
 
-      nodes.push(
-        choice.kind === 'check'
-          ? {
-              ...node,
-              type: 'branch',
-            }
-          : {
-              ...node,
-              type: 'option',
-            },
-      )
+      if (!bare) {
+        nodes.push(
+          choice.kind === 'decision'
+            ? {
+                ...node,
+                type: 'option',
+              }
+            : {
+                ...node,
+                type: 'branch',
+              },
+        )
 
-      edges.push({
-        id: `${source}:${id}`,
-        source,
-        target: id,
-      })
+        edges.push({
+          id: `${source}:${id}`,
+          source,
+          target: id,
+        })
+      }
 
       // options that lead to the same several choices meet in a junction first
       const meets = junction(option.nexts)

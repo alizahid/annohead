@@ -681,6 +681,18 @@ test('a quest is one connected tree: what follows a part of the story hangs from
     c.options.flatMap((o) => o.nexts),
   )
   expect(links?.length).toBeLessThan(CRISIS_LINKS)
+  // a part of the story many threads run out into is a meeting point they all lead to, and what follows hangs from
+  // it once: Lucius' Tomb in Fruit of Albion, where 15 options each led to the same 20 choices (362 links)
+  const albion = await anno.quests.get({
+    id: 41_830,
+    lang: 'en',
+  })
+  const tomb = albion?.choices.find((c) => c.guid === -44_442)
+  expect(tomb?.kind).toBe('then')
+  expect(tomb?.options).toHaveLength(1)
+  expect(
+    albion?.choices.flatMap((c) => c.options.flatMap((o) => o.nexts)).length,
+  ).toBeLessThan(CRISIS_LINKS)
   const { rows } = await anno.quests.list({
     lang: 'en',
     perPage: 500,

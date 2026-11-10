@@ -901,9 +901,12 @@ export const questChoice = sqliteTable(
     /** 1 when the storyline's start reaches the choice before any other */
     entry: integer('entry'),
     headlineText: integer('headline_text'),
-    /** objective: one that can fail or run out of time (holds / fails like a check) */
+    /**
+     * objective: one that can fail or run out of time (holds / fails like a check). then: a part of the story many
+     * threads run out into, with one option that leads to all that follows (node_guid is minus the container's guid)
+     */
     kind: text({
-      enum: ['decision', 'check', 'objective'],
+      enum: ['decision', 'check', 'objective', 'then'],
     }),
     nodeGuid: integer('node_guid').primaryKey(),
     /** order within the storyline */
