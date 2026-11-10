@@ -239,20 +239,26 @@
     },
     "quests": {
       "choice": {
+        "carried": "これまでのクエストでの選択を引き継いでいます",
         "check": "ゲームの判定",
         "cost": "コスト",
         "decision": "決断",
-        "earlier": "これまでの選択によって決まります",
-        "end": "クエストラインの終わり",
+        "earlier": "ゲームの状況によって決まります",
+        "end": "クエストの終わり",
         "fails": "それ以外",
+        "follow": "続き",
         "holds": "該当する場合",
         "later": "この先の展開に影響します",
+        "next": "次へ：{name}",
         "nothing": "持続効果なし",
         "option": "選択肢 {number}",
         "outcomes": "結果",
         "pick": "選択肢を選ぶと、その先の展開が表示されます",
+        "picked": "次を選んだ場合",
         "requires": "必要条件",
-        "reset": "リセット"
+        "reset": "リセット",
+        "start": "クエスト開始",
+        "unless": "次を選んでいない場合"
       },
       "filters": {
         "dlcs": "DLC",
@@ -281,7 +287,9 @@
       },
       "page": {
         "empty": "ストーリーのみ。このパートに選択肢はありません。",
+        "played": "プレイ済み",
         "requires": "条件: {requirements}",
+        "series": "クエストライン",
         "untitled": "無題"
       }
     },

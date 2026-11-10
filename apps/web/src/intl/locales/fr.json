@@ -239,20 +239,26 @@
     },
     "quests": {
       "choice": {
+        "carried": "Reprend vos choix des quêtes précédentes",
         "check": "Le jeu vérifie",
         "cost": "Coûts",
         "decision": "Décision",
-        "earlier": "Dépend de vos choix précédents",
-        "end": "Fin de la série de quêtes",
+        "earlier": "Dépend de l'état de votre partie",
+        "end": "Fin de la quête",
         "fails": "Sinon",
+        "follow": "Se poursuit dans",
         "holds": "Si oui",
         "later": "Influence la suite",
+        "next": "Suite : {name}",
         "nothing": "Aucun effet durable",
         "option": "Option {number}",
         "outcomes": "Conséquence",
         "pick": "Choisissez une option pour voir où elle mène",
+        "picked": "Si vous avez choisi",
         "requires": "Nécessite",
-        "reset": "Réinitialiser"
+        "reset": "Réinitialiser",
+        "start": "La quête commence",
+        "unless": "Sauf si vous avez choisi"
       },
       "filters": {
         "dlcs": "DLC",
@@ -281,7 +287,9 @@
       },
       "page": {
         "empty": "Histoire uniquement, aucun choix dans cette partie.",
+        "played": "Jouée",
         "requires": "Uniquement si : {requirements}",
+        "series": "Série de quêtes",
         "untitled": "Sans titre"
       }
     },

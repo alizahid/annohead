@@ -3,7 +3,6 @@ import { type SQL, sql } from 'drizzle-orm'
 import { db } from '../db'
 import { type Lang, type Rarity, type Region, regionValues } from '../enums'
 import { type SearchType, SearchTypes } from '../search'
-import { questlineName } from './quests'
 import { langId, type Page, paginate } from './shared'
 
 export type SearchFilter = {
@@ -19,6 +18,8 @@ export type SearchHit = {
   slug: string | null
   icon: string | null
   name: string
+  /** the in-game name the query matched when it is not the entity's own: a quest's journal entry, a story that leads to it */
+  alias: string | null
   description: string | null
   /** Item rarity; null for other entity types. */
   rarity: Rarity | null
@@ -55,10 +56,12 @@ function scope(f: SearchFilter) {
 
 function rows(f: SearchFilter, where: SQL) {
   return db.all<Row>(
-    sql`select s.id, e.type, e.guid, e.slug, e.icon, e.rarity, e.regions, n.value as name, d.value as description
+    sql`select s.id, e.type, e.guid, e.slug, e.icon, e.rarity, e.regions, n.value as name, a.value as alias,
+        d.value as description
       from search s
       join search_entry e on e.guid = s.guid
       join translation n on n.line_id = e.name_text and n.lang_id = s.lang_id
+      left join translation a on a.line_id = s.alias_text and a.lang_id = s.lang_id
       left join translation d on d.line_id = e.description_text and d.lang_id = s.lang_id
       where ${scope(f)} and ${where}`,
   )
@@ -221,7 +224,7 @@ type Hit = Entry & {
 async function match(f: SearchFilter, withDescriptions: boolean) {
   const query = fold(f.query.trim())
   const tokens = words(query)
-  // by entity: a questline can match under its name and under a later journal name, best match wins
+  // by entity: a quest can match under its name and under its journal names, best match wins
   const hits = new Map<number, Hit>()
   const add = (entry: Entry, tier: number, typos = 0) => {
     const seen = hits.get(entry.guid)
@@ -320,10 +323,6 @@ async function load(f: SearchFilter, shown: Array<Hit>) {
     const keys = regions?.split(',') ?? []
     return {
       ...rest,
-      name:
-        rest.type === 'quest'
-          ? (questlineName(rest.name, f.lang) ?? rest.name)
-          : rest.name,
       regions: regionValues.filter((r) => keys.includes(r)),
     } satisfies SearchHit
   })

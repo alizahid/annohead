@@ -60,6 +60,11 @@ export function getUrl(type: SearchType, id: number, slug?: string | null) {
   return `/${base}/${id}/${slug ?? type}`
 }
 
+/** a quest's page with the picks made so far, so the quest continues from them */
+export function getQuestUrl(id: number, slug: string | null, picks: string) {
+  return `${getUrl('quest', id, slug)}${picks ? `?picks=${picks}` : ''}`
+}
+
 // only same-site paths, so ?next can't send people to another site
 export function getSafeNext(value: unknown) {
   return typeof value === 'string' &&

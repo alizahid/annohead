@@ -834,6 +834,14 @@ export const quest = sqliteTable(
 export const questOption = sqliteTable(
   'quest_option',
   {
+    /** what decides whether the option succeeds or takes its failure path; null when it cannot fail */
+    // named outright: a running dev server only learns unnamed columns of a table once
+    challenge: text('challenge', {
+      enum: ['chance', 'variable', 'knowledge', 'prestige'],
+    }),
+    /** the odds (0-1), or the value the variable, knowledge or prestige must reach */
+    challengeValue: real('challenge_value'),
+    challengeVariable: text('challenge_variable'),
     /** requirement to pick the option */
     conditionId: integer('condition_id').references(() => condition.id),
     costAmount: real('cost_amount'),
@@ -890,9 +898,12 @@ export const questChoice = sqliteTable(
   {
     /** the condition a check tests (holds / fails) */
     conditionId: integer('condition_id').references(() => condition.id),
+    /** 1 when the storyline's start reaches the choice before any other */
+    entry: integer('entry'),
     headlineText: integer('headline_text'),
+    /** objective: one that can fail or run out of time (holds / fails like a check) */
     kind: text({
-      enum: ['decision', 'check'],
+      enum: ['decision', 'check', 'objective'],
     }),
     nodeGuid: integer('node_guid').primaryKey(),
     /** order within the storyline */
@@ -923,33 +934,48 @@ export const questChoiceOutcome = sqliteTable(
   ],
 )
 
-/** Narrative storylines linked by the variables they share; guid is the first part's storyline */
-export const questline = sqliteTable('questline', {
-  dlcGuid: integer('dlc_guid').references(() => dlc.guid),
-  guid: integer().primaryKey(),
-  icon: text(),
-  regionId: integer('region_id').references(() => region.id),
-  /** English URL slug, the same in every language */
-  slug: text(),
-  titleText: integer('title_text'),
-})
-
-export const questlineStoryline = sqliteTable(
-  'questline_storyline',
+/** A quest: one narrative storyline with choices; guid is the storyline's. Quests that depend on each other share a series */
+export const questline = sqliteTable(
+  'questline',
   {
+    dlcGuid: integer('dlc_guid').references(() => dlc.guid),
+    guid: integer()
+      .primaryKey()
+      .references(() => storyline.guid),
+    icon: text(),
+    /** position in the series, in dependency order */
     idx: integer(),
-    questlineGuid: integer('questline_guid')
-      .notNull()
-      .references(() => questline.guid),
+    regionId: integer('region_id').references(() => region.id),
+    /** guid of the first quest of the series */
+    series: integer(),
+    /** English URL slug, the same in every language */
+    slug: text(),
+    titleText: integer('title_text'),
+  },
+  (table) => [index('idx_questline_series').on(table.series)],
+)
+
+/** Variables a quest shares with other storylines: `read` ones another storyline writes, `write` ones another reads */
+export const questShared = sqliteTable(
+  'quest_shared',
+  {
+    kind: text().notNull(),
+    /** the other storyline: the writer of a `read` variable, the reader of a `write` one */
+    otherGuid: integer('other_guid').notNull(),
     storylineGuid: integer('storyline_guid')
       .notNull()
       .references(() => storyline.guid),
+    variable: text().notNull(),
   },
   (table) => [
-    index('idx_questline_storyline_storyline').on(table.storylineGuid),
     primaryKey({
-      columns: [table.questlineGuid, table.storylineGuid],
-      name: 'questline_storyline_questline_guid_storyline_guid_pk',
+      columns: [
+        table.storylineGuid,
+        table.variable,
+        table.kind,
+        table.otherGuid,
+      ],
+      name: 'quest_shared_storyline_guid_variable_kind_other_guid_pk',
     }),
   ],
 )

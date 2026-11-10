@@ -46,9 +46,9 @@ export function SearchCard({ item }: Props) {
           ) : null}
         </div>
 
-        {item.description ? (
+        {(item.alias ?? item.description) ? (
           <div className="text-gray-11 line-clamp-1 text-sm">
-            {item.description}
+            {item.alias ?? item.description}
           </div>
         ) : null}
       </div>

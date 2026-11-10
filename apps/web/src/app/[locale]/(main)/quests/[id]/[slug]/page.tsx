@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
 
 import { QuestPage } from '@/components/quests/page'
-import { getId, validateLocale } from '@/lib/validators'
+import { getId, parseQuestPicks, validateLocale } from '@/lib/validators'
 
 export async function generateMetadata({
   params,
@@ -31,17 +31,25 @@ export async function generateMetadata({
 
 export default async function Page({
   params,
+  searchParams,
 }: PageProps<'/[locale]/quests/[id]/[slug]'>) {
   const { locale, id } = await params
 
+  const lang = validateLocale(locale)
+
   const quest = await anno.quests.get({
     id: getId(id),
-    lang: validateLocale(locale),
+    lang,
   })
 
   if (!quest) {
     notFound()
   }
 
-  return <QuestPage quest={quest} />
+  // the picks made in earlier quests of the series come along in the URL
+  const { picks } = await parseQuestPicks(searchParams)
+
+  const { carry, played } = await anno.quests.carry(quest, picks, lang)
+
+  return <QuestPage carry={carry} played={played} quest={quest} />
 }

@@ -207,15 +207,44 @@ storylines together.
   nothing writes resolve to its start value; unlocks of unnamed assets (internal flags) are dropped.
 - `quest_variable_change`: `ActionModifyVariable` (`Set` by default; flags stored as `true` / `false`).
 - `quest_node.condition`: the condition a branching `Function` checks (it has a failure port).
-- `quest_choice`: every decision with several options and every branching function (`kind` decision / check), in
-  storyline order. `quest_choice_outcome` lists the nodes option `i` runs (checks: 0 holds, 1 fails): outputs are
-  followed through sequences, waits, "continue" screens and objectives up to and including the next choice. A start
-  screen's option `i` also continues at its `DecisionRoot` output `i`.
+- `quest_choice`: every decision with several options, every branching function and every objective with a failure
+  or time-out port (`kind` decision / check / objective), in storyline order. `quest_choice_outcome` lists the nodes
+  option `i` runs (checks: 0 holds, 1 fails; objectives: 0 met, 1 missed; idx `-(i + 1)`: option `i` failed its
+  challenge): outputs are followed through sequences, waits, "continue" screens, state checkers and objectives up to
+  and including every next choice (several when the story fans out). How the graph hands on (2026-11-10, so a quest
+  is one connected tree; only threads the storyline starts side by side have no choice before them):
+  - A `QuestLine` is a container: it runs the graph behind its `StartConnector`, and its own `Output` fires once that
+    graph has run out (a node nothing follows) or reached an `Exit`; a `Loop` starts the container over.
+  - A `DecisionRoot` leaves through numbered outputs: the options that end the event (nothing follows them), counted
+    in the order its screens are walked, take the outputs in turn (the counts match for 629 of 634 events). For an
+    event of one screen that is option `i` → output `i`.
+  - `quest_choice.entry`: 1 for the choices the storyline's start reaches before any other. A walk and the chart set
+    out from these; a menu of questions that loop back to it has no other way in (Private Investigations).
+  - `quest_option.challenge` (`chance` with odds, `variable`, `knowledge`, `prestige`, plus value): an option with
+    `HasChallenge` can fail and take its `FailureOutput`; the client turns it into a check after the option.
 - `storyline`: `title` (first decision headline, else journal entry, only lines the game wrote), `request` text and
   `icon` of the governor request that announces it.
-- `questline` → `questline_storyline(idx)`: storylines linked when one writes a global variable another reads, or
-  starts another, ordered by those dependencies. Region from journal provinces (else the HL/WL name prefix), DLC from
-  names or `/dlcNN/` icon paths. Questlines without a written title are dropped.
+- `questline(guid, series, idx)`: one row per quest (2026-11-10), which is one `StoryLine` asset, the unit the game
+  starts on its own: a storyline with a decision, or one whose checks hand out rewards (After the Fall). The journal
+  (`QuestEntry`) is no better unit: one storyline may file its objectives under several entries, and entries are named
+  differently from the decision screens (Making A Sail runs under "Back In Business"). Every name the game shows for a
+  story goes to search (`search.alias_text` is the name a row was found under): journal names, also once renamed,
+  and decision headlines; a story that is no quest (Folk Of The Great River / Breadbasket) finds the quests it leads
+  to, else the ones before it.
+  Quests share a `series` (the guid of its first quest, `idx` in dependency order) when one starts another or reads a
+  global variable another writes; achievement counters and tutorial flags don't count. Storylines without choices
+  (Folk Of The Great River, To Face A God) are no quests and only pass those links on. Region from the storyline's
+  journal provinces (else the HL/WL name prefix, else the rest of the series), DLC from names or `/dlcNN/` icon paths.
+  Storylines without a written title are dropped.
+- `quest_shared(storyline_guid, variable, kind, other_guid)`: global variables a quest shares with another storyline.
+  `read`: the other writes it; `write`: the other reads it. Achievement counters count here (Quality Assurance checks
+  one Making A Sail sets) though they make no series. The client carries picks through a series with these.
+  Picks are stateless: they travel in the URL (`?picks=50807.0_50814.2`, choice guid and option index, one set for the
+  whole series), the series list and the "Next" link pass them on, and the server replays the earlier quests
+  (`quests.carry`) to hand the page its starting variables (`walk.ts` `carryOver`: a quest played to its end hands on its changes, one its start condition rules out hands on
+  nothing, one still open or a writer outside the series leaves the variable unknown and the check to pick). Checks
+  always say what they test: the comparison ("Patrician Favor ≥ Neutral Favor"), or for flags the options that set
+  them ("If you picked …", also another quest's); options show changes to variables something checks.
 - `effect.duration_ms`: `TimedEffect.EffectDuration`; null when permanent.
 - `asset_name`: name text and icon of assets conditions point at that have no table of their own (provinces,
   volcano phases, participants' profiles …); the client falls back to it when naming a condition's subject.
@@ -268,10 +297,8 @@ Display names come from the game's own config tables, not hand-written ones, so 
   product kinds and item types (items use `allocation`). Kind `unit`: see unit.
 - Hand-written text left in the client lives in `packages/db/src/client/phrases/<lang>.json`, one file per language
   typed against `en.json`: condition and item-source phrasing ("Worship {name}", "Sold by {name}"), statistics and
-  war-state names the game never shows, the singular "Charioteer" item type, quest placeholders, the three unnamed product groups, a few words, and the
-  regex that strips "Part I" from a questline's first title in that language.
-- `slug` on building, product, unit, item, tech, production_chain and questline: the English name kebab-cased (questlines
-  without "Part I"), so a page has the same URL path in every language and analytics groups it. Regional variants
+  war-state names the game never shows, the singular "Charioteer" item type, quest placeholders, the three unnamed product groups and a few words.
+- `slug` on building, product, unit, item, tech, production_chain and questline: the English name kebab-cased, so a page has the same URL path in every language and analytics groups it. Regional variants
   may share a slug; the guid in the URL tells them apart.
 - All 12 game languages ship (`lang` ids: English 1, German 2, the rest alphabetical); the DB grows from 2.4 MB with
   English and German to 6.4 MB, all of it in `translation`.

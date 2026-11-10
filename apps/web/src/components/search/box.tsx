@@ -145,6 +145,12 @@ function Box({
                     <div className="flex min-w-0 flex-1 items-center gap-3 font-medium">
                       <span className="truncate">{item.name}</span>
 
+                      {item.alias ? (
+                        <span className="text-gray-11 truncate text-sm font-normal">
+                          {item.alias}
+                        </span>
+                      ) : null}
+
                       {item.type === 'building' ||
                       item.type === 'chain' ||
                       item.type === 'unit' ? (

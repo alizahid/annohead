@@ -1,10 +1,13 @@
 import { expect, test } from 'bun:test'
 
 import { langValues } from '../enums'
+import { walkQuest } from '../walk'
 import { anno } from './index'
 
+// quests whose story sets out on several threads at once, as of the Dawn of the Delta data
+const THREADED = 40
+
 /** "Part I" in every game language */
-const PART_NUMBER = /\b(?:Part|Teil|Parte|partie|część|часть)\b|第.*部|\d부/iu
 // typed queries have no zero-width spaces, which the game puts between CJK words
 const INVISIBLE = /[\u200B-\u200D\uFEFF]/gu
 
@@ -571,31 +574,162 @@ test('products and techs', async () => {
   )
 })
 
-test('questlines group the Mysterious Murmillo parts in order', async () => {
+test('every storyline with choices is a quest, in a series with the quests it depends on', async () => {
   const { rows } = await anno.quests.list({
     lang: 'en',
     perPage: 500,
   })
-  const murmillo = rows.find((r) => r.guid === 50_806)
-  expect(murmillo?.name).toBe('The Mysterious Murmillo')
-  expect(murmillo?.parts).toBe(9)
+  const murmillo = rows.filter((r) => r.series === 50_806)
+  expect(murmillo).toHaveLength(9)
   const radiant = rows.some((r) => r.name?.includes('Emperor Request'))
   expect(radiant).toBe(false)
   const q = await anno.quests.get({
+    id: 50_832,
+    lang: 'en',
+  })
+  expect(q?.name).toBe('The Mysterious Murmillo Part III')
+  expect(q?.series[0]?.name).toBe('The Mysterious Murmillo Part I')
+  expect(q?.series.at(-1)?.name).toBe('The Mysterious Murmillo Part VI')
+  // an achievement counter is all Making A Sail and Quality Assurance share: two one-offs
+  const oneOffs = await Promise.all(
+    [93_906, 155_761, 154_080].map((id) =>
+      anno.quests.get({
+        id,
+        lang: 'en',
+      }),
+    ),
+  )
+  expect(oneOffs.map((quest) => quest?.series.length)).toEqual([1, 1, 1])
+  // Folk Of The Great River has no choice to make; what it starts is a series of its own
+  expect(rows.some((r) => r.guid === 152_815)).toBe(false)
+  const body = await anno.quests.get({
+    id: 154_535,
+    lang: 'en',
+  })
+  expect(body?.series.map((s) => s.guid)).toEqual([154_535, 173_095, 173_096])
+  const follow = body?.choices
+    .flatMap((c) => c.options.flatMap((o) => o.outcomes))
+    .find((o) => o.kind === 'storyline' && o.guid === 173_095)
+  expect(follow?.slug).toBe('private-investigations')
+  // Vulcan's Veins leads to Fault Lines through To Face A God, which is no quest; After the Fall only hands out
+  const fall = await anno.quests.get({
+    id: 145_420,
+    lang: 'en',
+  })
+  expect(fall?.series.map((s) => s.guid)).toEqual([
+    145_280, 145_418, 145_419, 145_420,
+  ])
+})
+
+test('checks say what they test, and options what they change for a check', async () => {
+  const first = await anno.quests.get({
     id: 50_806,
     lang: 'en',
   })
-  expect(q?.parts[0]?.name).toBe('The Mysterious Murmillo Part I')
-  expect(q?.parts.at(-1)?.name).toBe('The Mysterious Murmillo Part VI')
+  expect(first?.choices[0]?.options.map((o) => o.remembers)).toEqual([
+    ['Patrician Favor +1'],
+    ['Audience Favor +1'],
+    ['Neutral Favor +1'],
+  ])
+  const finale = await anno.quests.get({
+    id: 50_865,
+    lang: 'en',
+  })
+  const tally = finale?.choices.find((c) => c.guid === 50_883)
+  expect(tally?.requirements.map((r) => r.name)).toEqual([
+    'Patrician Favor ≥ Neutral Favor',
+  ])
+  // a check on a flag names the picks that set it, also when they are another quest's
+  const assurance = await anno.quests.get({
+    id: 155_761,
+    lang: 'en',
+  })
+  const offer = assurance?.choices.find((c) => c.guid === 156_583)
+  expect(offer?.requirements).toEqual([])
+  expect(offer?.decidedBy?.unless).toBe(false)
+  expect(offer?.decidedBy?.options[0]?.quest?.name).toBe('Making A Sail')
+  const grains = await anno.quests.get({
+    id: 154_080,
+    lang: 'en',
+  })
+  expect(
+    grains?.choices.find((c) => c.guid === 155_876)?.decidedBy?.options,
+  ).toEqual([
+    {
+      quest: null,
+      text: 'Assume control of the grain duty',
+    },
+  ])
+})
+
+test('a quest is one connected tree: what follows a part of the story hangs from it', async () => {
+  const justice = await anno.quests.get({
+    id: 173_096,
+    lang: 'en',
+  })
+  // the quiz is a container that hands on to the verdict once it has run out: answering all six right leads there
+  const solved = justice?.choices.find((c) => c.guid === 173_279)
+  expect(solved?.options[0]?.nexts).toEqual([174_393])
+  const { rows } = await anno.quests.list({
+    lang: 'en',
+    perPage: 500,
+  })
+  const quests = await Promise.all(
+    rows.map((row) =>
+      anno.quests.get({
+        id: row.guid,
+        lang: 'en',
+      }),
+    ),
+  )
+  // only threads the game starts side by side are left without a choice before them, and the chart hangs those
+  // from the quest's start: 12 quests as of the Dawn of the Delta data
+  const threaded = quests.filter(
+    (quest) => (quest?.choices.filter((c) => c.entry).length ?? 0) > 1,
+  )
+  expect(threaded.length).toBeLessThanOrEqual(THREADED)
+  expect(threaded.map((quest) => quest?.guid)).not.toContain(173_096)
+  // and there is always something to pick: with nothing picked a walk waits at a decision, or passed a check that
+  // is the player's to flip. A menu of questions that loop back to it, as in Private Investigations, has no way in
+  // but the quest's start
+  const stuck = quests.filter((quest) => {
+    const walk = quest ? walkQuest(quest, {}) : null
+    return walk?.done && walk.steps.every((step) => step.forced)
+  })
+  expect(stuck.map((quest) => quest?.guid)).toEqual([])
+  const investigations = quests.find((quest) => quest?.guid === 173_095)
+  expect(investigations && walkQuest(investigations, {}).done).toBe(false)
+})
+
+test('an option that can fail leads to what decides it, then to success or failure', async () => {
+  const horse = await anno.quests.get({
+    id: 154_654,
+    lang: 'en',
+  })
+  const convince = horse?.choices.find((c) => c.guid === 158_210)
+  const [challenge] = convince?.options[0]?.nexts ?? []
+  const check = horse?.choices.find((c) => c.guid === challenge)
+  expect(check?.kind).toBe('check')
+  expect(check?.requirements.map((r) => r.name)).toEqual(['Story Inspire ≥ 3'])
+  // success and failure go to different screens
+  expect(check?.options[0]?.nexts).toEqual([158_211])
+  expect(check?.options[1]?.nexts).toEqual([158_212])
+  // the option that cannot fail goes straight on
+  expect(convince?.options.at(-1)?.nexts).toEqual([158_217])
 })
 
 test('options read the text the quest fills in, with inline icons on the CDN', async () => {
-  const q = await anno.quests.get({
-    id: 152_815,
-    lang: 'en',
-  })
-  const options = q?.parts.flatMap((p) => p.choices.flatMap((c) => c.options))
-  const texts = options?.map((o) => o.text) ?? []
+  const quests = await Promise.all(
+    [173_095, 173_096].map((id) =>
+      anno.quests.get({
+        id,
+        lang: 'en',
+      }),
+    ),
+  )
+  const texts = quests.flatMap(
+    (q) => q?.choices.flatMap((c) => c.options.map((o) => o.text)) ?? [],
+  )
   expect(texts).toContain('Kashtan Weapon')
   expect(texts).toContain('Ornate Blade')
   expect(texts).toContain(
@@ -608,31 +742,27 @@ test('options read the text the quest fills in, with inline icons on the CDN', a
 
 test('hidden variants of one button are one option, variants with their own odds stay apart', async () => {
   const mystery = await anno.quests.get({
-    id: 152_815,
+    id: 173_096,
     lang: 'en',
   })
   // a "Continue" for each set of wrong answers, only one of them ever shown
-  const conclusion = mystery?.parts
-    .flatMap((p) => p.choices)
-    .find((c) => c.guid === 173_271)
+  const conclusion = mystery?.choices.find((c) => c.guid === 173_271)
   expect(conclusion?.options.map((o) => o.text)).toEqual(['Continue'])
   const amphora = await anno.quests.get({
     id: 152_807,
     lang: 'en',
   })
   // denying succeeds more often when the player stocked up in time
-  const deny = amphora?.parts
-    .flatMap((p) => p.choices)
-    .find((c) => c.guid === 153_038)
+  const deny = amphora?.choices.find((c) => c.guid === 153_038)
   expect(deny?.options).toHaveLength(3)
 })
 
-test('questline choices carry costs, requirements and outcomes', async () => {
+test('quest choices carry costs, requirements and outcomes', async () => {
   const q = await anno.quests.get({
-    id: 50_806,
+    id: 50_865,
     lang: 'en',
   })
-  const finale = q?.parts.at(-1)?.choices ?? []
+  const finale = q?.choices ?? []
   const fate = finale.find((c) => c.guid === 50_866)
   // adopting Favillus hands over his specialist and wins the neutral crowd
   const adopt = fate?.options[1]
@@ -645,21 +775,15 @@ test('questline choices carry costs, requirements and outcomes', async () => {
     }),
   )
   expect(adopt?.outcomes.some((o) => o.kind === 'variable')).toBe(false)
-  expect(adopt?.next).toBe(50_883)
+  expect(adopt?.nexts).toEqual([50_883])
   // the favour tally picks the reward
-  const tally = finale.find((c) => c.guid === 50_883)
-  expect(tally?.kind).toBe('check')
-  expect(tally?.test?.own).toEqual(
-    expect.objectContaining({
-      comparison: 'AtLeast',
-      other: 'Colosseum_NeutralFavor',
-      variable: 'Colosseum_PatricianFavor',
-    }),
-  )
-  // quest variables are for the walk to resolve, not requirements to read
-  expect(tally?.requirements).toEqual([])
+  expect(finale.find((c) => c.guid === 50_883)?.kind).toBe('check')
+  // what the tally and the first decision leave decides which reward is offered
   const reward = finale.find((c) => c.guid === 144_501)
-  expect(reward?.options[0]?.requirements).toEqual([])
+  expect(reward?.options[0]?.requirements.map((r) => r.name)).toEqual([
+    'Mega Reward = 1',
+    'Not: Killed Favillus',
+  ])
   expect(reward?.options[0]?.test).not.toBeNull()
   const happiness = reward?.options[0]?.outcomes[0]
   expect(happiness?.kind).toBe('effect')
@@ -678,13 +802,11 @@ test('questline choices carry costs, requirements and outcomes', async () => {
       perPage: 500,
     })
   ).rows.find((r) => r.guid === 154_738)
-  const part = (
-    await anno.quests.get({
-      id: standing?.guid ?? 0,
-      lang: 'en',
-    })
-  )?.parts[0]
-  expect(part?.choices[0]?.options[0]?.cost).toEqual(
+  const claque = await anno.quests.get({
+    id: standing?.guid ?? 0,
+    lang: 'en',
+  })
+  expect(claque?.choices[0]?.options[0]?.cost).toEqual(
     expect.objectContaining({
       amount: 50_000,
       guid: 1_010_017,
@@ -819,21 +941,43 @@ test('search ranks name matches, dedupes variants, filters by type and paginates
   ).toBe(0)
 })
 
-test('search finds a questline by the name its journal entry takes on later', async () => {
+test('search finds a quest by every name the game shows for its story', async () => {
   const { rows } = await anno.search({
+    lang: 'en',
+    query: 'Back In Business',
+    types: ['quest'],
+  })
+  expect(rows.map((r) => [r.guid, r.name, r.alias])).toEqual([
+    [93_906, 'Making A Sail', 'Back In Business'],
+  ])
+  // a story without choices of its own leads to the quests it starts, also under the name its journal entry takes on
+  const renamed = await anno.search({
     lang: 'en',
     query: 'Breadbasket',
     types: ['quest'],
   })
-  expect(rows.map((r) => [r.guid, r.name])).toEqual([
-    [152_815, 'Folk Of The Great River'],
+  expect(renamed.rows.map((r) => [r.guid, r.alias])).toEqual([
+    [154_080, 'Breadbasket'],
+    [154_535, 'Breadbasket'],
   ])
-  const both = await anno.search({
+  const dropped = await anno.search({
     lang: 'en',
-    query: 'river',
+    query: 'To Face A God',
     types: ['quest'],
   })
-  expect(both.rows.filter((r) => r.guid === 152_815)).toHaveLength(1)
+  expect(dropped.rows.map((r) => r.name)).toEqual(['Fault Lines'])
+  const own = await anno.search({
+    lang: 'en',
+    query: 'Fault Lines',
+    types: ['quest'],
+  })
+  expect(own.rows[0]?.alias).toBeNull()
+  const both = await anno.search({
+    lang: 'en',
+    query: 'sail',
+    types: ['quest'],
+  })
+  expect(both.rows.filter((r) => r.guid === 93_906)).toHaveLength(1)
 })
 
 test('item rarities, niches and allocations are named by the game', async () => {
@@ -1218,14 +1362,13 @@ test('items the game never names and props nothing hands out are left out', asyn
 })
 
 test.each([...langValues])(
-  'questline names drop the part number and search finds names in %s',
+  'quests are named and search finds names in %s',
   async (lang) => {
     const murmillo = await anno.quests.get({
       id: 50_806,
       lang,
     })
     expect(murmillo?.name).toBeTruthy()
-    expect(murmillo?.name).not.toMatch(PART_NUMBER)
     const spinner = await anno.buildings.get({
       id: 3187,
       lang,

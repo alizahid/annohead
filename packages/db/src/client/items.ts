@@ -39,7 +39,6 @@ import {
   poolMember,
   quest,
   questline,
-  questlineStoryline,
   storyline,
   tech,
 } from '../schema'
@@ -214,14 +213,14 @@ async function itemDetails(guids: Array<number>, lang: Lang) {
         itemGuid: itemSource.itemGuid,
         kind: itemSource.kind,
         name: sName.value,
-        /** the questline a quest or storyline reward belongs to; null for radiant quests (requests, contracts) */
+        /** the quest page a quest or storyline reward belongs to; null for radiant quests (requests, contracts) */
         questline: sql<
           number | null
-        >`(select ${questlineStoryline.questlineGuid} from ${questlineStoryline} where ${questlineStoryline.storylineGuid} = coalesce(${quest.storylineGuid}, case when ${itemSource.kind} = 'storyline' then ${itemSource.sourceGuid} end))`,
-        /** English slug of the questline, else of the tech, for linking to it */
+        >`(select ${questline.guid} from ${questline} where ${questline.guid} = coalesce(${quest.storylineGuid}, case when ${itemSource.kind} = 'storyline' then ${itemSource.sourceGuid} end))`,
+        /** English slug of the quest, else of the tech, for linking to it */
         slug: sql<
           string | null
-        >`coalesce((select ${questline.slug} from ${questlineStoryline} join ${questline} on ${questline.guid} = ${questlineStoryline.questlineGuid} where ${questlineStoryline.storylineGuid} = coalesce(${quest.storylineGuid}, case when ${itemSource.kind} = 'storyline' then ${itemSource.sourceGuid} end)), ${tech.slug})`,
+        >`coalesce((select ${questline.slug} from ${questline} where ${questline.guid} = coalesce(${quest.storylineGuid}, case when ${itemSource.kind} = 'storyline' then ${itemSource.sourceGuid} end)), ${tech.slug})`,
       })
       .from(itemSource)
       .leftJoin(participant, eq(participant.guid, itemSource.sourceGuid))

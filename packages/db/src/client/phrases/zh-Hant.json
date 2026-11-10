@@ -38,7 +38,6 @@
     "ConditionVolcanoPhaseActive": "火山：{name}",
     "ConditionWarState": "戰況：{variant}"
   },
-  "partSuffix": "[\\s\\u200b]*第[\\u200b一二三四五六七八九十]+部分.*$",
   "productKinds": {
     "Meta": "帝國",
     "Service": "服務",
@@ -84,6 +83,7 @@
   },
   "words": {
     "atMost": "至多",
+    "chance": "機率",
     "charioteer": "戰車騎手",
     "not": "否",
     "or": "或"

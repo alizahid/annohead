@@ -123,7 +123,6 @@ LABEL_TABLES = [
     ("reputation", "ReputationFeature", "ReputationFeature.ReputationSpecialStates", "Name"),
     ("incident", "GeneralIncidentConfiguration", "GeneralIncidentConfiguration.IncidentTypesConfig", "Name"),
 ]
-# "The Mysterious Murmillo Part I" -> "The Mysterious Murmillo", as the client's English phrases do
 # the game separates CJK words with zero-width spaces, which a typed query never has
 INVISIBLE = re.compile("[\u200b-\u200d\ufeff]")
 # a line that is only a text variable the quest fills in at runtime ("Potential evidence not yet found" → "Ornate Blade")
@@ -133,7 +132,6 @@ TEXT_WRITE = re.compile(
 )
 IMG_SRC = re.compile(r"""(<img[^>]*?\bsrc=["'])([^"']*)(["'])""")
 ASSET_ICON = re.compile(r"\{AssetData\((\d+)\)\.Icon\}")
-QUESTLINE_PART = re.compile(r"\s*(?:[–-]\s*)?\bPart\s+[IVXL]+\b.*$", re.IGNORECASE)
 # products the trading post filter doesn't list, filed under categories the game has no name for (client phrases)
 PRODUCT_KINDS = {"Workforce": -1, "Service": -2, "Meta": -3}
 # the game's placeholder for assets whose icon was cut ("Removed Icon")
@@ -195,6 +193,12 @@ OUTCOME_EDGES = {
     "Objective.SuccessOutput",
     "Starter.AcceptOutput",
     "QuestLine.StartConnector",
+    # what a state checker or a combination starts once its state is reached
+    "StateChecker.States.StartConnectors",
+    "StateChecker.States.OutputConnectors",
+    "ComplexCombination.States.StartConnectors",
+    "ComplexCombination.States.OutputConnectors",
+    "ComplexCombination.AdditionalEndStates.OutputConnectors",
 }
 # ponytail: questline region from the Heartlands/Wetlands prefix of internal storyline names, when no journal entry names a province
 REGION_PREFIX = {"HL": 1, "WL": 2}
@@ -1403,6 +1407,7 @@ class T:
         node_story = {}
         filled = self.text_variables()
         self.variant_screens = set()  # decisions whose options collapsed into one; still a screen the player answers
+        self.variant_of = {}  # (decision, option idx) -> idx of the option that stands for it
         for a in self.by_template("StoryLine"):
             sl = D(a["v"].get("StoryLine"))
             self.db.execute("insert into storyline(guid) values(?)", (a["guid"],))
@@ -1530,12 +1535,13 @@ class T:
             for i, opt in enumerate(opts):
                 group = variants.get(variant(i, opt), [i])
                 if group[0] != i:
+                    self.variant_of[g, i] = group[0]
                     continue
                 if len(group) > 1:
                     self.variant_screens.add(g)
                 cost = D(opt.get("CostData")) if opt.get("HasCost") == "1" else {}
                 self.db.execute(
-                    "insert into quest_option values(?,?,?,?,?,?)",
+                    "insert into quest_option values(?,?,?,?,?,?,?,?,?)",
                     (
                         g,
                         i,
@@ -1560,6 +1566,7 @@ class T:
                                 ).get("Values")
                             ).get("PreConditionList"),
                         ),
+                        *self.challenge(opt),
                     ),
                 )
             for rw in self.items(D(v.get("Reward")).get("RewardAssets")):
@@ -1641,6 +1648,25 @@ class T:
         self.choices(node_story)
         self.questlines(node_story)
 
+    def challenge(self, opt):
+        """What decides whether an option succeeds or takes its failure output (kind, value, variable): fixed odds, a
+        quest variable or the governor's knowledge or prestige reaching a value. Nulls for options that cannot fail."""
+        if opt.get("HasChallenge") != "1":
+            return None, None, None
+        data = D(opt.get("ChallengeData"))
+        value = self.num(D(D(D(data.get("CheckValue")).get("Values")).get("FloatVariableOrValue")).get("FloatValue"))
+        if data.get("StaticSuccessProbability"):
+            return "chance", float(data["StaticSuccessProbability"]), None
+        kind = {
+            "Variable": "variable",
+            "GlobalKnowledgeAttribute": "knowledge",
+            "AreaKnowledgeAttribute": "knowledge",
+            "GlobalPrestigeAttribute": "prestige",
+        }.get(data.get("DCType"))
+        if not kind or value is None:  # odds the game works out as it runs
+            return "chance", None, None
+        return kind, value, D(data.get("CompareVariable")).get("Value") if kind == "variable" else None
+
     def storyline_titles(self, node_story):
         """Player-facing name of a storyline: its first decision's headline, else its journal entry, plus the
         governor request text and icon that announce it."""
@@ -1688,24 +1714,29 @@ class T:
             )
 
     def choices(self, node_story):
-        """Decisions offering several options and functions branching on a condition, each with the nodes that
-        run when an option is taken (or the condition holds / fails) up to the next choice or decision event."""
+        """Decisions offering several options, functions branching on a condition and objectives that can fail, each
+        with the nodes that run when an option is taken (or the condition holds / fails, the objective is met / missed)
+        up to the next choice or decision event. Outcome idx -(i + 1) is what runs when option i fails its challenge."""
         edges = defaultdict(list)
         for f, t, kind, idx in self.db.execute(
             "select from_guid, to_guid, kind, idx from quest_edge"
         ):
             edges[f].append((t, kind, idx))
         types = dict(self.db.execute("select guid, type from quest_node"))
-        options = defaultdict(int)
-        for (g,) in self.db.execute("select decision_guid from quest_option"):
-            options[g] += 1
+        options = defaultdict(list)
+        for g, i in self.db.execute("select decision_guid, idx from quest_option order by idx"):
+            options[g].append(i)
+        # objectives with a failure or time-out port: what follows depends on how they end
+        missed = defaultdict(list)
+        for g, outs in edges.items():
+            missed[g] = [t for t, k, _ in outs if k in ("Objective.FailureOutput", "Objective.TimedOutOutput")]
         branches = {
             g
             for (g,) in self.db.execute(
                 "select guid from quest_node where condition_id is not null"
             )
         }
-        # the start screen of each decision event; its option i also continues at the event's output i
+        # the start screen of each decision event
         root_of = {}
         for g, t in types.items():
             if t == "DecisionRoot":
@@ -1719,35 +1750,114 @@ class T:
 
         start_of = {root: start for start, root in root_of.items()}
 
+        def components(outputs):
+            return [self.num(o["Component"]) for o in self.items(outputs) if o.get("Component")]
+
+        # A decision event leaves through one of its numbered outputs: the options that end it (nothing follows
+        # them), counted in the order its screens are walked, take the outputs in turn. For an event of one screen
+        # that is option i > output i; nested screens count on (holds for 629 of the game's 634 events)
+        exit_to = defaultdict(list)  # (decision, option idx) -> nodes the event carries on at
+        for root, start in start_of.items():
+            ends, seen = [], set()
+
+            def visit(g):
+                if g in seen or g not in self.assets:
+                    return
+                seen.add(g)
+                v = self.assets[g]["v"]
+                if self.assets[g]["template"] == "Decision":
+                    outputs = D(v.get("DecisionComponent")).get("DecisionOutputs") or []
+                    for i in range(max(len(outputs), len(D(v.get("Decision")).get("DecisionOptions") or []))):
+                        out = D(outputs[i] if i < len(outputs) else None)
+                        after = components(out.get("SuccessOutput")) + components(out.get("FailureOutput"))
+                        if not after:
+                            ends.append((g, i))
+                        for t in after:
+                            visit(t)
+                    return
+                fn = D(v.get("Function"))
+                for t in (
+                    components(fn.get("FunctionSuccessOutput"))
+                    + components(fn.get("FunctionFailureOutput"))
+                    + components(D(v.get("QuestComponentConnector")).get("Output"))
+                ):
+                    visit(t)
+
+            visit(start)
+            outputs = D(self.assets[root]["v"].get("DecisionRoot")).get("DecisionRootOutput") or []
+            for end, output in zip(ends, outputs):
+                exit_to[end] += components(D(output).get("Output"))
+        exits = defaultdict(list)  # every way out of the event from a screen, for screens with nothing to choose
+        for (g, _), targets in exit_to.items():
+            exits[g] += targets
+
         def is_choice(g):
-            return (types.get(g) == "Decision" and (options[g] > 1 or g in self.variant_screens)) or g in branches
+            return (
+                (types.get(g) == "Decision" and (len(options[g]) > 1 or g in self.variant_screens))
+                or g in branches
+                or g in fallible
+            )
+
+        # a QuestLine is a container: it runs the graph behind its start connector and carries on at its own output
+        # once that graph has run out (or reached an Exit); a Loop starts the container over. So every node needs
+        # the QuestLine it sits in, found walking down from each storyline
+        inside = {}
+        queue = [(g, None) for g, t in types.items() if t == "StoryLine"]
+        while queue:
+            g, line = queue.pop()
+            if g in inside or g not in types:
+                continue
+            inside[g] = line
+            if g in start_of:
+                queue.append((start_of[g], line))
+            for t, kind, _ in edges[g]:
+                if "Location" in kind or "ActionEndQuestObjective" in kind:
+                    continue
+                queue.append((t, g if kind == "QuestLine.StartConnector" else line))
+
+        # an objective only something's end action names never starts in this story
+        fallible = {g for g, outs in missed.items() if outs and g in inside}
+
+        def leave(g):
+            """Where the story carries on once the graph around `g` has run out: the output of the QuestLine it
+            sits in, else of the one around that."""
+            line = inside.get(g)
+            while line:
+                out = [t for t, kind, _ in edges[line] if kind == "QuestComponentConnector.Output"]
+                if out:
+                    return out
+                line = inside.get(line)
+            return []
+
+        def follow(g):
+            """The nodes that run after `g`."""
+            if types[g] == "Loop":
+                return [t for t, kind, _ in edges[inside.get(g)] if kind == "QuestLine.StartConnector"]
+            if types[g] == "QuestLine":
+                inner = [t for t, kind, _ in edges[g] if kind == "QuestLine.StartConnector"]
+                return inner or [t for t, kind, _ in edges[g] if kind == "QuestComponentConnector.Output"]
+            return [t for t, kind, _ in edges[g] if kind in OUTCOME_EDGES] or exits[g] or leave(g)
 
         def reach(starts):
             out, queue, seen = [], list(starts), set()
             while queue:
                 g = queue.pop(0)
-                if (
-                    g in seen
-                    or g not in types
-                    or types[g] in ("Exit", "StateChecker", "Loop")
-                ):
+                if g in seen or g not in types:
                     continue
                 seen.add(g)
+                if types[g] in ("Exit", "Loop", "QuestLine"):
+                    queue += leave(g) if types[g] == "Exit" else follow(g)
+                    continue
                 # a decision event opens on its start screen; a start screen with one option carries on at its outputs
+                # a decision event opens on its start screen
                 if types[g] == "DecisionRoot":
-                    start = start_of.get(g)
-                    if start:
-                        queue.append(start)
-                        if not is_choice(start):
-                            queue += [
-                                t for t, k, _ in edges[g] if k == "DecisionRoot.DecisionRootOutput.Output"
-                            ]
+                    queue += [start_of[g]] if g in start_of else []
                     continue
                 out.append(g)
                 # the next choice is kept as the outcome's last node ("then …") but not walked into
                 if is_choice(g):
                     continue
-                queue += [t for t, kind, _ in edges[g] if kind in OUTCOME_EDGES]
+                queue += follow(g)
             return out
 
         position = defaultdict(int)
@@ -1756,45 +1866,53 @@ class T:
                 continue
             if g in branches:
                 kind = "check"
-                starts = [
-                    [t for t, k, _ in edges[g] if k == "Function.FunctionSuccessOutput"],
-                    [t for t, k, _ in edges[g] if k == "Function.FunctionFailureOutput"],
-                ]
+                starts = {
+                    0: [t for t, k, _ in edges[g] if k == "Function.FunctionSuccessOutput"],
+                    1: [t for t, k, _ in edges[g] if k == "Function.FunctionFailureOutput"],
+                }
+            elif g in fallible:
+                kind = "objective"
+                starts = {0: [t for t, k, _ in edges[g] if k == "Objective.SuccessOutput"], 1: missed[g]}
             else:
                 kind = "decision"
-                root = root_of.get(g)
-                starts = [
-                    [
-                        t
-                        for t, k, idx in edges[g]
-                        if k == "DecisionComponent.DecisionOutputs.SuccessOutput"
-                        and idx == i
-                    ]
-                    + [
-                        t
-                        for t, k, idx in edges[root] if root
-                        and k == "DecisionRoot.DecisionRootOutput.Output"
-                        and idx == i
-                    ]
-                    for i in range(options[g])
-                ]
+                starts = {i: [] for i in options[g]}
+                # hidden variants of one button share its outputs; where the event carries on may differ between them
+                for t, k, idx in edges[g] + [(t, None, i) for (d, i), ts in exit_to.items() if d == g for t in ts]:
+                    i = self.variant_of.get((g, idx), idx)
+                    if i not in starts:
+                        continue
+                    if k == "DecisionComponent.DecisionOutputs.FailureOutput":
+                        starts.setdefault(-(i + 1), []).append(t)
+                    elif k in (None, "DecisionComponent.DecisionOutputs.SuccessOutput"):
+                        starts[i].append(t)
             self.db.execute(
                 """insert into quest_choice select guid, storyline_guid, ?, ?, headline_text, text_text, condition_id,
-                   speaker_guid from quest_node where guid=?""",
+                   speaker_guid, 0 from quest_node where guid=?""",
                 (kind, position[story], g),
             )
             position[story] += 1
-            for i, s in enumerate(starts):
-                for n in reach(s):
+            for i, s in starts.items():
+                # an option nothing follows ends the graph around the choice
+                for n in reach(s or leave(g)):
                     self.db.execute(
                         "insert or ignore into quest_choice_outcome values(?,?,?)",
                         (g, i, n),
                     )
 
+        # where each story sets out: the choices its start reaches before any other. A menu of questions that loop
+        # back to it has no other way in
+        for g, t in types.items():
+            if t == "StoryLine":
+                starts = [n for n, k, _ in edges[g] if k == "StoryLine.StartConnector"]
+                self.db.executemany(
+                    "update quest_choice set entry=1 where node_guid=?", [(n,) for n in reach(starts) if is_choice(n)]
+                )
+
     def questlines(self, node_story):
-        """Group narrative storylines into questlines: storylines are linked when one writes a global variable
-        another reads (favours, flags, "part done") or when one starts the other. Radiant storylines (random
-        requests and contracts), cut content and tutorials are left out."""
+        """Quests the site shows: narrative storylines with a decision, or whose checks hand out something. Quests
+        form a series when one starts another or reads a global variable another writes (favours, flags, "part
+        done"); storylines without choices only pass those links on. Radiant storylines (random requests and
+        contracts), cut content and tutorials are left out."""
         story_of = dict(node_story)
         names = {s: self.assets[s]["name"] for (s,) in self.db.execute("select guid from storyline")}
         by_story = defaultdict(list)
@@ -1819,20 +1937,30 @@ class T:
         local = defaultdict(set)
         for s, name in self.db.execute("select storyline_guid, name from storyline_variable"):
             local[s].add(name)
+
+        # tutorial flags (Onboarding_StartLoadGoods) are set by unrelated stories that teach the same thing
+        def shared(s, var):
+            return s in keep and var not in local[s] and not var.startswith("Onboarding")
+
         writes, reads = defaultdict(set), defaultdict(set)
         for node, var in self.db.execute("select node_guid, variable from quest_variable_change"):
-            # tutorial flags (Onboarding_StartLoadGoods) are set by unrelated stories that teach the same thing
-            if story_of.get(node) in keep and var not in local[story_of[node]] and not var.startswith("Onboarding"):
+            if shared(story_of.get(node), var):
                 writes[var].add(story_of[node])
         for kind, owner, var in self.db.execute(
             """select c.owner_kind, c.owner_id, p.value from condition c join condition_param p on p.condition_id=c.id
                where c.template='ConditionCompareVariable' and (p.key='VariableToCheck' or p.key like '%VariableName')"""
         ):
             s = owner if kind == "storyline" else story_of.get(owner)
-            if s in keep and var not in local[s]:
+            if shared(s, var):
                 reads[var].add(s)
+        for g, var in self.db.execute("select decision_guid, challenge_variable from quest_option where challenge_variable is not null"):
+            if shared(story_of.get(g), var):
+                reads[var].add(story_of[g])
         after = defaultdict(set)  # storyline -> storylines that come after it
         for var, ws in writes.items():
+            # an achievement counter two stories feed (Making A Sail, Quality Assurance) makes no series of them
+            if var.startswith("Achievement"):
+                continue
             for w in ws:
                 after[w] |= reads[var] - {w}
         for node, target in self.db.execute(
@@ -1840,7 +1968,43 @@ class T:
         ):
             if story_of.get(node) in keep and target in keep and target != story_of[node]:
                 after[story_of[node]].add(target)
-        parent = {s: s for s in keep}
+        titled = {
+            s: (t or r, i)
+            for s, t, r, i in self.db.execute("select guid, title_text, request_text, icon from storyline")
+        }
+        # a storyline without a decision is still a quest when earlier choices decide what it hands out (After the Fall)
+        quests = {
+            s
+            for (s,) in self.db.execute(
+                """select storyline_guid from quest_choice where kind='decision'
+                   union select c.storyline_guid from quest_choice c
+                     join quest_choice_outcome o on o.choice_guid=c.node_guid join quest_reward r on r.node_guid=o.node_guid
+                     where c.kind='check' and r.kind not in ('storyline', 'incident', 'message_reward')"""
+            )
+            if s in keep and titled[s][0]  # prototypes and experiments the game never names
+        }
+        linked = {s: set(ts) for s, ts in after.items()}
+
+        def near(s, forward):
+            """The quests a storyline that is no quest leads to (or follows), through others like it."""
+            found, queue, seen = set(), [s], {s}
+            while queue:
+                x = queue.pop()
+                for y in linked.get(x, ()) if forward else [a for a, bs in linked.items() if x in bs]:
+                    if y in quests:
+                        found.add(y)
+                    elif y not in seen:
+                        seen.add(y)
+                        queue.append(y)
+            return found
+
+        # what the player never sees as a quest passes its links on: Vulcan's Veins > (To Face A God) > Fault Lines
+        for s in sorted(keep - quests):
+            for a in [a for a in after if s in after[a]]:
+                after[a] |= after[s] - {a}
+                after[a].discard(s)
+            after.pop(s, None)
+        parent = {s: s for s in quests}
 
         def find(x):
             while parent[x] != x:
@@ -1851,25 +2015,22 @@ class T:
         for a, bs in after.items():
             for b in bs:
                 parent[find(a)] = find(b)
-        # variables several storylines write but none reads still tie them together (the favours of a questline)
-        for ws in writes.values():
-            first, *rest = sorted(ws)
-            for b in rest:
-                parent[find(b)] = find(first)
         groups = defaultdict(list)
-        for s in keep:
+        for s in quests:
             groups[find(s)].append(s)
-        choice_stories = {
-            s for (s,) in self.db.execute("select storyline_guid from quest_choice where kind='decision'")
-        }
-        titled = {
-            s: (t, r, i)
-            for s, t, r, i in self.db.execute("select guid, title_text, request_text, icon from storyline")
-        }
+
+        def region(s):
+            regions = [
+                r for (r,) in self.db.execute("select region_id from quest where region_id is not null and storyline_guid=?", (s,))
+            ]
+            return max(set(regions), key=regions.count) if regions else REGION_PREFIX.get((names[s] or "").split(" ")[0])
+
+        def dlc(s):
+            m = DLC_PATH.search(f"/{titled[s][1] or ''}")
+            return self.name_dlc(names[s]) or (self.dlc_by_name(f"{m[1].upper()}{int(m[2])}") if m else None)
+
         for members in groups.values():
-            if not choice_stories & set(members):
-                continue
-            # parts in dependency order (Kahn), ties and cycles broken by guid
+            # in dependency order (Kahn), ties and cycles broken by guid
             pending = {s: {a for a in members if s in after[a]} for s in members}
             order = []
             while pending:
@@ -1879,50 +2040,49 @@ class T:
                 del pending[s]
                 for deps in pending.values():
                     deps.discard(s)
-            parts = [s for s in order if s in choice_stories or titled[s][0]]
-            name = next((titled[s][0] for s in parts if titled[s][0]), None) or next(
-                (titled[s][1] for s in parts if titled[s][1]), None
-            )
-            if not name:  # prototypes and experiments the game never names
-                continue
-            first = parts[0]
-            regions = [
-                r
-                for (r,) in self.db.execute(
-                    f"select region_id from quest where region_id is not null and storyline_guid in ({','.join('?' * len(parts))})",
-                    parts,
-                )
-            ]
-            prefix = (names[first] or "").split(" ")[0]
-            self.db.execute(
-                "insert into questline values(?,?,?,?,?,null)",
-                (
-                    first,
-                    name,
-                    next((titled[s][2] for s in parts if titled[s][2]), None),
-                    max(set(regions), key=regions.count) if regions else REGION_PREFIX.get(prefix),
-                    next((d for d in map(self.name_dlc, (names[s] for s in parts)) if d), None)
-                    or next(
-                        (
-                            self.dlc_by_name(f"{m[1].upper()}{int(m[2])}")
-                            for m in (DLC_PATH.search(f"/{titled[s][2] or ''}") for s in parts)
-                            if m
-                        ),
-                        None,
-                    ),
-                ),
-            )
-            for i, s in enumerate(parts):
+            # a quest that names no province or DLC of its own is where the rest of its series is
+            regions = [r for r in map(region, order) if r]
+            dlcs = [d for d in map(dlc, order) if d]
+            for i, s in enumerate(order):
                 self.db.execute(
-                    "insert into questline_storyline values(?,?,?)", (first, s, i)
+                    "insert into questline values(?,?,?,?,?,null,?,?)",
+                    (
+                        s,
+                        *titled[s],
+                        region(s) or (max(set(regions), key=regions.count) if regions else None),
+                        dlc(s) or next(iter(dlcs), None),
+                        order[0],
+                        i,
+                    ),
                 )
-            # journal entries renamed mid-quest ("Folk Of The Great River" becomes "Breadbasket"), for search
-            for s in members:
-                for g in by_story[s]:
-                    for d in self.walk_dicts(self.assets[g]["v"]):
-                        new = self.text(D(D(d.get("ActionUpdateQuestEntry")).get("QuestName")).get("NewName"))
-                        if new:
-                            self.db.execute("insert into questline_alias values(?,?)", (first, new))
+        # every name the game shows for a story finds a quest: its title, the names the journal files it under
+        # ("Back In Business" for Making A Sail), also once renamed ("Folk Of The Great River" becomes "Breadbasket"),
+        # and the headlines of its decisions. A story that is no quest finds the quests it leads to, else the ones before
+        for s in keep:
+            targets = {s} if s in quests else near(s, True) or near(s, False)
+            if not targets:
+                continue
+            shown = {titled[s][0]} | {
+                name
+                for (name,) in self.db.execute(
+                    """select q.name_text from quest_node n join quest q on q.guid=n.quest_guid where n.storyline_guid=?1
+                       union select headline_text from quest_choice where storyline_guid=?1 and kind='decision'""",
+                    (s,),
+                )
+            }
+            for g in by_story[s]:
+                for d in self.walk_dicts(self.assets[g]["v"]):
+                    shown.add(self.text(D(D(d.get("ActionUpdateQuestEntry")).get("QuestName")).get("NewName")))
+            for name in shown - {None}:
+                for target in targets:
+                    self.db.execute("insert into questline_alias values(?,?)", (target, name))
+        # variables a quest shares with other storylines (`other`): a check on one another storyline writes cannot be
+        # told from the quest alone ('read'), a change to one another storyline reads matters later ('write')
+        for var in set(writes) | set(reads):
+            for kind, mine, theirs in (("read", reads[var], writes[var]), ("write", writes[var], reads[var])):
+                for s in mine & quests:
+                    for other in theirs - {s}:
+                        self.db.execute("insert into quest_shared values(?,?,?,?)", (s, var, kind, other))
 
     def speaker(self, screen):
         """Who asks on a decision screen: its left portrait, else its right one; never the player, and not a
@@ -2089,18 +2249,18 @@ class T:
             alter table quest drop column region_id;
             alter table storyline drop column request_text;
             -- questlines only
-            delete from quest_choice where storyline_guid not in (select storyline_guid from questline_storyline);
-            delete from storyline_condition where storyline_guid not in (select storyline_guid from questline_storyline);
+            delete from quest_choice where storyline_guid not in (select guid from questline);
+            delete from storyline_condition where storyline_guid not in (select guid from questline);
             delete from quest_choice_outcome where choice_guid not in (select node_guid from quest_choice);
             delete from quest_option where decision_guid not in (select node_guid from quest_choice);
             delete from quest_reward where node_guid not in (select node_guid from quest_choice_outcome);
             delete from quest_variable_change where node_guid not in (select node_guid from quest_choice_outcome);
             delete from condition where owner_kind in ('quest_option', 'quest_node') and owner_id not in (select node_guid from quest_choice)
-              or owner_kind = 'storyline' and owner_id not in (select storyline_guid from questline_storyline);
+              or owner_kind = 'storyline' and owner_id not in (select guid from questline);
             -- quests and storylines are only named as item sources, questline parts and follow-up rewards
             delete from quest where guid not in (select source_guid from item_source where kind = 'quest');
             delete from storyline where guid not in (
-              select storyline_guid from questline_storyline
+              select guid from questline
               union select source_guid from item_source where kind = 'storyline'
               union select asset_guid from quest_reward where kind = 'storyline');
             -- effects granted by buildings, items, techs and quests, plus the effects their buffs pass on to nearby buildings
@@ -2156,9 +2316,6 @@ class T:
             rows = self.db.execute(f"select guid, {column} from {table}").fetchall()
             for guid, tid in rows:
                 name = english.get(tid)
-                if table == "questline" and name:
-                    # a questline is named after its first part (client quests.ts questlineName)
-                    name = QUESTLINE_PART.sub("", name)
                 self.db.execute(f"update {table} set slug=? where guid=?", (slug(name), guid))
 
     def inline_icons(self):
@@ -2196,16 +2353,17 @@ class T:
                 (select key from region where id = u.region_id) from unit u
               union all select 'ornament', o.guid, o.slug, o.icon, null, o.name_text, o.description_text,
                 (select key from region where id = o.region_id) from ornament o;
-            insert into search(lang_id, guid, key)
-              select n.lang_id, min(s.guid), fold(n.value) from search_source s
+            insert into search(lang_id, guid, key, alias_text)
+              select n.lang_id, min(s.guid), fold(n.value), null from search_source s
               join translation n on n.line_id = s.name_text
               left join translation d on d.line_id = s.description_text and d.lang_id = n.lang_id
               group by n.lang_id, s.type, n.value, d.value, s.rarity, s.regions order by 1, 3;
-            -- a questline is also found by the names its journal entry takes on later
-            insert into search(lang_id, guid, key)
-              select distinct n.lang_id, a.questline_guid, fold(n.value) from questline_alias a
+            -- a quest is also found by every other name the game shows for its story
+            insert into search(lang_id, guid, key, alias_text)
+              select n.lang_id, a.questline_guid, fold(n.value), min(a.name_text) from questline_alias a
               join translation n on n.line_id = a.name_text
-              where fold(n.value) not in (select key from search where guid = a.questline_guid and lang_id = n.lang_id);
+              where fold(n.value) not in (select key from search where guid = a.questline_guid and lang_id = n.lang_id)
+              group by 1, 2, 3;
             drop table questline_alias;
             insert into search_entry select guid, type, slug, icon, rarity, regions, name_text, description_text
               from search_source where guid in (select guid from search);
@@ -2389,13 +2547,18 @@ create table storyline(guid integer primary key, title_text integer, request_tex
 create table storyline_condition(storyline_guid int references storyline(guid), condition_id int);
 create table quest(guid integer primary key, name_text integer, icon text, storyline_guid int, region_id int); -- region_id: build only
 create table quest_option(decision_guid int references quest_choice(node_guid), idx int, text_text integer,
-  cost_guid int, cost_amount real, condition_id int references condition(id));
+  cost_guid int, cost_amount real, condition_id int references condition(id),
+  challenge text, challenge_value real, challenge_variable text); -- what decides whether the option succeeds
 create table quest_variable_change(node_guid int, variable text, operation text, value text, value_variable text);
 create table quest_choice(node_guid integer primary key, storyline_guid int references storyline(guid), kind text, position int,
-  headline_text integer, text_text integer, condition_id int references condition(id), speaker_guid int);
+  headline_text integer, text_text integer, condition_id int references condition(id), speaker_guid int,
+  entry int); -- entry: 1 when the storyline's start reaches the choice before any other
 create table quest_choice_outcome(choice_guid int references quest_choice(node_guid), idx int, node_guid int, primary key(choice_guid, idx, node_guid)) without rowid;
-create table questline(guid integer primary key, title_text integer, icon text, region_id int references region(id), dlc_guid int references dlc(guid), slug text);
-create table questline_storyline(questline_guid int references questline(guid), storyline_guid int references storyline(guid), idx int, primary key(questline_guid, storyline_guid)) without rowid;
+-- a quest: one storyline with choices (guid). Quests that depend on each other share a series (its first quest), in idx order
+create table questline(guid integer primary key references storyline(guid), title_text integer, icon text, region_id int references region(id),
+  dlc_guid int references dlc(guid), slug text, series int, idx int);
+create table quest_shared(storyline_guid int references storyline(guid), variable text, kind text, other_guid int,
+  primary key(storyline_guid, variable, kind, other_guid)) without rowid;
 create table quest_reward(node_guid int, kind text, asset_guid int, amount real, amount_variable text,
   name_text integer, icon text, attribute text);
 -- child tables looked up by parent (composite primary keys already cover the rest)
@@ -2430,13 +2593,14 @@ create index idx_quest_option_decision on quest_option(decision_guid);
 create index idx_quest_reward_node on quest_reward(node_guid);
 create index idx_quest_variable_change_node on quest_variable_change(node_guid);
 create index idx_quest_choice_storyline on quest_choice(storyline_guid);
-create index idx_questline_storyline_storyline on questline_storyline(storyline_guid);
+create index idx_questline_series on questline(series);
 
 -- site search (client search.ts): the trigram index narrows a query to names containing it, detail=none keeps it small
 -- (fts5 checks the match against search.key itself)
 create table search_entry(guid integer primary key, type text, slug text, icon text, rarity text, regions text,
   name_text integer, description_text integer);
-create table search(id integer primary key, lang_id integer references lang(id), guid integer references search_entry(guid), key text);
+create table search(id integer primary key, lang_id integer references lang(id), guid integer references search_entry(guid), key text,
+  alias_text integer); -- alias_text: the in-game name a quest was found under, when it is not its own
 create virtual table search_fts using fts5(key, content='search', content_rowid='id', tokenize='trigram', detail='none', columnsize=0);
 """
 # build-time scratch tables, dropped by prune()

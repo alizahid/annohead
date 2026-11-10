@@ -239,20 +239,26 @@
     },
     "quests": {
       "choice": {
+        "carried": "沿用你在之前任務中的選擇",
         "check": "遊戲檢查",
         "cost": "花費",
         "decision": "決定",
-        "earlier": "取決於你之前的選擇",
-        "end": "任務線結束",
+        "earlier": "取決於你的遊戲狀態",
+        "end": "任務結束",
         "fails": "否則",
+        "follow": "後續任務",
         "holds": "若滿足",
         "later": "影響後續發展",
+        "next": "下一個：{name}",
         "nothing": "無持續效果",
         "option": "選項 {number}",
         "outcomes": "結果",
         "pick": "選擇一個選項，查看它會通往何處",
+        "picked": "如果你選擇了",
         "requires": "需求",
-        "reset": "重置"
+        "reset": "重置",
+        "start": "任務開始",
+        "unless": "除非你選擇了"
       },
       "filters": {
         "dlcs": "DLC",
@@ -281,7 +287,9 @@
       },
       "page": {
         "empty": "本部分僅有劇情，沒有選擇。",
+        "played": "已遊玩",
         "requires": "僅當：{requirements}",
+        "series": "任務線",
         "untitled": "無標題"
       }
     },

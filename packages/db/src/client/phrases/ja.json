@@ -38,7 +38,6 @@
     "ConditionVolcanoPhaseActive": "火山：{name}",
     "ConditionWarState": "戦況：{variant}"
   },
-  "partSuffix": "[\\s\\u200b]*第[\\s\\u200b0-9０-９]*部.*$",
   "productKinds": {
     "Meta": "帝国",
     "Service": "サービス",
@@ -84,6 +83,7 @@
   },
   "words": {
     "atMost": "以下",
+    "chance": "確率",
     "charioteer": "御者",
     "not": "否",
     "or": "または"

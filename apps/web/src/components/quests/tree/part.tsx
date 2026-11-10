@@ -1,4 +1,4 @@
-import { type QuestPart } from '@anno/db/client'
+import { type Quest } from '@anno/db/client'
 import { CheckCircleIcon, XCircleIcon } from '@phosphor-icons/react/dist/ssr'
 import { type Node, type NodeProps } from '@xyflow/react'
 import { cn } from 'cn'
@@ -6,12 +6,11 @@ import { useFormatter, useTranslations } from 'next-intl'
 
 import { Html } from '../../common/html'
 import { Icon } from '../../common/icon'
-import { QuestHandle } from './handle'
 import { usePath } from './path'
 
 export type PartNode = Node<
   {
-    part: QuestPart
+    part: NonNullable<Quest>
   },
   'part'
 >
@@ -30,8 +29,6 @@ export function QuestPartNode({ data: { part }, id }: NodeProps<PartNode>) {
         off.has(id) && 'opacity-40',
       )}
     >
-      <QuestHandle type="target" />
-
       <div className="flex h-fit max-w-120 items-start gap-4 p-6">
         {part.icon ? <Icon className="size-10" icon={part.icon} /> : null}
 
@@ -74,9 +71,6 @@ export function QuestPartNode({ data: { part }, id }: NodeProps<PartNode>) {
           )}
         </div>
       </div>
-
-      {/* the walk jumps on from a part it passed through without a pick */}
-      <QuestHandle type="source" />
     </div>
   )
 }

@@ -38,7 +38,6 @@
     "ConditionVolcanoPhaseActive": "Wulkan: {name}",
     "ConditionWarState": "Sytuacja wojenna: {variant}"
   },
-  "partSuffix": ",?\\s*(?:[–-]\\s*)?\\bczęść\\s+[IVXL]+.*$",
   "productKinds": {
     "Meta": "Imperium",
     "Service": "Usługa",
@@ -84,6 +83,7 @@
   },
   "words": {
     "atMost": "najwyżej",
+    "chance": "Szansa",
     "charioteer": "Woźnica",
     "not": "Nie",
     "or": "lub"

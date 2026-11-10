@@ -38,7 +38,6 @@
     "ConditionVolcanoPhaseActive": "Vulkan: {name}",
     "ConditionWarState": "Kriegslage: {variant}"
   },
-  "partSuffix": "\\s*(?:[–-]\\s*)?\\bTeil\\s+[IVXL]+\\b.*$",
   "productKinds": {
     "Meta": "Reich",
     "Service": "Dienstleistung",
@@ -84,6 +83,7 @@
   },
   "words": {
     "atMost": "höchstens",
+    "chance": "Chance",
     "charioteer": "Wagenlenker",
     "not": "Nicht",
     "or": "oder"

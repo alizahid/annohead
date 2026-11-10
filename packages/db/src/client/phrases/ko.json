@@ -38,7 +38,6 @@
     "ConditionVolcanoPhaseActive": "화산: {name}",
     "ConditionWarState": "전황: {variant}"
   },
-  "partSuffix": "[\\s\\u200b]*[0-9０-９\\u200b]+부.*$",
   "productKinds": {
     "Meta": "제국",
     "Service": "서비스",
@@ -84,6 +83,7 @@
   },
   "words": {
     "atMost": "이하",
+    "chance": "확률",
     "charioteer": "전차 기수",
     "not": "아님",
     "or": "또는"

@@ -3,6 +3,8 @@ import { type Node, type NodeProps } from '@xyflow/react'
 import { cn } from 'cn'
 import { useTranslations } from 'next-intl'
 
+import { getUrl } from '@/lib/url'
+
 import { DataList } from '../../data-list'
 import { QuestHandle } from './handle'
 import { usePath } from './path'
@@ -22,7 +24,12 @@ export function QuestChoiceNode({
   const { off } = usePath()
 
   return (
-    <div className={cn('w-64 transition-opacity', off.has(id) && 'opacity-40')}>
+    <div
+      className={cn(
+        'pointer-events-auto w-64 transition-opacity',
+        off.has(id) && 'opacity-40',
+      )}
+    >
       <QuestHandle type="target" />
 
       <DataList.Root
@@ -44,8 +51,30 @@ export function QuestChoiceNode({
           <p className="text-sm whitespace-pre-line">{choice.question}</p>
         ) : null}
 
-        {choice.kind === 'check' && !choice.requirements.length ? (
+        {choice.kind === 'check' &&
+        !(choice.requirements.length || choice.decidedBy) ? (
           <p className="text-gray-11 text-sm">{t('earlier')}</p>
+        ) : null}
+
+        {choice.decidedBy ? (
+          <>
+            <DataList.Label>
+              {t(choice.decidedBy.unless ? 'unless' : 'picked')}
+            </DataList.Label>
+
+            {choice.decidedBy.options.map((option) =>
+              option.quest ? (
+                <DataList.Link
+                  description={option.quest.name}
+                  href={getUrl('quest', option.quest.guid, option.quest.slug)}
+                  key={`${option.quest.guid}:${option.text}`}
+                  name={option.text}
+                />
+              ) : (
+                <DataList.Item key={option.text} name={option.text} />
+              ),
+            )}
+          </>
         ) : null}
 
         {choice.requirements.map((requirement) => (

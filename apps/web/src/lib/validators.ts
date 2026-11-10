@@ -5,9 +5,11 @@ import {
   rarityValues,
 } from '@anno/db/enums'
 import { SearchTypes } from '@anno/db/search'
+import { type QuestPicks } from '@anno/db/walk'
 import { hasLocale } from 'next-intl'
 import {
   createLoader,
+  createParser,
   parseAsArrayOf,
   parseAsInteger,
   parseAsString,
@@ -108,6 +110,32 @@ export const questFilters = {
 export const parseQuestFilters = createLoader(questFilters)
 
 export type QuestFilters = Awaited<ReturnType<typeof parseQuestFilters>>
+
+const PICK = /^(\d+)\.(\d+)$/u
+
+/** "50807.0_50814.2": the option picked at each choice, for every quest of a series played so far */
+export function serializeQuestPicks(picks: QuestPicks) {
+  return Object.entries(picks)
+    .map(([choice, idx]) => `${choice}.${idx}`)
+    .join('_')
+}
+
+export const questPicks = {
+  picks: createParser<QuestPicks>({
+    eq: (a, b) => serializeQuestPicks(a) === serializeQuestPicks(b),
+    parse: (value) =>
+      Object.fromEntries(
+        value.split('_').flatMap((pick) => {
+          const match = PICK.exec(pick)
+
+          return match ? [[Number(match[1]), Number(match[2])]] : []
+        }),
+      ),
+    serialize: serializeQuestPicks,
+  }).withDefault({}),
+}
+
+export const parseQuestPicks = createLoader(questPicks)
 
 export const unitFilters = {
   page: parseAsInteger,

@@ -239,20 +239,26 @@
     },
     "quests": {
       "choice": {
+        "carried": "Continuing from your picks in earlier quests",
         "check": "The game checks",
         "cost": "Costs",
         "decision": "Decision",
-        "earlier": "Decided by your earlier choices",
-        "end": "End of the questline",
+        "earlier": "Depends on the state of your game",
+        "end": "End of the quest",
         "fails": "Otherwise",
+        "follow": "Continues in",
         "holds": "If so",
         "later": "Shapes what comes later",
+        "next": "Next: {name}",
         "nothing": "No lasting effect",
         "option": "Option {number}",
         "outcomes": "Outcome",
         "pick": "Pick an option to see where it leads",
+        "picked": "If you picked",
         "requires": "Requires",
-        "reset": "Reset"
+        "reset": "Reset",
+        "start": "The quest starts",
+        "unless": "Unless you picked"
       },
       "filters": {
         "dlcs": "DLC",
@@ -281,7 +287,9 @@
       },
       "page": {
         "empty": "Story only, no choices in this part.",
+        "played": "Played",
         "requires": "Only if: {requirements}",
+        "series": "Storyline",
         "untitled": "Untitled"
       }
     },

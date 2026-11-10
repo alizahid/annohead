@@ -21,61 +21,58 @@ export type QuestPath = {
   on: Set<string>
 }
 
+export const START = 'start'
+
+export function followId(guid: number | null) {
+  return `follow-${guid}`
+}
+
 export function tracePath(
   quest: NonNullable<Quest>,
   walk: ReturnType<typeof walkQuest>,
 ): QuestPath {
-  const on = new Set<string>()
+  const on = new Set<string>([partId(quest.guid), START])
   const off = new Set<string>()
   const locked = new Set<string>()
-  const last = walk.legs.at(-1)
-  const reached = quest.parts.findIndex((p) => p.guid === last?.part.guid)
+  const steps = new Map(walk.steps.map((s) => [s.choice.guid, s]))
 
-  for (const [index, part] of quest.parts.entries()) {
-    const leg = walk.legs.find((l) => l.part.guid === part.guid)
-    // the walk is past this part (or done): whatever it did not visit is ruled out; parts ahead stay open
-    const settled = walk.done || index < reached
+  for (const choice of quest.choices) {
+    const step = steps.get(choice.guid)
 
-    if (leg) {
-      on.add(partId(part.guid))
-    } else if (settled) {
-      off.add(partId(part.guid))
-    }
+    if (!step) {
+      // the walk is done: whatever it did not visit is ruled out
+      if (walk.done) {
+        off.add(choiceId(choice.guid))
 
-    const steps = new Map(leg?.steps.map((s) => [s.choice.guid, s]))
-    const complete = leg ? leg !== last || walk.done : settled
-
-    for (const choice of part.choices) {
-      const step = steps.get(choice.guid)
-
-      if (!step) {
-        if (complete) {
-          off.add(choiceId(choice.guid))
-
-          for (const option of choice.options) {
-            off.add(optionId(choice.guid, option.idx))
-            locked.add(optionId(choice.guid, option.idx))
-          }
+        for (const option of choice.options) {
+          off.add(optionId(choice.guid, option.idx))
+          locked.add(optionId(choice.guid, option.idx))
         }
-
-        continue
       }
 
-      on.add(choiceId(choice.guid))
+      continue
+    }
 
-      for (const option of choice.options) {
-        const id = optionId(choice.guid, option.idx)
-        const offered = step.options.includes(option)
+    on.add(choiceId(choice.guid))
 
-        if (option === step.picked) {
-          on.add(id)
-        } else if (step.picked || !offered) {
-          off.add(id)
+    for (const option of choice.options) {
+      const id = optionId(choice.guid, option.idx)
+      const offered = step.options.includes(option)
+
+      if (option === step.picked) {
+        on.add(id)
+
+        for (const outcome of option.outcomes) {
+          if (outcome.slug) {
+            on.add(followId(outcome.guid))
+          }
         }
+      } else if (step.picked || !offered) {
+        off.add(id)
+      }
 
-        if (step.forced || !offered) {
-          locked.add(id)
-        }
+      if (step.forced || !offered) {
+        locked.add(id)
       }
     }
   }
@@ -90,12 +87,15 @@ export function tracePath(
 export const PathContext = createContext<
   QuestPath & {
     pick: (choice: number, idx: number) => void
+    /** the picks so far as they travel in the URL (`serializeQuestPicks`) */
+    picks: string
   }
 >({
   locked: new Set(),
   off: new Set(),
   on: new Set(),
   pick: () => null,
+  picks: '',
 })
 
 export function usePath() {

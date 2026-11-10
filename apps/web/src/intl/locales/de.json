@@ -239,20 +239,26 @@
     },
     "quests": {
       "choice": {
+        "carried": "Baut auf deinen Entscheidungen in früheren Quests auf",
         "check": "Das Spiel prüft",
         "cost": "Kosten",
         "decision": "Entscheidung",
-        "earlier": "Hängt von deinen früheren Entscheidungen ab",
-        "end": "Ende der Questreihe",
+        "earlier": "Hängt vom Stand deines Spiels ab",
+        "end": "Ende der Quest",
         "fails": "Andernfalls",
+        "follow": "Weiter in",
         "holds": "Falls ja",
         "later": "Wirkt sich später aus",
+        "next": "Weiter: {name}",
         "nothing": "Keine bleibende Wirkung",
         "option": "Option {number}",
         "outcomes": "Ergebnis",
         "pick": "Wähle eine Option, um zu sehen, wohin sie führt",
+        "picked": "Wenn du gewählt hast",
         "requires": "Voraussetzung",
-        "reset": "Zurücksetzen"
+        "reset": "Zurücksetzen",
+        "start": "Die Quest beginnt",
+        "unless": "Außer du hast gewählt"
       },
       "filters": {
         "dlcs": "DLC",
@@ -281,7 +287,9 @@
       },
       "page": {
         "empty": "Nur Geschichte, keine Entscheidungen in diesem Teil.",
+        "played": "Gespielt",
         "requires": "Nur wenn: {requirements}",
+        "series": "Questreihe",
         "untitled": "Ohne Titel"
       }
     },

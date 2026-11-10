@@ -1,4 +1,4 @@
-import { and, asc, count, desc, eq, inArray, ne } from 'drizzle-orm'
+import { and, asc, count, eq, inArray, ne } from 'drizzle-orm'
 
 import { db } from '../db'
 import { type Lang } from '../enums'
@@ -15,15 +15,28 @@ import {
   questChoice,
   questChoiceOutcome,
   questline,
-  questlineStoryline,
   questOption,
   questReward,
+  questShared,
   questVariableChange,
   region,
   storyline,
   storylineCondition,
 } from '../schema'
-import { anyOfLabel, variableName } from './condition-labels'
+import {
+  carryOver,
+  compare,
+  parseValue,
+  type QuestCarry,
+  type QuestPicks,
+  type QuestRecords,
+  recordQuest,
+} from '../walk'
+import {
+  anyOfLabel,
+  variableCheckLabel,
+  variableName,
+} from './condition-labels'
 import { assetNames, describeConditions, variableCheck } from './conditions'
 import { type Labels, labels } from './labels'
 import { nameModifiers } from './modifiers'
@@ -40,7 +53,7 @@ import {
   regionColumns,
 } from './shared'
 
-// ---------------------------------------------------------------- questlines
+// ---------------------------------------------------------------- quests
 
 export type QuestFilter = {
   lang: Lang
@@ -49,41 +62,8 @@ export type QuestFilter = {
   dlcs?: Array<number>
 }
 
-const partSuffixes = new Map<Lang, RegExp>()
-
-/** A questline is named after its first part: "The Mysterious Murmillo Part I" → "The Mysterious Murmillo" */
-export function questlineName(title: string | null, lang: Lang) {
-  let suffix = partSuffixes.get(lang)
-  if (!suffix) {
-    // "Part I", "– Teil I", ", partie I", "第1部" …: each language's pattern lives with its phrases
-    suffix = new RegExp(phrases[lang].partSuffix, 'iu')
-    partSuffixes.set(lang, suffix)
-  }
-  return title?.replace(suffix, '') ?? null
-}
-
-const partCount = db.$count(
-  questlineStoryline,
-  eq(questlineStoryline.questlineGuid, questline.guid),
-)
-const choiceCount = db.$count(
-  questChoice,
-  and(
-    eq(questChoice.kind, 'decision'),
-    inArray(
-      questChoice.storylineGuid,
-      db
-        .select({
-          guid: questlineStoryline.storylineGuid,
-        })
-        .from(questlineStoryline)
-        .where(eq(questlineStoryline.questlineGuid, questline.guid)),
-    ),
-  ),
-)
-
-/** Questlines: narrative storylines linked by the choices they remember, longest first. */
-async function queryQuestlines(f: QuestFilter & Page, id?: number) {
+/** Quests: narrative storylines with choices, one per storyline as the game starts them, by name. */
+async function queryQuests(f: QuestFilter & Page, id?: number) {
   const titleT = localized('title')
   const dlcT = localized('dlc_name')
   const where = and(
@@ -101,8 +81,6 @@ async function queryQuestlines(f: QuestFilter & Page, id?: number) {
       .where(where),
     db
       .select({
-        /** decisions with several options across all parts */
-        choices: choiceCount,
         dlc: {
           guid: dlc.guid,
           icon: dlc.icon,
@@ -112,8 +90,9 @@ async function queryQuestlines(f: QuestFilter & Page, id?: number) {
         guid: questline.guid,
         icon: questline.icon,
         name: titleT.value,
-        parts: partCount,
         region: regionColumns,
+        /** quests that depend on each other share a series: the guid of its first quest */
+        series: questline.series,
         slug: questline.slug,
       })
       .from(questline)
@@ -122,12 +101,7 @@ async function queryQuestlines(f: QuestFilter & Page, id?: number) {
       .leftJoin(dlc, eq(dlc.guid, questline.dlcGuid))
       .leftJoin(dlcT, on(dlcT, dlc.nameText, f.lang))
       .where(where)
-      .orderBy(
-        desc(partCount),
-        desc(choiceCount),
-        asc(titleT.value),
-        asc(questline.guid),
-      )
+      .orderBy(asc(titleT.value), asc(questline.guid))
       .limit(limit)
       .offset(offset),
   ])
@@ -136,21 +110,22 @@ async function queryQuestlines(f: QuestFilter & Page, id?: number) {
     rows: rows.map((row) => ({
       ...row,
       dlc: row.dlc?.guid ? row.dlc : null,
-      name: questlineName(row.name, f.lang),
+      name: questText(row.name, f.lang),
       region: row.region?.id ? row.region : null,
     })),
     total,
   }
 }
 
-// "part done" flags only sequence a questline's parts, which their order already shows
+// "part done" flags only sequence a series, which its order already shows
 const PART_DONE = /done$/iu
 
-/** A condition tree a questline walk can evaluate: the node's own test, and its sub-tests (all, or any one of them). */
+/** A condition tree a quest walk can evaluate: the node's own test, and its sub-tests (all, or any one of them). */
 export type QuestTest = {
   any: boolean
   negate: boolean
-  /** true / false when known ahead, a quest variable comparison, or null when only the running game can tell (storage, session …) */
+  /** true / false when known ahead, a quest variable comparison, or null when the quest alone cannot tell: the running
+   * game decides (storage, session …), or choices made in other quests do */
   own: boolean | ReturnType<typeof variableCheck> | null
   tests: Array<QuestTest>
 }
@@ -212,8 +187,11 @@ async function requirementRows(ownerGuids: Array<number>, lang: Lang) {
   function own(id: number): Array<Requirement> {
     return (
       described(id)
-        // quest variables are resolved by the walk (`test`); conditions on assets the game never names are internal switches
-        .filter((row) => !(row.variable || row.unnamed))
+        // conditions on assets the game never names are internal switches
+        .filter(
+          (row) =>
+            !(row.unnamed || (row.variable && PART_DONE.test(row.variable))),
+        )
         .map(
           ({ conditionId, type, unnamed, variable, ...requirement }) =>
             requirement,
@@ -273,6 +251,21 @@ async function requirementRows(ownerGuids: Array<number>, lang: Lang) {
     }
   }
   return {
+    /** a root's own variable comparison and how its requirement reads */
+    check: (root: number) => {
+      const row = byId.get(root)
+      const check =
+        row?.type === 'ConditionCompareVariable'
+          ? variableCheck(params(root))
+          : null
+      return check && !PART_DONE.test(check.variable)
+        ? {
+            check,
+            names: own(root).map((requirement) => requirement.name),
+            negate: Boolean(row?.negate),
+          }
+        : null
+    },
     // the game may check the same thing twice with different location scopes (the tagged island, then the current one),
     // which read the same here
     requirements: (root: number) =>
@@ -285,6 +278,13 @@ async function requirementRows(ownerGuids: Array<number>, lang: Lang) {
           ) === index,
       ),
     test,
+    /** every quest variable these conditions read */
+    variables: new Set(
+      variableIds.flatMap((id) => {
+        const { other, variable } = variableCheck(params(id))
+        return other ? [variable, other] : [variable]
+      }),
+    ),
   }
 }
 
@@ -347,9 +347,11 @@ async function outcomeRows(nodeGuids: Array<number>, lang: Lang) {
           guid: storyline.guid,
           icon: storyline.icon,
           name: sName.value,
+          slug: questline.slug,
         })
         .from(storyline)
         .leftJoin(sName, on(sName, storyline.titleText, lang))
+        .leftJoin(questline, eq(questline.guid, storyline.guid))
         .where(inArray(storyline.guid, assetGuids)),
       db
         .select({
@@ -381,6 +383,7 @@ async function outcomeRows(nodeGuids: Array<number>, lang: Lang) {
   const named = new Map(
     [...assets, ...storylineNames].map((a) => [a.guid, a] as const),
   )
+  const questSlugs = new Map(storylineNames.map((s) => [s.guid, s.slug]))
   const duration = new Map(effects.map((e) => [e.guid, e.duration]))
   const mods = groupBy(await nameModifiers(modifiers, lang), 'effectGuid')
   const tgts = groupBy(targets, 'effectGuid')
@@ -413,6 +416,8 @@ async function outcomeRows(nodeGuids: Array<number>, lang: Lang) {
             }))
           : [],
         name: (assetGuid && named.get(assetGuid)?.name) || name,
+        /** follow-up storylines that are quests: the slug of that quest's page */
+        slug: (assetGuid && questSlugs.get(assetGuid)) || null,
         /** buildings a buff applies to */
         targets: assetGuid
           ? tgts(assetGuid).map(({ effectGuid, ...target }) => target)
@@ -423,8 +428,159 @@ async function outcomeRows(nodeGuids: Array<number>, lang: Lang) {
     )
 }
 
-/** Choices of storylines: each decision's options (checks: holds / fails) with cost, requirements and outcomes. */
-async function choiceRows(storylineGuids: Array<number>, lang: Lang) {
+/** "Patrician Favor +1", "Killed Favillus": what an option changes that other quests check */
+function changeLabel(
+  change: {
+    operation: string | null
+    value: string | null
+    variable: string
+  },
+  lang: Lang,
+) {
+  if (change.operation === 'Add' || change.operation === 'Subtract') {
+    return `${variableName(change.variable)} ${change.operation === 'Add' ? '+' : '−'}${change.value ?? 1}`
+  }
+  return variableCheckLabel(
+    {
+      comparison: 'Equals',
+      other: null,
+      value: change.value ?? 'false',
+      variable: change.variable,
+    },
+    lang,
+  )
+}
+
+const MARKUP = /<[^>]+>/gu
+const PERCENT = 100
+// objective headlines the game completes at runtime: "Destroy:", "Deliver to [Island]:"
+const DANGLING = /^.*:$/u
+// the check an option's challenge becomes has no node in the game: its guid is made of the decision's and the option's
+const CHALLENGE = 1_000_000_000
+const OPTIONS = 100
+
+/**
+ * The options that decide a check on a flag: which picks, here or in the storylines this quest reads from, set the
+ * variable so that the check holds ("if you picked"), or, when it holds untouched, so that it fails ("unless").
+ */
+async function deciders(
+  storylineGuid: number,
+  variables: Array<string>,
+  shared: Array<typeof questShared.$inferSelect>,
+  lang: Lang,
+) {
+  const oText = localized('o_text')
+  const qName = localized('q_name')
+  const rows = variables.length
+    ? await db
+        .select({
+          kind: questChoice.kind,
+          operation: questVariableChange.operation,
+          quest: {
+            guid: questline.guid,
+            name: qName.value,
+            slug: questline.slug,
+          },
+          storylineGuid: questChoice.storylineGuid,
+          text: oText.value,
+          value: questVariableChange.value,
+          valueVariable: questVariableChange.valueVariable,
+          variable: questVariableChange.variable,
+        })
+        .from(questVariableChange)
+        .innerJoin(
+          questChoiceOutcome,
+          eq(questChoiceOutcome.nodeGuid, questVariableChange.nodeGuid),
+        )
+        .innerJoin(
+          questChoice,
+          eq(questChoice.nodeGuid, questChoiceOutcome.choiceGuid),
+        )
+        .leftJoin(
+          questOption,
+          and(
+            eq(questOption.decisionGuid, questChoiceOutcome.choiceGuid),
+            eq(questOption.idx, questChoiceOutcome.idx),
+          ),
+        )
+        .leftJoin(oText, on(oText, questOption.textText, lang))
+        .leftJoin(questline, eq(questline.guid, questChoice.storylineGuid))
+        .leftJoin(qName, on(qName, questline.titleText, lang))
+        .where(inArray(questVariableChange.variable, variables))
+    : []
+  // storylines name their own variables alike ("QuestDenied"): only this quest's writes and those it reads count
+  const writers = groupBy(
+    rows.filter(
+      (row) =>
+        row.storylineGuid === storylineGuid ||
+        shared.some(
+          (s) =>
+            s.kind === 'read' &&
+            s.variable === row.variable &&
+            s.otherGuid === row.storylineGuid,
+        ),
+    ),
+    'variable',
+  )
+  return (check: ReturnType<typeof variableCheck>, negate: boolean) => {
+    const written = writers(check.variable)
+    const flag = written.every(
+      (row) =>
+        (row.operation ?? 'Set') === 'Set' &&
+        row.valueVariable === null &&
+        row.value !== null,
+    )
+    if (check.other || !flag) {
+      return null
+    }
+    const holds = (value: number | string | null) =>
+      (compare(
+        check,
+        new Map(value === null ? [] : [[check.variable, value]]),
+      ) ===
+        true) !==
+      negate
+    const untouched = holds(null)
+    const picks = written.filter(
+      (row) =>
+        row.kind === 'decision' &&
+        row.text &&
+        holds(parseValue(row.value)) !== untouched,
+    )
+    const options = [
+      ...new Map(
+        picks.map((row) => {
+          const text = questText(row.text, lang)?.replace(MARKUP, '').trim()
+          return [
+            `${row.storylineGuid}:${text}`,
+            {
+              /** set when the option is another quest's */
+              quest:
+                row.storylineGuid !== storylineGuid && row.quest?.guid
+                  ? row.quest
+                  : null,
+              text: text ?? null,
+            },
+          ] as const
+        }),
+      ).values(),
+    ]
+    return options.length
+      ? {
+          options,
+          /** the check holds unless one of the options was picked */
+          unless: untouched,
+        }
+      : null
+  }
+}
+
+/** Choices of a storyline: each decision's options (checks: holds / fails) with cost, requirements and outcomes. */
+async function choiceRows(
+  storylineGuid: number,
+  lang: Lang,
+  shared: Array<typeof questShared.$inferSelect>,
+) {
   const hText = localized('h_text')
   const tText = localized('t_text')
   const oText = localized('o_text')
@@ -432,6 +588,7 @@ async function choiceRows(storylineGuids: Array<number>, lang: Lang) {
   const choices = await db
     .select({
       conditionId: questChoice.conditionId,
+      entry: questChoice.entry,
       guid: questChoice.nodeGuid,
       headline: hText.value,
       kind: questChoice.kind,
@@ -440,7 +597,6 @@ async function choiceRows(storylineGuids: Array<number>, lang: Lang) {
         icon: assetName.icon,
         name: pName.value,
       },
-      storylineGuid: questChoice.storylineGuid,
       text: tText.value,
     })
     .from(questChoice)
@@ -448,31 +604,40 @@ async function choiceRows(storylineGuids: Array<number>, lang: Lang) {
     .leftJoin(tText, on(tText, questChoice.textText, lang))
     .leftJoin(assetName, eq(assetName.guid, questChoice.speakerGuid))
     .leftJoin(pName, on(pName, assetName.nameText, lang))
-    .where(inArray(questChoice.storylineGuid, storylineGuids))
-    .orderBy(asc(questChoice.storylineGuid), asc(questChoice.position))
+    .where(eq(questChoice.storylineGuid, storylineGuid))
+    .orderBy(asc(questChoice.position))
   const guids = choices.map((c) => c.guid)
-  const [options, outcomes, { requirements, test }] = await Promise.all([
-    db
-      .select({
-        conditionId: questOption.conditionId,
-        costAmount: questOption.costAmount,
-        costGuid: questOption.costGuid,
-        decisionGuid: questOption.decisionGuid,
-        idx: questOption.idx,
-        text: oText.value,
-      })
-      .from(questOption)
-      .leftJoin(oText, on(oText, questOption.textText, lang))
-      .where(inArray(questOption.decisionGuid, guids))
-      .orderBy(asc(questOption.idx)),
-    db
-      .select()
-      .from(questChoiceOutcome)
-      .where(inArray(questChoiceOutcome.choiceGuid, guids)),
-    requirementRows(guids, lang),
-  ])
+  const [options, outcomes, { check, requirements, test, variables }] =
+    await Promise.all([
+      db
+        .select({
+          challenge: questOption.challenge,
+          challengeValue: questOption.challengeValue,
+          challengeVariable: questOption.challengeVariable,
+          conditionId: questOption.conditionId,
+          costAmount: questOption.costAmount,
+          costGuid: questOption.costGuid,
+          decisionGuid: questOption.decisionGuid,
+          idx: questOption.idx,
+          text: oText.value,
+        })
+        .from(questOption)
+        .leftJoin(oText, on(oText, questOption.textText, lang))
+        .where(inArray(questOption.decisionGuid, guids))
+        .orderBy(asc(questOption.idx)),
+      db
+        .select()
+        .from(questChoiceOutcome)
+        .where(inArray(questChoiceOutcome.choiceGuid, guids)),
+      requirementRows(guids, lang),
+    ])
   const nodeGuids = [...new Set(outcomes.map((o) => o.nodeGuid))]
-  const [costs, results, changes] = await Promise.all([
+  // what an option changes shows when something checks it: this quest, or a storyline that reads it
+  const remembered = new Set([
+    ...variables,
+    ...shared.filter((row) => row.kind === 'write').map((row) => row.variable),
+  ])
+  const [costs, results, changes, decided, l] = await Promise.all([
     assetNames(
       [...new Set(options.flatMap((o) => (o.costGuid ? [o.costGuid] : [])))],
       lang,
@@ -493,6 +658,8 @@ async function choiceRows(storylineGuids: Array<number>, lang: Lang) {
             changed.filter((row) => !PART_DONE.test(row.variable ?? '')),
           )
       : [],
+    deciders(storylineGuid, [...variables], shared, lang),
+    labels(lang),
   ])
   const changesOf = groupBy(changes, 'nodeGuid')
   const isChoice = new Set(guids)
@@ -505,69 +672,216 @@ async function choiceRows(storylineGuids: Array<number>, lang: Lang) {
   )
   function lead(choice: number, idx: number) {
     const nodes = reached(`${choice}:${idx}`).map((o) => o.nodeGuid)
+    const sets = nodes
+      .flatMap(changesOf)
+      .map(({ nodeGuid, ...change }) => change)
     return {
-      /** the choice this option leads to next, if any */
-      next: nodes.find((n) => isChoice.has(n)) ?? null,
+      /** the choices this option leads to next: several when the story fans out */
+      nexts: nodes.filter((n) => n !== choice && isChoice.has(n)),
       outcomes: nodes.flatMap(results),
-      /** quest variables the option writes, which later checks and parts read */
-      sets: nodes.flatMap(changesOf).map(({ nodeGuid, ...change }) => change),
+      /** what the option changes that a check reads, here or in a later quest, e.g. "Patrician Favor +1" */
+      remembers: [
+        ...new Set(
+          sets.flatMap((change) =>
+            change.variable && remembered.has(change.variable)
+              ? [
+                  changeLabel(
+                    {
+                      ...change,
+                      variable: change.variable,
+                    },
+                    lang,
+                  ),
+                ]
+              : [],
+          ),
+        ),
+      ],
+      /** quest variables the option writes, which later checks read */
+      sets,
     }
   }
   const opts = groupBy(options, 'decisionGuid')
-  const rows = choices.map(({ conditionId, speaker, text, ...choice }) => ({
-    ...choice,
-    headline: questText(choice.headline, lang),
-    options:
-      choice.kind === 'check'
-        ? [0, 1].map((idx) => ({
-            cost: null,
-            idx,
-            requirements: [] as ReturnType<typeof requirements>,
-            test: null as QuestTest | null,
-            text: null as string | null,
-            ...lead(choice.guid, idx),
-          }))
-        : opts(choice.guid).map(
-            ({
-              conditionId: optionCondition,
-              costAmount,
-              costGuid,
-              decisionGuid,
-              ...option
-            }) => {
-              const cost = costs.find((c) => c.guid === costGuid)
-              return {
-                ...option,
-                /** coins or goods paid to pick the option */
-                cost: cost
-                  ? {
-                      amount: costAmount,
-                      guid: cost.guid,
-                      icon: cost.icon,
-                      name: cost.name,
-                    }
-                  : null,
-                requirements: optionCondition
-                  ? requirements(optionCondition)
-                  : [],
-                /** whether earlier choices offer the option at all */
-                test: optionCondition ? test(optionCondition) : null,
-                text: questText(option.text, lang),
-                ...lead(choice.guid, option.idx ?? 0),
-              }
-            },
-          ),
-    /** what the decision screen asks, e.g. "What will you do with Favillus?" */
-    question: questQuestion(text, lang),
-    /** what a check tests; its options are 0 = holds, 1 = does not */
-    requirements: conditionId ? requirements(conditionId) : [],
-    /** who asks: an advisor, a resident, a trader */
-    speaker: speaker?.guid ? speaker : null,
-    /** the rest of the screen's text: the story leading up to the question, with the game's <i> / <b> markup */
-    story: questStory(text, lang),
-    /** checks: what holds / fails branches on */
-    test: conditionId ? test(conditionId) : null,
-  }))
+  type Requirement = ReturnType<typeof requirements>[number]
+  const stated = (
+    name: string,
+    icon: string | null = null,
+    value: number | null = null,
+  ): Requirement => ({
+    guid: null,
+    icon,
+    kind: null,
+    name,
+    negative: false,
+    value,
+  })
+  /** only the running game can tell: the walk assumes it holds until picked otherwise */
+  const open: QuestTest = {
+    any: false,
+    negate: false,
+    own: null,
+    tests: [],
+  }
+  const branches = (guid: number, holds: number, fails: number) =>
+    [holds, fails].map((from, idx) => ({
+      cost: null,
+      idx,
+      requirements: [] as Array<Requirement>,
+      test: null as QuestTest | null,
+      text: null as string | null,
+      ...lead(guid, from),
+    }))
+  const rows = choices.flatMap(({ conditionId, speaker, text, ...choice }) => {
+    const own = conditionId ? check(conditionId) : null
+    const decidedBy = own ? decided(own.check, own.negate) : null
+    const objective = choice.kind === 'objective'
+    // an option that can fail leads to a check of its own: what decides it, then what success and failure bring
+    const challenges = opts(choice.guid).flatMap((option) => {
+      if (!option.challenge) {
+        return []
+      }
+      const idx = option.idx ?? 0
+      const variable =
+        option.challenge === 'variable' && option.challengeVariable
+          ? {
+              comparison: 'AtLeast',
+              other: null,
+              value: String(option.challengeValue ?? 0),
+              variable: option.challengeVariable,
+            }
+          : null
+      const label = l(
+        'attribute',
+        option.challenge === 'prestige' ? 'Prestige' : 'Knowledge',
+      )
+      let requirement = stated(
+        option.challengeValue === null
+          ? phrases[lang].words.chance
+          : `${phrases[lang].words.chance}: ${Math.round(option.challengeValue * PERCENT)}%`,
+      )
+      if (variable) {
+        requirement = stated(variableCheckLabel(variable, lang))
+      } else if (option.challenge !== 'chance') {
+        requirement = stated(
+          label?.name ?? option.challenge,
+          label?.icon,
+          option.challengeValue,
+        )
+      }
+      return [
+        {
+          decidedBy: null,
+          entry: false,
+          guid: CHALLENGE + choice.guid * OPTIONS + idx,
+          headline: null,
+          kind: 'check' as const,
+          options: branches(choice.guid, idx, -(idx + 1)),
+          question: null,
+          requirements: [requirement],
+          speaker: null,
+          story: null,
+          test: {
+            ...open,
+            own: variable,
+          } as QuestTest,
+        },
+      ]
+    })
+    return [
+      {
+        ...choice,
+        /** checks on a flag: the picks that decide it, which then stand in for the flag's name */
+        decidedBy,
+        /** where the story sets out: the quest's start reaches this choice before any other */
+        entry: Boolean(choice.entry),
+        headline: objective ? null : questText(choice.headline, lang),
+        /** checks and objectives read as "the game checks": options are 0 = holds, 1 = does not */
+        kind:
+          choice.kind === 'decision'
+            ? ('decision' as const)
+            : ('check' as const),
+        options:
+          choice.kind === 'decision'
+            ? opts(choice.guid).map(
+                ({
+                  challenge,
+                  challengeValue,
+                  challengeVariable,
+                  conditionId: optionCondition,
+                  costAmount,
+                  costGuid,
+                  decisionGuid,
+                  ...option
+                }) => {
+                  const cost = costs.find((c) => c.guid === costGuid)
+                  const idx = option.idx ?? 0
+                  return {
+                    ...option,
+                    /** coins or goods paid to pick the option */
+                    cost: cost
+                      ? {
+                          amount: costAmount,
+                          guid: cost.guid,
+                          icon: cost.icon,
+                          name: cost.name,
+                        }
+                      : null,
+                    requirements: optionCondition
+                      ? requirements(optionCondition)
+                      : [],
+                    /** whether earlier choices offer the option at all */
+                    test: optionCondition ? test(optionCondition) : null,
+                    text: questText(option.text, lang),
+                    ...(challenge
+                      ? {
+                          nexts: [CHALLENGE + choice.guid * OPTIONS + idx],
+                          outcomes: [],
+                          remembers: [],
+                          sets: [],
+                        }
+                      : lead(choice.guid, idx)),
+                  }
+                },
+              )
+            : branches(choice.guid, 0, 1),
+        /** what the decision screen asks, e.g. "What will you do with Favillus?" */
+        question: questQuestion(text, lang),
+        /** what a check tests */
+        requirements: [
+          ...(objective
+            ? [
+                stated(
+                  [
+                    phrases[lang].conditions[
+                      'ConditionPlayerCounter:QuestObjectiveComponentSolved'
+                    ],
+                    questText(choice.headline, lang)
+                      ?.replace(MARKUP, '')
+                      .trim()
+                      .replace(DANGLING, ''),
+                  ]
+                    .filter(Boolean)
+                    .join(': '),
+                ),
+              ]
+            : []),
+          ...(conditionId
+            ? requirements(conditionId).filter(
+                (requirement) =>
+                  !(decidedBy && own?.names.includes(requirement.name)),
+              )
+            : []),
+        ],
+        /** who asks: an advisor, a resident, a trader */
+        speaker: speaker?.guid ? speaker : null,
+        /** the rest of the screen's text: the story leading up to the question, with the game's <i> / <b> markup */
+        story: questStory(text, lang),
+        /** checks: what holds / fails branches on */
+        test: conditionId ? test(conditionId) : objective ? open : null,
+      },
+      ...challenges,
+    ]
+  })
   // a check nothing depends on (text variants for the governor's gender …) is noise, and so is one that only leads to noise
   const kept = new Set(rows.map((row) => row.guid))
   let pruned = true
@@ -578,7 +892,7 @@ async function choiceRows(storylineGuids: Array<number>, lang: Lang) {
         (o) =>
           o.outcomes.length ||
           o.sets.length ||
-          (o.next !== null && kept.has(o.next)),
+          o.nexts.some((next) => kept.has(next)),
       )
       if (row.kind === 'check' && kept.has(row.guid) && !matters) {
         kept.delete(row.guid)
@@ -586,26 +900,45 @@ async function choiceRows(storylineGuids: Array<number>, lang: Lang) {
       }
     }
   }
-  return groupBy(
-    rows
-      .filter((row) => kept.has(row.guid))
-      .map((row) => ({
-        ...row,
-        options: row.options.map((option) => ({
-          ...option,
-          next:
-            option.next !== null && kept.has(option.next) ? option.next : null,
-        })),
+  const shown = rows
+    .filter((row) => kept.has(row.guid))
+    .map((row) => ({
+      ...row,
+      options: row.options.map((option) => ({
+        ...option,
+        nexts: option.nexts.filter((next) => kept.has(next)),
       })),
-    'storylineGuid',
-  )
+    }))
+  // nothing may be out of reach: a choice no entry leads to (its way in was noise, or one the walk misses) is an entry
+  const inReach = new Set<number>()
+  const visit = (guid: number) => {
+    const row = inReach.has(guid) ? null : shown.find((c) => c.guid === guid)
+    if (row) {
+      inReach.add(guid)
+      for (const next of row.options.flatMap((option) => option.nexts)) {
+        visit(next)
+      }
+    }
+  }
+  for (const row of shown) {
+    if (row.entry) {
+      visit(row.guid)
+    }
+  }
+  for (const row of shown) {
+    if (!inReach.has(row.guid)) {
+      row.entry = true
+      visit(row.guid)
+    }
+  }
+  return shown
 }
 
-/** One questline: its parts in order, each with its choices, what every option costs and requires, and what it leads to. */
-async function getQuestline({ id, lang }: Get) {
+/** One quest: its choices, what every option costs and requires and what it leads to, and the series it belongs to. */
+async function getQuest({ id, lang }: Get) {
   const head =
     (
-      await queryQuestlines(
+      await queryQuests(
         {
           lang,
           perPage: 1,
@@ -613,64 +946,145 @@ async function getQuestline({ id, lang }: Get) {
         id,
       )
     ).rows[0] ?? null
+  if (!head) {
+    return null
+  }
   const titleT = localized('title')
-  const parts = await db
+  const series = await db
     .select({
       conditionId: storylineCondition.conditionId,
-      guid: storyline.guid,
-      icon: storyline.icon,
+      guid: questline.guid,
+      icon: questline.icon,
       name: titleT.value,
+      slug: questline.slug,
     })
-    .from(questlineStoryline)
-    .innerJoin(storyline, eq(storyline.guid, questlineStoryline.storylineGuid))
+    .from(questline)
     .leftJoin(
       storylineCondition,
-      eq(storylineCondition.storylineGuid, storyline.guid),
+      eq(storylineCondition.storylineGuid, questline.guid),
     )
-    .leftJoin(titleT, on(titleT, storyline.titleText, lang))
-    .where(eq(questlineStoryline.questlineGuid, id))
-    .orderBy(asc(questlineStoryline.idx))
-  const guids = parts.map((part) => part.guid)
-  const [choices, { requirements, test }] = await Promise.all([
-    choiceRows(guids, lang),
+    .leftJoin(titleT, on(titleT, questline.titleText, lang))
+    .where(eq(questline.series, head.series ?? id))
+    .orderBy(asc(questline.idx))
+  const guids = series.map((quest) => quest.guid)
+  const [shared, written, { requirements, test }] = await Promise.all([
+    db
+      .select()
+      .from(questShared)
+      .where(inArray(questShared.storylineGuid, guids)),
+    db
+      .selectDistinct({
+        guid: questChoice.storylineGuid,
+        variable: questVariableChange.variable,
+      })
+      .from(questVariableChange)
+      .innerJoin(
+        questChoiceOutcome,
+        eq(questChoiceOutcome.nodeGuid, questVariableChange.nodeGuid),
+      )
+      .innerJoin(
+        questChoice,
+        eq(questChoice.nodeGuid, questChoiceOutcome.choiceGuid),
+      )
+      .where(inArray(questChoice.storylineGuid, guids)),
     requirementRows(guids, lang),
   ])
-  return (
-    head && {
-      ...head,
-      parts: parts.map(({ conditionId, ...part }) => ({
-        ...part,
-        // the game names a part's first decision after the part
-        choices: choices(part.guid).map((choice) =>
-          choice.headline === questText(part.name, lang)
-            ? {
-                ...choice,
-                headline: null,
-              }
-            : choice,
-        ),
-        name: questText(part.name, lang),
-        /** what the game must have for this part to start; "not yet played" guards left out */
-        requirements: conditionId
-          ? requirements(conditionId).filter((r) => !r.negative)
-          : [],
-        /** the story the part opens with: the text of the decision it is named after */
-        story:
-          choices(part.guid).find(
-            (choice) => choice.headline === questText(part.name, lang),
-          )?.story ?? null,
-        /** whether earlier choices lead to this part */
-        test: conditionId ? test(conditionId) : null,
-      })),
-    }
+  const choices = await choiceRows(
+    id,
+    lang,
+    shared.filter((row) => row.storylineGuid === id),
   )
+  const writes = groupBy(written, 'guid')
+  // what a walk needs of each quest in the series to carry picks from one to the next (`carryOver`)
+  const parts = series.map(({ conditionId, ...quest }) => ({
+    ...quest,
+    /** variables it reads that a story outside the series writes: no walk can tell them */
+    external: [
+      ...new Set(
+        shared
+          .filter(
+            (row) =>
+              row.storylineGuid === quest.guid &&
+              row.kind === 'read' &&
+              !guids.includes(row.otherGuid),
+          )
+          .map((row) => row.variable),
+      ),
+    ],
+    name: questText(quest.name, lang),
+    /** whether earlier choices let the quest start at all */
+    test: conditionId ? test(conditionId) : null,
+    /** variables its options write */
+    writes: writes(quest.guid).flatMap((row) =>
+      row.variable && !PART_DONE.test(row.variable) ? [row.variable] : [],
+    ),
+  }))
+  const start = series.find((quest) => quest.guid === id)?.conditionId
+  return {
+    ...head,
+    // the game names a quest's first decision after the quest
+    choices: choices.map((choice) =>
+      choice.headline === head.name
+        ? {
+            ...choice,
+            headline: null,
+          }
+        : choice,
+    ),
+    external: parts.find((quest) => quest.guid === id)?.external ?? [],
+    /** what the game must have for the quest to start; "not yet played" guards left out */
+    requirements: start ? requirements(start).filter((r) => !r.negative) : [],
+    /** the quests this one depends on or leads to, itself included, in order; just itself for a one-off */
+    series: parts,
+    /** the story the quest opens with: the text of the decision it is named after */
+    story:
+      choices.find((choice) => choice.headline === head.name)?.story ?? null,
+  }
 }
 
-function listQuestlines(f: QuestFilter & Page) {
-  return queryQuestlines(f)
+/**
+ * What the earlier quests of the quest's series leave behind when played with `picks` (walk.ts `carryOver`), and
+ * which of them the picks play to the end. Picks name choices of any quest, so one set serves the whole series.
+ */
+async function carryQuest(
+  quest: NonNullable<Awaited<ReturnType<typeof getQuest>>>,
+  picks: QuestPicks,
+  lang: Lang,
+): Promise<{
+  carry: QuestCarry
+  played: Array<number>
+}> {
+  const index = quest.series.findIndex((part) => part.guid === quest.guid)
+  const earlier = Object.keys(picks).length
+    ? await Promise.all(
+        quest.series.slice(0, Math.max(index, 0)).map((part) =>
+          getQuest({
+            id: part.guid,
+            lang,
+          }),
+        ),
+      )
+    : []
+  const records: QuestRecords = {}
+  for (const part of earlier) {
+    if (part) {
+      records[part.guid] = recordQuest(part, picks, carryOver(part, records))
+    }
+  }
+  return {
+    carry: carryOver(quest, records),
+    played: earlier.flatMap((part) =>
+      part && records[part.guid]?.done ? [part.guid] : [],
+    ),
+  }
+}
+
+function listQuests(f: QuestFilter & Page) {
+  return queryQuests(f)
 }
 
 export const quests = {
-  get: getQuestline,
-  list: listQuestlines,
+  carry: carryQuest,
+  get: getQuest,
+  list: listQuests,
 }

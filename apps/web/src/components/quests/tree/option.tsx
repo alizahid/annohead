@@ -26,9 +26,10 @@ export function QuestOptionNode({
 
   const empty = !(
     option.cost ||
-    option.next ||
+    option.nexts.length ||
     option.requirements.length ||
-    option.outcomes.length
+    option.outcomes.length ||
+    option.remembers.length
   )
 
   return (
@@ -88,6 +89,16 @@ export function QuestOptionNode({
               <DataList.Label>{t('outcomes')}</DataList.Label>
 
               <QuestOutcomeList outcomes={option.outcomes} />
+            </>
+          ) : null}
+
+          {option.remembers.length ? (
+            <>
+              <DataList.Label>{t('later')}</DataList.Label>
+
+              {option.remembers.map((change) => (
+                <DataList.Item key={change} name={change} />
+              ))}
             </>
           ) : null}
 

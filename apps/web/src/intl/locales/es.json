@@ -239,20 +239,26 @@
     },
     "quests": {
       "choice": {
+        "carried": "Continúa con tus decisiones de misiones anteriores",
         "check": "El juego comprueba",
         "cost": "Costes",
         "decision": "Decisión",
-        "earlier": "Depende de tus decisiones anteriores",
-        "end": "Fin de la cadena de misiones",
+        "earlier": "Depende del estado de tu partida",
+        "end": "Fin de la misión",
         "fails": "De lo contrario",
+        "follow": "Continúa en",
         "holds": "Si es así",
         "later": "Influye en lo que viene después",
+        "next": "Siguiente: {name}",
         "nothing": "Sin efecto duradero",
         "option": "Opción {number}",
         "outcomes": "Resultado",
         "pick": "Elige una opción para ver adónde lleva",
+        "picked": "Si elegiste",
         "requires": "Requiere",
-        "reset": "Reiniciar"
+        "reset": "Reiniciar",
+        "start": "Comienza la misión",
+        "unless": "A menos que eligieras"
       },
       "filters": {
         "dlcs": "DLC",
@@ -281,7 +287,9 @@
       },
       "page": {
         "empty": "Solo historia, sin decisiones en esta parte.",
+        "played": "Jugada",
         "requires": "Solo si: {requirements}",
+        "series": "Cadena de misiones",
         "untitled": "Sin título"
       }
     },

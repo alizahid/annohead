@@ -239,20 +239,26 @@
     },
     "quests": {
       "choice": {
+        "carried": "Kontynuacja twoich wyborów z wcześniejszych zadań",
         "check": "Gra sprawdza",
         "cost": "Koszty",
         "decision": "Decyzja",
-        "earlier": "Zależy od twoich wcześniejszych wyborów",
-        "end": "Koniec serii zadań",
+        "earlier": "Zależy od stanu twojej gry",
+        "end": "Koniec zadania",
         "fails": "W przeciwnym razie",
+        "follow": "Ciąg dalszy w",
         "holds": "Jeśli tak",
         "later": "Wpływa na dalsze wydarzenia",
+        "next": "Dalej: {name}",
         "nothing": "Brak trwałego efektu",
         "option": "Opcja {number}",
         "outcomes": "Skutek",
         "pick": "Wybierz opcję, aby zobaczyć, dokąd prowadzi",
+        "picked": "Jeśli wybrano",
         "requires": "Wymaga",
-        "reset": "Resetuj"
+        "reset": "Resetuj",
+        "start": "Zadanie się zaczyna",
+        "unless": "Chyba że wybrano"
       },
       "filters": {
         "dlcs": "DLC",
@@ -281,7 +287,9 @@
       },
       "page": {
         "empty": "Tylko fabuła, brak wyborów w tej części.",
+        "played": "Rozegrane",
         "requires": "Tylko jeśli: {requirements}",
+        "series": "Seria zadań",
         "untitled": "Bez tytułu"
       }
     },

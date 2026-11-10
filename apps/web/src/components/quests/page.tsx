@@ -1,4 +1,5 @@
 import { type Quest } from '@anno/db/client'
+import { type QuestCarry } from '@anno/db/walk'
 
 import { CommentList } from '../comments/list'
 import { Icon } from '../common/icon'
@@ -7,10 +8,12 @@ import { RegionCard } from '../shared/region'
 import { QuestFlow } from './tree'
 
 type Props = {
-  quest: Quest
+  carry: QuestCarry
+  played: Array<number>
+  quest: NonNullable<Quest>
 }
 
-export function QuestPage({ quest }: Props) {
+export function QuestPage({ carry, played, quest }: Props) {
   return (
     <div className="flex flex-col gap-12">
       <div className="flex flex-col gap-6 lg:flex-row lg:justify-between">
@@ -31,7 +34,7 @@ export function QuestPage({ quest }: Props) {
         ) : null}
       </div>
 
-      <QuestFlow quest={quest} />
+      <QuestFlow carry={carry} played={played} quest={quest} />
 
       <CommentList guid={quest.guid} />
     </div>

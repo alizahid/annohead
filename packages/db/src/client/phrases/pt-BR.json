@@ -38,7 +38,6 @@
     "ConditionVolcanoPhaseActive": "Vulcão: {name}",
     "ConditionWarState": "Situação da guerra: {variant}"
   },
-  "partSuffix": "\\s*(?:[–-]\\s*)?\\bParte\\s+[IVXL]+\\b.*$",
   "productKinds": {
     "Meta": "Império",
     "Service": "Serviço",
@@ -84,6 +83,7 @@
   },
   "words": {
     "atMost": "no máximo",
+    "chance": "Chance",
     "charioteer": "Auriga",
     "not": "Não",
     "or": "ou"

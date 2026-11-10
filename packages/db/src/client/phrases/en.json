@@ -38,7 +38,6 @@
     "ConditionVolcanoPhaseActive": "Volcano: {name}",
     "ConditionWarState": "War state: {variant}"
   },
-  "partSuffix": "\\s*(?:[–-]\\s*)?\\bPart\\s+[IVXL]+\\b.*$",
   "productKinds": {
     "Meta": "Empire",
     "Service": "Service",
@@ -84,6 +83,7 @@
   },
   "words": {
     "atMost": "at most",
+    "chance": "Chance",
     "charioteer": "Charioteer",
     "not": "Not",
     "or": "or"

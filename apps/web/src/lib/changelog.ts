@@ -7,6 +7,22 @@ type Release = {
 
 export const changelog: Array<Release> = [
   {
+    changed: [
+      'Every quest has its own page: questlines are split into the quests the game starts one by one, 226 in all, like each part of The Mysterious Murmillo',
+      'Quests that depend on each other list their storyline in order, and an option that starts another quest links to it',
+      'Picks carry over to the later quests of a storyline: play The Mysterious Murmillo part by part, follow the link to the next quest, and the last one tallies your favours. Picks live in the page address, so a link shares your whole run',
+      'Game checks say what they check: the picks that decide them, also from another quest, like Making A Sail for Quality Assurance, or what they compare, like Patrician Favor ≥ Neutral Favor',
+      'Choices say what they change for a later check, like Patrician Favor +1',
+      'Parts without a choice of yours, like Folk Of The Great River, are gone',
+      'Quest charts are one connected tree: what follows a part of the story hangs from it, like the verdict after the quiz in Justice For Nymphaeus?, and threads that run side by side set out from one start',
+      'Options that can fail show what decides them, like a 50% chance, Knowledge 5,000 or Story Inspire ≥ 3, and what failing leads to',
+      'Objectives that can fail or run out of time show both ways on',
+      'Quests that only shared an achievement, like Making A Sail and Quality Assurance, are no longer one questline',
+      'Search finds quests by every name the game shows for them, like Back In Business for Making A Sail, and shows the name it matched. Stories without a page lead to the quests they start, like Breadbasket',
+    ],
+    date: new Date('2026-11-10'),
+  },
+  {
     added: [
       '31 more questlines, like Recover the Mummy, Name and Title... and Aboard the Isis',
     ],
